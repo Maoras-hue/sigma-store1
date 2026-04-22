@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sigma Admin Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: system-ui, sans-serif; background: #f5f5f5; padding: 2rem; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { background: white; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+        .card { background: white; border-radius: 12px; padding: 1.5rem; margin-bottom: 2rem; }
+        .card h2 { margin-bottom: 1rem; font-size: 1.3rem; }
+        input, select, textarea { width: 100%; padding: 0.75rem; margin: 0.5rem 0 1rem 0; border: 1px solid #ddd; border-radius: 8px; }
+        button { background: #111; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+        button:hover { background: #e05a2a; }
+        .product-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1rem; margin-top: 1rem; }
+        .product-item { border: 1px solid #eee; border-radius: 8px; padding: 1rem; background: white; }
+        .product-item img { width: 100%; height: 150px; object-fit: cover; border-radius: 8px; }
+        .delete-btn { background: #e05a2a; margin-top: 0.5rem; width: 100%; }
+        .login-container { max-width: 400px; margin: 100px auto; background: white; padding: 2rem; border-radius: 12px; }
+        .hidden { display: none; }
+        .success { background: #4caf50; color: white; padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem; }
+        .error { background: #e05a2a; color: white; padding: 0.5rem; border-radius: 4px; margin-bottom: 1rem; }
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .tab-btn { background: #eee; color: #333; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; border: none; }
+        .tab-btn.active { background: #111; color: white; }
+        .seller-card { border: 1px solid #ddd; padding: 1rem; margin-bottom: 1rem; border-radius: 8px; }
+        .badge { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 0.75rem; margin-left: 10px; }
+        .badge-approved { background: #4caf50; color: white; }
+        .badge-pending { background: #ff9800; color: white; }
+        .badge-rejected { background: #e05a2a; color: white; }
+        .image-type-toggle { display: flex; gap: 10px; margin-bottom: 10px; }
+        .image-type-toggle button { width: auto; padding: 5px 10px; font-size: 0.8rem; }
+        .image-type-toggle button.active { background: #e05a2a; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #f5f5f5; }
+    </style>
+</head>
+<body>
+
+<div id="loginSection" class="login-container">
+    <h2>Sigma Admin Login</h2>
+    <input type="password" id="password" placeholder="Enter admin password">
+    <button onclick="login()">Login</button>
+    <div id="loginMessage"></div>
+</div>
+
+<div id="adminSection" class="container hidden">
+    <div class="header">
+        <h1>σ Sigma Admin Dashboard</h1>
+        <button onclick="logout()">Logout</button>
+    </div>
+
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('products')"> Products</button>
+        <button class="tab-btn" onclick="showTab('orders')"> Orders</button>
+        <button class="tab-btn" onclick="showTab('sellers')"> Sellers</button>
+        <button class="tab-btn" onclick="showTab('analytics')"> Analytics</button>
+    </div>
+
+    <!-- Products Tab -->
+    <div id="productsTab" class="tab-content">
+        <div class="card">
+            <h2>Add New Product</h2>
+            <div id="addMessage"></div>
+            <form id="productForm">
+                <label>Product Name:</label>
+                <input type="text" id="productName" required>
+                
+                <label>Price ($):</label>
+                <input type="number" id="productPrice" step="0.01" required>
+                
+                <label>Category:</label>
+                <select id="productCategory">
+                    <option value="digital">Digital</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="home">Home & Living</option>
+                </select>
+                
+                <label>Stock:</label>
+                <input type="number" id="productStock" value="999">
+                
+                <label>Product Image:</label>
+                <div class="image-type-toggle">
+                    <button type="button" id="btnFile" class="active" onclick="setImageType('file')">📁 Upload File</button>
+                    <button type="button" id="btnUrl" onclick="setImageType('url')">🔗 Image URL</button>
+                </div>
+                
+                <div id="fileUploadDiv">
+                    <input type="file" id="productImage" accept="image/*">
+                </div>
+                
+                <div id="urlUploadDiv" style="display: none;">
+                    <input type="text" id="productImageUrl" placeholder="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300">
+                    <small style="color: #666;">Paste a direct image URL (use Unsplash, Imgur, or any image host)</small>
+                </div>
+                
+                <button type="submit">Add Product</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>All Products</h2>
+            <div id="productsList" class="product-grid">Loading...</div>
+        </div>
+    </div>
+
+    <div id="ordersTab" class="tab-content hidden">
+        <div class="card">
+            <h2>All Orders</h2>
+            <div id="ordersList">Loading...</div>
+        </div>
+    </div>
+
+    <div id="sellersTab" class="tab-content hidden">
+        <div class="card">
+            <h2>Pending Seller Applications</h2>
+            <div id="pendingSellers">Loading...</div>
+        </div>
+        <div class="card">
+            <h2>All Sellers</h2>
+            <div id="allSellers">Loading...</div>
+        </div>
+    </div>
+
+    <div id="analyticsTab" class="tab-content hidden">
+        <div class="card">
+            <h2>Store Analytics</h2>
+            <div id="analyticsData">
+                <p>Total Products: <strong id="totalProducts">0</strong></p>
+                <p>Total Orders: <strong id="totalOrders">0</strong></p>
+                <p>Total Sales: $<strong id="totalSales">0</strong></p>
+                <p>Total Sellers: <strong id="totalSellers">0</strong></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'https://sigma-store-api.onrender.com';
+    let currentImageType = 'file';
+
+    function setImageType(type) {
+        currentImageType = type;
+        const fileDiv = document.getElementById('fileUploadDiv');
+        const urlDiv = document.getElementById('urlUploadDiv');
+        const btnFile = document.getElementById('btnFile');
+        const btnUrl = document.getElementById('btnUrl');
+        
+        if (type === 'file') {
+            fileDiv.style.display = 'block';
+            urlDiv.style.display = 'none';
+            btnFile.classList.add('active');
+            btnUrl.classList.remove('active');
+        } else {
+            fileDiv.style.display = 'none';
+            urlDiv.style.display = 'block';
+            btnFile.classList.remove('active');
+            btnUrl.classList.add('active');
+        }
+    }
+
+    async function login() {
+        const password = document.getElementById('password').value;
+        try {
+            const response = await fetch(`${API_URL}/api/admin/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: password })
+            });
+            if (response.ok) {
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('adminSection').classList.remove('hidden');
+                loadProducts();
+                loadOrders();
+                loadSellers();
+                loadAnalytics();
+            } else {
+                document.getElementById('loginMessage').innerHTML = '<div class="error">Wrong password! Try: sigma123</div>';
+            }
+        } catch(e) {
+            document.getElementById('loginMessage').innerHTML = '<div class="error">Cannot connect to backend</div>';
+        }
+    }
+
+    function logout() {
+        document.getElementById('loginSection').classList.remove('hidden');
+        document.getElementById('adminSection').classList.add('hidden');
+        document.getElementById('password').value = '';
+    }
+
+    function showTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.getElementById(`${tab}Tab`).classList.remove('hidden');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+        if (tab === 'products') loadProducts();
+        if (tab === 'orders') loadOrders();
+        if (tab === 'sellers') loadSellers();
+        if (tab === 'analytics') loadAnalytics();
+    }
+
+    async function loadProducts() {
+        try {
+            const response = await fetch(`${API_URL}/api/products`);
+            const products = await response.json();
+            const container = document.getElementById('productsList');
+            if (products.length === 0) {
+                container.innerHTML = '<p>No products yet. Add one above!</p>';
+                return;
+            }
+            container.innerHTML = products.map(p => {
+                let imgSrc = p.image;
+                if (imgSrc && (imgSrc.startsWith('http://') || imgSrc.startsWith('https://'))) {
+                    imgSrc = imgSrc;
+                } else if (imgSrc) {
+                    imgSrc = `${API_URL}/uploads/${imgSrc}`;
+                } else {
+                    imgSrc = 'https://placehold.co/300x200/111/white?text=No+Image';
+                }
+                return `
+                    <div class="product-item">
+                        <img src="${imgSrc}" onerror="this.src='https://placehold.co/300x200/111/white?text=Product'">
+                        <h3>${p.name}</h3>
+                        <p>$${p.price}</p>
+                        <button class="delete-btn" onclick="deleteProduct('${p.id}')">Delete</button>
+                    </div>
+                `;
+            }).join('');
+        } catch(e) {
+            document.getElementById('productsList').innerHTML = '<p>Error loading products</p>';
+        }
+    }
+
+    async function deleteProduct(id) {
+        if (confirm('Delete this product?')) {
+            await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' });
+            loadProducts();
+        }
+    }
+
+    document.getElementById('productForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        formData.append('name', document.getElementById('productName').value);
+        formData.append('price', document.getElementById('productPrice').value);
+        formData.append('category', document.getElementById('productCategory').value);
+        formData.append('stock', document.getElementById('productStock').value);
+        
+        if (currentImageType === 'file') {
+            const fileInput = document.getElementById('productImage');
+            if (fileInput.files.length > 0) {
+                formData.append('image', fileInput.files[0]);
+            }
+        } else {
+            const urlInput = document.getElementById('productImageUrl').value;
+            if (urlInput) {
+                formData.append('imageUrl', urlInput);
+            }
+        }
+        
+        const response = await fetch(`${API_URL}/api/products`, { method: 'POST', body: formData });
+        if (response.ok) {
+            document.getElementById('addMessage').innerHTML = '<div class="success">Product added successfully!</div>';
+            document.getElementById('productForm').reset();
+            document.getElementById('productImageUrl').value = '';
+            setImageType('file');
+            loadProducts();
+            setTimeout(() => document.getElementById('addMessage').innerHTML = '', 3000);
+        } else {
+            document.getElementById('addMessage').innerHTML = '<div class="error">Failed to add product</div>';
+        }
+    });
+
+    async function loadOrders() {
+        try {
+            const response = await fetch(`${API_URL}/api/admin/orders`);
+            const data = await response.json();
+            const orders = data.orders || [];
+            document.getElementById('ordersList').innerHTML = orders.length === 0 ? '<p>No orders yet.</p>' : 
+                `<table><thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th></tr></thead><tbody>
+                ${orders.map(o => `<tr><td>${o.order_id || o.orderId}</td><td>${o.user_email || o.userEmail}</td><td>$${o.total}</td><td>${o.status}</td><td>${new Date(o.created_at || o.createdAt).toLocaleDateString()}</td></tr>`).join('')}
+                </tbody></table>`;
+        } catch(e) { document.getElementById('ordersList').innerHTML = '<p>Error loading orders</p>'; }
+    }
+
+    async function loadSellers() {
+        try {
+            const response = await fetch(`${API_URL}/api/admin/sellers/all`);
+            const data = await response.json();
+            const sellers = data.sellers || [];
+            document.getElementById('allSellers').innerHTML = sellers.length === 0 ? '<p>No sellers yet</p>' :
+                sellers.map(s => `<div class="seller-card"><h3>${s.store_name || s.storeName} <span class="badge ${s.status === 'approved' ? 'badge-approved' : 'badge-pending'}">${s.status}</span></h3><p>Email: ${s.user_email || s.userEmail}</p><p>Category: ${s.category}</p></div>`).join('');
+            
+            const pendingRes = await fetch(`${API_URL}/api/admin/sellers/pending`);
+            const pendingData = await pendingRes.json();
+            document.getElementById('pendingSellers').innerHTML = pendingData.sellers?.length === 0 ? '<p>No pending applications</p>' :
+                pendingData.sellers?.map(s => `<div class="seller-card"><h3>${s.store_name || s.storeName} <span class="badge badge-pending">${s.status}</span></h3><p>Email: ${s.user_email || s.userEmail}</p><button onclick="approveSeller('${s.id}')">Approve</button> <button onclick="rejectSeller('${s.id}')">Reject</button></div>`).join('');
+        } catch(e) { console.error(e); }
+    }
+
+    async function approveSeller(id) { await fetch(`${API_URL}/api/admin/sellers/${id}/approve`, { method: 'POST' }); loadSellers(); }
+    async function rejectSeller(id) { await fetch(`${API_URL}/api/admin/sellers/${id}/reject`, { method: 'POST' }); loadSellers(); }
+
+    async function loadAnalytics() {
+        try {
+            const products = await (await fetch(`${API_URL}/api/products`)).json();
+            const orders = await (await fetch(`${API_URL}/api/admin/orders`)).json();
+            const sellers = await (await fetch(`${API_URL}/api/admin/sellers/all`)).json();
+            document.getElementById('totalProducts').innerText = products.length;
+            document.getElementById('totalOrders').innerText = (orders.orders || []).length;
+            document.getElementById('totalSales').innerText = (orders.orders || []).reduce((s, o) => s + (o.total || 0), 0);
+            document.getElementById('totalSellers').innerText = (sellers.sellers || []).length;
+        } catch(e) { console.error(e); }
+    }
+</script>
+</body>
+</html>

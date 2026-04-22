@@ -1,0 +1,180 @@
+﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms of Service - Sigma</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .legal-container {
+            max-width: 900px;
+            margin: 2rem auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .legal-container h1 {
+            color: #e05a2a;
+            margin-bottom: 1rem;
+        }
+        .legal-container h2 {
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 1.2rem;
+        }
+        .legal-container p {
+            margin-bottom: 0.8rem;
+            line-height: 1.6;
+            color: #444;
+        }
+        .legal-container ul {
+            margin-left: 2rem;
+            margin-bottom: 1rem;
+        }
+        .legal-container li {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+        .last-updated {
+            color: #888;
+            font-size: 0.8rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid #eee;
+        }
+        body.dark .legal-container {
+            background: #1e1e1e;
+        }
+        body.dark .legal-container p {
+            color: #ccc;
+        }
+    </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-699CL509Z4');
+</script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">Ïƒ sigma</a>
+    <div class="nav">
+        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="wishlist.html">wishlist</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="container">
+        <div class="legal-container">
+            <h1> Terms of Service</h1>
+            <p>Welcome to Sigma Studio. By using our website, you agree to these terms.</p>
+
+            <h2>1. Acceptance of Terms</h2>
+            <p>By accessing and using Sigma Studio, you accept and agree to be bound by these Terms of Service. If you do not agree, please do not use our website.</p>
+
+            <h2>2. Digital Products</h2>
+            <p>All products sold on Sigma Studio are digital goods. Upon successful payment, you will receive a download link. Digital products are non-returnable and non-refundable unless specified otherwise.</p>
+
+            <h2>3. Account Responsibility</h2>
+            <p>You are responsible for maintaining the security of your account. Sigma Studio is not liable for any loss or damage from your failure to comply with this security obligation.</p>
+
+            <h2>4. Prohibited Uses</h2>
+            <p>You may not use our website for:</p>
+            <ul>
+                <li>Any unlawful purpose</li>
+                <li>To solicit others to perform illegal acts</li>
+                <li>To violate any laws or regulations</li>
+                <li>To infringe on our intellectual property rights</li>
+                <li>To transmit malicious code or viruses</li>
+            </ul>
+
+            <h2>5. Intellectual Property</h2>
+            <p>All content on Sigma Studio, including templates, code, designs, and graphics, is the property of Sigma Studio and is protected by copyright laws. You may not resell, redistribute, or claim our products as your own.</p>
+
+            <h2>6. Seller Terms</h2>
+            <p>If you are a seller on our platform:</p>
+            <ul>
+                <li>You agree to provide accurate product information</li>
+                <li>You are responsible for delivering products to customers</li>
+                <li>Sigma Studio takes 10% commission on each sale</li>
+                <li>We reserve the right to remove products that violate our policies</li>
+            </ul>
+
+            <h2>7. Limitation of Liability</h2>
+            <p>Sigma Studio is not liable for any indirect, incidental, or consequential damages arising from your use of our website or products.</p>
+
+            <h2>8. Changes to Terms</h2>
+            <p>We reserve the right to modify these terms at any time. Changes will be effective immediately upon posting.</p>
+
+            <h2>9. Governing Law</h2>
+            <p>These terms shall be governed by and construed in accordance with the laws of Pakistan.</p>
+
+            <h2>10. Contact Us</h2>
+            <p>If you have any questions about these Terms, please contact us at: <strong>ifiwas1898617@gmail.com</strong></p>
+
+            <div class="last-updated">
+                Last Updated: April 8, 2026
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>sigma studio â€” mardan, pakistan</p>
+</footer>
+
+<script src="script.js"></script>
+<script>
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const badge = document.getElementById('cartCount');
+        if (badge) badge.innerText = total;
+    }
+    
+    document.getElementById('darkToggle')?.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
+        localStorage.setItem('sigma_dark', isDark);
+    });
+    
+    if (localStorage.getItem('sigma_dark') === 'true') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+    }
+    
+    updateCartCount();
+</script>
+    <script src="navbar.js"></script>
+</body>
+</html>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->

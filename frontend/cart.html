@@ -1,0 +1,511 @@
+﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sigma â€” cart</title>
+    <link rel="stylesheet" href="style.css">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-699CL509Z4');
+</script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">Ïƒ SIGMA</a>
+    <div class="nav">
+        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="track.html">track order</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="container">
+        <h2 style="margin: 1rem 0;">your cart</h2>
+        <div id="cartItems"></div>
+        <div id="cartTotal" style="margin-top: 1.5rem; padding: 1rem; background: white; border-radius: 12px;"></div>
+        
+        <textarea id="orderNotes" placeholder="special requests or build preferences..." style="width:100%; margin:1rem 0; padding:0.8rem; border:1px solid #ddd; border-radius:8px;"></textarea>
+        
+        <!-- Payment buttons will appear here -->
+        <div id="payment-buttons-container"></div>
+        
+        <br><br>
+        <a href="index.html" style="color:#e05a2a;">â† back to shop</a>`n        <a href="reviews.html">reviews</a>
+    </div>
+</main>
+
+<footer>
+    <p>sigma studio â€” mardan, pk</p>
+    <p>email:sigma@example.com</p>
+</footer>
+
+<script>
+    // ============================================
+    // CONFIGURATION
+    // ============================================
+    const BACKEND_URL = 'https://sigma-store-api.onrender.com';
+    
+    // ============================================
+    // CART FUNCTIONS
+    // ============================================
+    function getCart() {
+        return JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+    }
+    
+    function saveCart(cart) {
+        localStorage.setItem('sigma_cart', JSON.stringify(cart));
+        updateCartCount();
+    }
+    
+    function updateCartCount() {
+        const cart = getCart();
+        const total = cart.reduce((sum, i) => sum + i.quantity, 0);
+        const badge = document.getElementById('cartCount');
+        if (badge) badge.innerText = total;
+    }
+    
+    function calculateCartTotal() {
+        const cart = getCart();
+        let subtotal = 0;
+        for (let item of cart) {
+            subtotal += item.price * item.quantity;
+        }
+        const shipping = subtotal > 120 ? 0 : 12;
+        const total = subtotal + shipping;
+        return { cart, subtotal, shipping, total };
+    }
+    
+    function renderCart() {
+        const { cart, subtotal, shipping, total } = calculateCartTotal();
+        const container = document.getElementById('cartItems');
+        const btnContainer = document.getElementById('payment-buttons-container');
+        
+        if (cart.length === 0) {
+            container.innerHTML = '<p style="padding:40px; text-align:center;">empty cart </p>';
+            document.getElementById('cartTotal').innerHTML = '';
+            if (btnContainer) btnContainer.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        for (let item of cart) {
+            const itemTotal = item.price * item.quantity;
+            html += `
+                <div style="display:flex; justify-content:space-between; align-items:center; padding:1rem; border-bottom:1px solid #eee; flex-wrap:wrap; gap:0.5rem;">
+                    <div><strong>${item.name}</strong><br><span style="font-size:0.8rem;">$${item.price} each</span></div>
+                    <div style="display:flex; gap:0.5rem; align-items:center;">
+                        <button onclick="updateQty('${item.id}', -1)" style="padding:0.2rem 0.6rem;">-</button>
+                        <span>${item.quantity}</span>
+                        <button onclick="updateQty('${item.id}', 1)" style="padding:0.2rem 0.6rem;">+</button>
+                        <button onclick="removeItem('${item.id}')" style="background:#e05a2a; border:none; padding:0.2rem 0.6rem; border-radius:4px; color:white;">remove</button>
+                    </div>
+                    <div><strong>$${itemTotal}</strong></div>
+                </div>
+            `;
+        }
+        
+        container.innerHTML = html;
+        document.getElementById('cartTotal').innerHTML = `
+            <div style="color:black;">
+                <div>subtotal: $${subtotal}</div>
+                <div>shipping: ${shipping === 0 ? 'free' : '$' + shipping}</div>
+                <div style="font-weight:bold; margin-top:8px;">total: $${total}</div>
+                ${subtotal < 120 ? `<small>spend $${120 - subtotal} more for free shipping</small>` : '<small> free shipping</small>'}
+            </div>
+        `;
+        
+        // Render payment buttons after cart is rendered
+        renderPaymentButtons();
+    }
+    
+    function updateQty(id, delta) {
+        let cart = getCart();
+        const index = cart.findIndex(i => i.id === id);
+        if (index !== -1) {
+            cart[index].quantity += delta;
+            if (cart[index].quantity < 1) cart.splice(index, 1);
+            saveCart(cart);
+            renderCart();
+        }
+    }
+    
+    function removeItem(id) {
+        let cart = getCart();
+        cart = cart.filter(i => i.id !== id);
+        saveCart(cart);
+        renderCart();
+    }
+    
+    // ============================================
+    // CREATE ORDER IN BACKEND
+    // ============================================
+    async function createOrder(paymentMethod, paymentId = null) {
+        const { cart, subtotal, shipping, total } = calculateCartTotal();
+        const notes = document.getElementById('orderNotes')?.value || '';
+        const token = localStorage.getItem('authToken');
+        
+        const response = await fetch(`${BACKEND_URL}/api/orders`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token || ''
+            },
+            body: JSON.stringify({
+                items: cart,
+                subtotal: subtotal,
+                shipping: shipping,
+                total: total,
+                notes: notes,
+                paymentMethod: paymentMethod,
+                paymentId: paymentId
+            })
+        });
+        
+        const data = await response.json();
+        return data.order;
+    }
+    
+    // ============================================
+    // LOAD PAYMENT CONFIGURATION
+    // ============================================
+    let paymentConfig = {};
+    
+    async function loadPaymentConfig() {
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/payment-config`);
+            paymentConfig = await response.json();
+            return paymentConfig;
+        } catch(e) {
+            console.error('Failed to load payment config:', e);
+            return null;
+        }
+    }
+    
+    // ============================================
+    // STRIPE PAYMENT
+    // ============================================
+    async function initStripePayment() {
+        const { total } = calculateCartTotal();
+        
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                if (confirm('Please login to continue. Go to login page?')) {
+                    window.location.href = 'login.html';
+                }
+                return;
+            }
+            
+            // Create order first
+            const order = await createOrder('stripe');
+            
+            // Create payment intent
+            const response = await fetch(`${BACKEND_URL}/api/create-payment-intent`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    amount: total, 
+                    currency: 'usd',
+                    orderId: order.orderId 
+                })
+            });
+            
+            const { clientSecret } = await response.json();
+            
+            // Load Stripe.js dynamically
+            const script = document.createElement('script');
+            script.src = 'https://js.stripe.com/v3/';
+            script.onload = () => {
+                const stripe = Stripe(paymentConfig.stripe.publicKey);
+                
+                const modalHtml = `
+                    <div id="stripe-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center;">
+                        <div style="background:white; border-radius:16px; padding:30px; max-width:500px; width:90%;">
+                            <h3 style="margin-bottom:20px;">Enter Card Details</h3>
+                            <div id="stripe-card-element" style="border:1px solid #ddd; padding:15px; border-radius:8px;"></div>
+                            <button id="stripe-pay-btn" style="margin-top:20px; width:100%; background:#111; color:white; padding:12px; border:none; border-radius:8px; cursor:pointer;">Pay $${total}</button>
+                            <button id="stripe-close-btn" style="margin-top:10px; width:100%; background:#f5f5f5; padding:12px; border:none; border-radius:8px; cursor:pointer;">Cancel</button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                
+                const elements = stripe.elements();
+                const cardElement = elements.create('card');
+                cardElement.mount('#stripe-card-element');
+                
+                document.getElementById('stripe-pay-btn').addEventListener('click', async () => {
+                    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+                        payment_method: { card: cardElement }
+                    });
+                    
+                    if (error) {
+                        alert('Payment failed: ' + error.message);
+                    } else if (paymentIntent.status === 'succeeded') {
+                        localStorage.setItem('lastOrderId', order.orderId);
+                        localStorage.setItem('lastOrderAmount', total);
+                        localStorage.setItem('lastPaymentMethod', 'Stripe');
+                        localStorage.removeItem('sigma_cart');
+                        window.location.href = 'payment-success.html';
+                    }
+                });
+                
+                document.getElementById('stripe-close-btn').addEventListener('click', () => {
+                    document.getElementById('stripe-modal').remove();
+                });
+            };
+            document.body.appendChild(script);
+            
+        } catch(e) {
+            console.error('Stripe error:', e);
+            alert('Payment initialization failed: ' + e.message);
+        }
+    }
+    
+    // ============================================
+    // PAYPAL PAYMENT
+    // ============================================
+    async function initPayPalPayment() {
+        const { total } = calculateCartTotal();
+        
+        try {
+            const token = localStorage.getItem('authToken');
+            if (!token) {
+                if (confirm('Please login to continue. Go to login page?')) {
+                    window.location.href = 'login.html';
+                }
+                return;
+            }
+            
+            const order = await createOrder('paypal');
+            
+            const script = document.createElement('script');
+            script.src = `https://www.paypal.com/sdk/js?client-id=${paymentConfig.paypal.clientId}&currency=USD`;
+            script.onload = async () => {
+                const paypalOrderRes = await fetch(`${BACKEND_URL}/api/create-paypal-order`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: total, orderId: order.orderId })
+                });
+                const { orderId: paypalOrderId } = await paypalOrderRes.json();
+                
+                const modalHtml = `
+                    <div id="paypal-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; display:flex; align-items:center; justify-content:center;">
+                        <div style="background:white; border-radius:16px; padding:30px; max-width:500px; width:90%;">
+                            <h3 style="margin-bottom:20px;">Pay with PayPal</h3>
+                            <div id="paypal-button-container"></div>
+                            <button id="paypal-close-btn" style="margin-top:15px; width:100%; background:#f5f5f5; padding:12px; border:none; border-radius:8px; cursor:pointer;">Cancel</button>
+                        </div>
+                    </div>
+                `;
+                document.body.insertAdjacentHTML('beforeend', modalHtml);
+                
+                window.paypal.Buttons({
+                    createOrder: () => paypalOrderId,
+                    onApprove: async (data) => {
+                        const captureRes = await fetch(`${BACKEND_URL}/api/capture-paypal-order`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ orderId: order.orderId, paypalOrderId: data.orderID })
+                        });
+                        const result = await captureRes.json();
+                        if (result.success) {
+                            localStorage.setItem('lastOrderId', order.orderId);
+                            localStorage.setItem('lastOrderAmount', total);
+                            localStorage.setItem('lastPaymentMethod', 'PayPal');
+                            localStorage.removeItem('sigma_cart');
+                            window.location.href = 'payment-success.html';
+                        }
+                    },
+                    onError: (err) => {
+                        console.error('PayPal error:', err);
+                        alert('Payment failed');
+                    }
+                }).render('#paypal-button-container');
+                
+                document.getElementById('paypal-close-btn').addEventListener('click', () => {
+                    document.getElementById('paypal-modal').remove();
+                });
+            };
+            document.body.appendChild(script);
+            
+        } catch(e) {
+            console.error('PayPal error:', e);
+            alert('Payment initialization failed');
+        }
+    }
+    
+    // ============================================
+    // WHATSAPP ORDER
+    // ============================================
+    async function sendWhatsAppOrder() {
+        const cart = getCart();
+        if (cart.length === 0) {
+            alert('Cart is empty!');
+            return;
+        }
+        
+        // Check if user is logged in
+        let isLoggedIn = false;
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/me`, { 
+                headers: { 'Authorization': localStorage.getItem('authToken') || '' }
+            });
+            isLoggedIn = response.ok;
+        } catch(e) {}
+        
+        if (!isLoggedIn) {
+            if (confirm('Please login to place order. Go to login page?')) {
+                window.location.href = 'login.html';
+            }
+            return;
+        }
+        
+        let subtotal = 0;
+        let itemsList = '';
+        cart.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            subtotal += itemTotal;
+            itemsList += `${item.name} x ${item.quantity} = $${itemTotal}\n`;
+        });
+        
+        const shipping = subtotal > 120 ? 0 : 12;
+        const total = subtotal + shipping;
+        const notes = document.getElementById('orderNotes').value;
+        
+        try {
+            const orderData = await createOrder('whatsapp');
+            const orderId = orderData.orderId;
+            
+            let userName = 'Customer';
+            try {
+                const user = JSON.parse(localStorage.getItem('sigma_user') || 'null');
+                if (user && user.name) userName = user.name;
+            } catch(e) {}
+            
+            const message = ` NEW ORDER #${orderId}\n\n` +
+                           ` Customer: ${userName}\n\n` +
+                           ` ORDER DETAILS:\n${itemsList}\n` +
+                           ` Subtotal: $${subtotal}\n` +
+                           ` Shipping: ${shipping === 0 ? 'Free' : '$' + shipping}\n` +
+                           ` TOTAL: $${total}\n\n` +
+                           ` Notes: ${notes || 'None'}\n\n` +
+                           ` Track: ${window.location.origin}/track.html?order=${orderId}`;
+            
+            const encodedMessage = encodeURIComponent(message);
+            const whatsappUrl = `https://wa.me/923001234567?text=${encodedMessage}`;
+            window.open(whatsappUrl, '_blank');
+            
+            localStorage.removeItem('sigma_cart');
+            renderCart();
+            updateCartCount();
+            
+            alert(` Order placed!\n Order ID: ${orderId}\nðŸ”— Save this ID to track your order.`);
+            
+        } catch(error) {
+            console.error('Order error:', error);
+            alert('Failed to place order. Make sure backend is running.');
+        }
+    }
+    
+    // ============================================
+    // RENDER PAYMENT BUTTONS
+    // ============================================
+    async function renderPaymentButtons() {
+        await loadPaymentConfig();
+        const { cart, total } = calculateCartTotal();
+        const container = document.getElementById('payment-buttons-container');
+        
+        if (!container || cart.length === 0) return;
+        
+        let buttonsHtml = '<div style="margin: 20px 0;"><h3 style="margin-bottom:15px;">Choose Payment Method</h3>';
+        
+        if (paymentConfig.stripe?.enabled) {
+            buttonsHtml += `
+                <button onclick="initStripePayment()" style="background:#635bff; color:white; padding:15px; border-radius:8px; margin:5px 0; border:none; cursor:pointer; width:100%; font-size:16px; font-weight:bold;">
+                    ðŸ’³ Pay with Credit Card (Stripe) - $${total}
+                </button>
+            `;
+        }
+        
+        if (paymentConfig.paypal?.enabled) {
+            buttonsHtml += `
+                <button onclick="initPayPalPayment()" style="background:#0070ba; color:white; padding:15px; border-radius:8px; margin:5px 0; border:none; cursor:pointer; width:100%; font-size:16px; font-weight:bold;">
+                     PayPal - $${total}
+                </button>
+            `;
+        }
+        
+        buttonsHtml += `
+            <button onclick="sendWhatsAppOrder()" style="background:#25D366; color:white; padding:15px; border-radius:8px; margin:5px 0; border:none; cursor:pointer; width:100%; font-size:16px; font-weight:bold;">
+                ðŸ“± Order via WhatsApp (JazzCash/Easypaisa)
+            </button>
+        `;
+        
+        buttonsHtml += `
+            <div style="background:#f5f5f5; padding:15px; border-radius:12px; margin-top:15px;">
+                <p><strong> Payment Options:</strong></p>
+                <p>â€¢ Easypaisa: <strong>03XX-XXXXXXX</strong></p>
+                <p>â€¢ JazzCash: <strong>03XX-XXXXXXX</strong></p>
+                <p>â€¢ Bank Transfer: Ask on WhatsApp</p>
+                <p style="margin-top:10px; font-size:0.85rem;"> After payment, you'll receive download link</p>
+            </div>
+        `;
+        
+        buttonsHtml += '</div>';
+        container.innerHTML = buttonsHtml;
+    }
+    
+    // ============================================
+    // DARK MODE
+    // ============================================
+    document.getElementById('darkToggle')?.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
+        localStorage.setItem('sigma_dark', isDark);
+    });
+    
+    if (localStorage.getItem('sigma_dark') === 'true') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+    }
+    
+    // Initialize page
+    renderCart();
+    updateCartCount();
+</script>
+    <script src="navbar.js"></script>
+</body>
+</html>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->

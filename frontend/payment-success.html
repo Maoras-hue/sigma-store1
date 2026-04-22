@@ -1,0 +1,230 @@
+﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Successful - Sigma Store</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .checkmark {
+            width: 80px;
+            height: 80px;
+            background: #4caf50;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            animation: scale 0.5s ease;
+        }
+        @keyframes scale {
+            0% { transform: scale(0); }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .checkmark span {
+            color: white;
+            font-size: 50px;
+            font-weight: bold;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        .order-details {
+            background: #f5f5f5;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .order-details p {
+            margin-bottom: 8px;
+            color: #333;
+        }
+        .buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        .btn-primary {
+            background: #111;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #e05a2a;
+            transform: translateY(-2px);
+        }
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+        .btn-secondary:hover {
+            background: #eee;
+        }
+        .confetti {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 999;
+        }
+    </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-699CL509Z4');
+</script>
+</head>
+<body>
+    <div class="confetti" id="confetti"></div>
+    <div class="success-card">
+        <div class="checkmark">
+            <span>âœ“</span>
+        </div>
+        <h1>Payment Successful!</h1>
+        <p>Thank you for your purchase. Your order has been confirmed.</p>
+        
+        <div class="order-details" id="orderDetails">
+            <p><strong>Order ID:</strong> <span id="orderId">Loading...</span></p>
+            <p><strong>Amount Paid:</strong> <span id="orderAmount">$0.00</span></p>
+            <p><strong>Payment Method:</strong> <span id="paymentMethod">-</span></p>
+            <p><strong>Status:</strong> <span style="color:#4caf50;">âœ“ Confirmed</span></p>
+        </div>
+        
+        <p>A confirmation email has been sent to your email address.</p>
+        
+        <div class="buttons">
+            <a href="track.html" class="btn btn-primary">Track Your Order</a>
+            <a href="index.html" class="btn btn-secondary">Continue Shopping</a>
+        </div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://sigma-store-api.onrender.com';
+        
+        // Get order details from URL or localStorage
+        const urlParams = new URLSearchParams(window.location.search);
+        let orderId = urlParams.get('order');
+        let amount = urlParams.get('amount');
+        let method = urlParams.get('method');
+        
+        // If not in URL, try localStorage
+        if (!orderId) {
+            orderId = localStorage.getItem('lastOrderId');
+            amount = localStorage.getItem('lastOrderAmount');
+            method = localStorage.getItem('lastPaymentMethod');
+        }
+        
+        // Display order details
+        if (orderId) {
+            document.getElementById('orderId').innerText = orderId;
+            document.getElementById('orderAmount').innerText = amount ? `$${amount}` : '--';
+            document.getElementById('paymentMethod').innerText = method || 'Credit Card';
+            
+            // Clear localStorage
+            localStorage.removeItem('lastOrderId');
+            localStorage.removeItem('lastOrderAmount');
+            localStorage.removeItem('lastPaymentMethod');
+        } else {
+            document.getElementById('orderId').innerHTML = '<a href="track.html">Click here to track</a>';
+        }
+        
+        // Confetti effect
+        function createConfetti() {
+            const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
+            for (let i = 0; i < 100; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-10px';
+                confetti.style.borderRadius = '50%';
+                confetti.style.pointerEvents = 'none';
+                confetti.style.zIndex = '1000';
+                confetti.style.animation = `fall ${Math.random() * 3 + 2}s linear forwards`;
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 5000);
+            }
+        }
+        
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fall {
+                0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        createConfetti();
+        
+        // Clear cart after successful payment
+        localStorage.removeItem('sigma_cart');
+    </script>
+    <script src="navbar.js"></script>
+</body>
+</html>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->

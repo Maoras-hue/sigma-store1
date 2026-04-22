@@ -1,0 +1,221 @@
+﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard - Sigma</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .stat-card h3 {
+            font-size: 2rem;
+            color: #e05a2a;
+        }
+        .seller-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 2rem;
+        }
+        .seller-actions button {
+            background: #111;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .seller-actions button:hover {
+            background: #e05a2a;
+        }
+        .error-box {
+            background: #ffebee;
+            color: #e05a2a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        body.dark .stat-card {
+            background: #1e1e1e;
+        }
+        body.dark .error-box {
+            background: #2a2a2a;
+        }
+    </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-699CL509Z4');
+</script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">Ïƒ sigma</a>
+    <div class="nav">
+        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="seller-dashboard.html">sell</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="container">
+        <h2> Seller Dashboard</h2>
+        
+        <div id="loadingMsg" style="text-align: center; padding: 2rem;">Loading dashboard...</div>
+        <div id="errorMsg" class="error-box" style="display: none;"></div>
+        
+        <div id="dashboardContent" style="display: none;">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalSales">0</h3>
+                    <p>Total Sales ($)</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="balance">0</h3>
+                    <p>Balance ($)</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="productCount">0</h3>
+                    <p>Products</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="orderCount">0</h3>
+                    <p>Orders</p>
+                </div>
+            </div>
+            
+            <div class="seller-actions">
+                <button onclick="location.href='seller-add-product.html'"> Add Product</button>
+                <button onclick="location.href='seller-products.html'"> My Products</button>
+                <button onclick="location.href='seller-orders.html'"> My Orders</button>
+                <button onclick="location.href='seller-signup.html'"> Apply as Seller</button>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>sigma studio â€” mardan, pk</p>
+</footer>
+
+<script>
+    const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+    
+    function getAuthToken() {
+        return localStorage.getItem('authToken');
+    }
+    
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        const total = cart.reduce((s, i) => s + i.quantity, 0);
+        document.getElementById('cartCount').innerText = total;
+    }
+    
+    document.getElementById('darkToggle')?.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
+        localStorage.setItem('sigma_dark', isDark);
+    });
+    
+    if (localStorage.getItem('sigma_dark') === 'true') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+    }
+    
+    async function loadDashboard() {
+        const token = getAuthToken();
+        
+        if (!token) {
+            document.getElementById('loadingMsg').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('errorMsg').innerHTML = ' Please login first. <a href="login.html">Click here to login</a>';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_URL}/api/seller/dashboard`, {
+                headers: {
+                    'Authorization': token
+                }
+            });
+            
+            if (response.status === 401) {
+                localStorage.removeItem('authToken');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            if (response.status === 404) {
+                document.getElementById('loadingMsg').innerHTML = '<a href="seller-signup.html">Apply to become a seller</a>';
+                return;
+            }
+            
+            if (!response.ok) {
+                throw new Error('Failed to load');
+            }
+            
+            const data = await response.json();
+            
+            document.getElementById('totalSales').innerText = data.seller.totalSales || 0;
+            document.getElementById('balance').innerText = data.seller.balance || 0;
+            document.getElementById('productCount').innerText = data.stats?.totalProducts || 0;
+            document.getElementById('orderCount').innerText = data.stats?.totalOrders || 0;
+            
+            document.getElementById('loadingMsg').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'block';
+            
+        } catch(error) {
+            document.getElementById('loadingMsg').style.display = 'none';
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('errorMsg').innerHTML = ' Cannot connect to server. Make sure backend is running on port 3000';
+        }
+    }
+    
+    updateCartCount();
+    loadDashboard();
+</script>
+    <script src="navbar.js"></script>
+</body>
+</html>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->

@@ -1,0 +1,60 @@
+{
+    "products": [
+        {
+            "id": "p1",
+            "name": "laptop core i7",
+            "price": 300,
+            "category": "digital",
+            "image": "laptop-computer-on-wooden-table.jpg"
+        },
+        {
+            "id": "p2",
+            "name": "microphone",
+            "price": 20,
+            "category": "digital",
+            "image": "black-tilted-microphone-and-a-computer-keyboard.jpg"
+        },
+        {
+            "id": "p3",
+            "name": "guitar",
+            "price": 129,
+            "category": "digital",
+            "image": "electric-guitar-held-high.jpg"
+        },
+        {
+            "id": "p4",
+            "name": "camera",
+            "price": 86,
+            "category": "digital",
+            "image": "small-mirrorless-camera-on-grey-background.jpg"
+        },
+        {
+            "id": "p5",
+            "name": "watch",
+            "price": 99,
+            "category": "digital",
+            "image": "mens-watch-in-sun.jpg"
+        },
+        {
+            "id": "p6",
+            "name": "makeup products",
+            "price": 50,
+            "category": "digital",
+            "image": "makeup-beauty-flatlay.jpg"
+        },
+        {
+            "id": "p7",
+            "name": "mini drone",
+            "price": 100,
+            "category": "digital",
+            "image": "drone-knoll-flatlay.jpg"
+        },
+        {
+            "id": "p8",
+            "name": "pair of dumbbells",
+            "price": 70,
+            "category": "digital",
+            "image": "vd-photography-H-qxKCedhcc-unsplash.jpg"
+        }
+    ]
+}

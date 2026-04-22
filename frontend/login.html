@@ -1,0 +1,176 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - Sigma</title>
+    <style>
+        body { font-family: Arial; display: flex; justify-content: center; align-items: center; height: 100vh; background: #f5f5f5; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 10px; width: 350px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        h2, h3 { text-align: center; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; background: #e05a2a; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+        button:hover { background: #111; }
+        .checkbox { display: flex; align-items: center; gap: 10px; margin: 10px 0; }
+        .checkbox input { width: auto; margin: 0; }
+        .error { color: red; margin-top: 10px; text-align: center; }
+        .success { color: green; margin-top: 10px; text-align: center; }
+        hr { margin: 20px 0; }
+    </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-699CL509Z4');
+</script>
+</head>
+<body>
+    <div class="container">
+        <h2>Ïƒ Sigma Store</h2>
+        
+        <h3>Login</h3>
+        <input type="email" id="loginEmail" placeholder="Email">
+        <input type="password" id="loginPassword" placeholder="Password">
+        <div class="checkbox">
+            <input type="checkbox" id="rememberMe" checked>
+            <label>Remember me (stay logged in)</label>
+        </div>
+        <button id="loginBtn">Login</button>
+        <div id="loginMessage"></div>
+        
+        <hr>
+        
+        <h3>Sign Up</h3>
+        <input type="text" id="signupName" placeholder="Full Name">
+        <input type="email" id="signupEmail" placeholder="Email">
+        <input type="password" id="signupPassword" placeholder="Password">
+        <button id="signupBtn">Sign Up</button>
+        <div id="signupMessage"></div>
+    </div>
+
+    <script>
+        const API_URL = 'https://sigma-store-api.onrender.com';
+        
+        // LOGIN
+        document.getElementById('loginBtn').onclick = async function() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            const remember = document.getElementById('rememberMe').checked;
+            const msg = document.getElementById('loginMessage');
+            
+            if (!email || !password) {
+                msg.innerHTML = '<div class="error"> Enter email and password</div>';
+                return;
+            }
+            
+            msg.innerHTML = '<div class="success">Logging in...</div>';
+            
+            try {
+                const res = await fetch(API_URL + '/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, remember })
+                });
+                
+                const data = await res.json();
+                
+                if (res.ok && data.token) {
+                    // Save token with expiry
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('authTokenExpiry', Date.now() + (remember ? 30 : 7) * 24 * 60 * 60 * 1000);
+                    
+                    msg.innerHTML = '<div class="success"> Login successful!</div>';
+                    setTimeout(() => { window.location.href = 'index.html'; }, 500);
+                } else {
+                    msg.innerHTML = '<div class="error"> ' + (data.error || 'Login failed') + '</div>';
+                }
+            } catch(err) {
+                msg.innerHTML = '<div class="error"> Server error: ' + err.message + '</div>';
+            }
+        };
+        
+        // SIGNUP
+        document.getElementById('signupBtn').onclick = async function() {
+            const name = document.getElementById('signupName').value;
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const msg = document.getElementById('signupMessage');
+            
+            if (!name || !email || !password) {
+                msg.innerHTML = '<div class="error"> Fill all fields</div>';
+                return;
+            }
+            
+            msg.innerHTML = '<div class="success">Creating account...</div>';
+            
+            try {
+                const res = await fetch(API_URL + '/api/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password, remember: true })
+                });
+                
+                const data = await res.json();
+                
+                if (response.ok && data.token) {
+                    localStorage.setItem('authToken', data.token);
+                    localStorage.setItem('authTokenExpiry', Date.now() + 30 * 24 * 60 * 60 * 1000);
+                    msg.innerHTML = '<div class="success"> Account created!</div>';
+                    setTimeout(() => { window.location.href = 'index.html'; }, 500);
+                } else {
+                    msg.innerHTML = '<div class="error"> ' + (data.error || 'Signup failed') + '</div>';
+                }
+            } catch(err) {
+                msg.innerHTML = '<div class="error"> Server error</div>';
+            }
+        };
+        
+        // Check existing session
+        const token = localStorage.getItem('authToken');
+        const expiry = localStorage.getItem('authTokenExpiry');
+        
+        if (token && expiry && Date.now() < parseInt(expiry)) {
+            // Verify token is still valid
+            fetch(API_URL + '/api/me', {
+                headers: { 'Authorization': token }
+            }).then(res => {
+                if (res.ok) {
+                    window.location.href = 'index.html';
+                } else {
+                    localStorage.removeItem('authToken');
+                    localStorage.removeItem('authTokenExpiry');
+                }
+            }).catch(() => {
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('authTokenExpiry');
+            });
+        } else {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('authTokenExpiry');
+        }
+        
+        // Enter key support
+        document.getElementById('loginPassword').onkeypress = function(e) {
+            if (e.key === 'Enter') document.getElementById('loginBtn').click();
+        };
+        document.getElementById('signupPassword').onkeypress = function(e) {
+            if (e.key === 'Enter') document.getElementById('signupBtn').click();
+        };
+    </script>
+</body>
+</html>
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->

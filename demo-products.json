@@ -1,0 +1,76 @@
+﻿{
+  "products": [
+    {
+      "id": "demo1",
+      "name": "Wireless Headphones",
+      "price": 49.99,
+      "category": "electronics",
+      "image": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=300",
+      "stock": 50,
+      "description": "High-quality wireless headphones with noise cancellation."
+    },
+    {
+      "id": "demo2",
+      "name": "Smart Watch",
+      "price": 89.99,
+      "category": "electronics",
+      "image": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=300",
+      "stock": 30,
+      "description": "Fitness tracker with heart rate monitor and GPS."
+    },
+    {
+      "id": "demo3",
+      "name": "Premium Backpack",
+      "price": 79.99,
+      "category": "accessories",
+      "image": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=300",
+      "stock": 25,
+      "description": "Water-resistant laptop backpack with USB charging port."
+    },
+    {
+      "id": "demo4",
+      "name": "Coffee Maker",
+      "price": 129.99,
+      "category": "home",
+      "image": "https://images.unsplash.com/photo-1517668808822-9bba02b6f420?w=300",
+      "stock": 15,
+      "description": "Programmable coffee maker with thermal carafe."
+    },
+    {
+      "id": "demo5",
+      "name": "Yoga Mat",
+      "price": 29.99,
+      "category": "sports",
+      "image": "https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=300",
+      "stock": 45,
+      "description": "Non-slip eco-friendly yoga mat with carrying strap."
+    },
+    {
+      "id": "demo6",
+      "name": "Bluetooth Speaker",
+      "price": 59.99,
+      "category": "electronics",
+      "image": "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=300",
+      "stock": 40,
+      "description": "Portable waterproof speaker with 20-hour battery."
+    },
+    {
+      "id": "demo7",
+      "name": "Leather Wallet",
+      "price": 24.99,
+      "category": "accessories",
+      "image": "https://images.unsplash.com/photo-1627123424574-724758594e93?w=300",
+      "stock": 100,
+      "description": "Genuine leather wallet with RFID blocking."
+    },
+    {
+      "id": "demo8",
+      "name": "Desk Lamp",
+      "price": 34.99,
+      "category": "home",
+      "image": "https://images.unsplash.com/photo-1507473885765-e6b057f7a2b2?w=300",
+      "stock": 60,
+      "description": "LED desk lamp with wireless charging pad."
+    }
+  ]
+}

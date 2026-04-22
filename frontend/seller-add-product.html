@@ -1,0 +1,241 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Product - Seller Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .product-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+        }
+        .product-form input, .product-form select, .product-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0 16px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .product-form button {
+            background: #e05a2a;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .product-form button:hover { background: #111; }
+        .success { background: #4caf50; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; text-align: center; }
+        .error { background: #e05a2a; color: white; padding: 10px; border-radius: 5px; margin-top: 10px; text-align: center; }
+        body.dark .product-form { background: #1e1e1e; }
+        body.dark input, body.dark select, body.dark textarea { background: #2a2a2a; border-color: #444; color: white; }
+        .image-type-toggle { display: flex; gap: 10px; margin-bottom: 10px; }
+        .image-type-toggle button { width: auto; padding: 8px 15px; margin: 0; }
+        .image-type-toggle button.active { background: #e05a2a; }
+    </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-699CL509Z4');
+</script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">Ïƒ sigma</a>
+    <div class="nav">
+        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="seller-dashboard.html">seller</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="container">
+        <h2 style="text-align: center;"> Add New Product</h2>
+        <div class="product-form">
+            <div id="message"></div>
+            <form id="addProductForm">
+                <label>Product Name</label>
+                <input type="text" id="productName" required>
+                
+                <label>Price ($)</label>
+                <input type="number" id="productPrice" step="0.01" required>
+                
+                <label>Category</label>
+                <select id="productCategory">
+                    <option value="digital">Digital</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="home">Home & Living</option>
+                    <option value="fitness">Fitness</option>
+                </select>
+                
+                <label>Stock Quantity</label>
+                <input type="number" id="productStock" value="999">
+                
+                <label>Product Description</label>
+                <textarea id="productDescription" rows="3"></textarea>
+                
+                <label>Product Image</label>
+                <div class="image-type-toggle">
+                    <button type="button" id="btnFile" class="active" onclick="setImageType('file')">ðŸ“ Upload File</button>
+                    <button type="button" id="btnUrl" onclick="setImageType('url')">ðŸ”— Image URL</button>
+                </div>
+                
+                <div id="fileUploadDiv">
+                    <input type="file" id="productImage" accept="image/*">
+                </div>
+                
+                <div id="urlUploadDiv" style="display: none;">
+                    <input type="text" id="productImageUrl" placeholder="https://images.unsplash.com/photo-1581009146145-b5ef050c2e1e?w=300">
+                    <small style="color: #666;">Paste a direct image URL</small>
+                </div>
+                
+                <button type="submit">Add Product</button>
+            </form>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>sigma studio â€” mardan, pk</p>
+</footer>
+
+<script>
+    const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+    let currentImageType = 'file';
+    
+    function setImageType(type) {
+        currentImageType = type;
+        const fileDiv = document.getElementById('fileUploadDiv');
+        const urlDiv = document.getElementById('urlUploadDiv');
+        const btnFile = document.getElementById('btnFile');
+        const btnUrl = document.getElementById('btnUrl');
+        
+        if (type === 'file') {
+            fileDiv.style.display = 'block';
+            urlDiv.style.display = 'none';
+            btnFile.classList.add('active');
+            btnUrl.classList.remove('active');
+        } else {
+            fileDiv.style.display = 'none';
+            urlDiv.style.display = 'block';
+            btnFile.classList.remove('active');
+            btnUrl.classList.add('active');
+        }
+    }
+    
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const badge = document.getElementById('cartCount');
+        if (badge) badge.innerText = total;
+    }
+    
+    document.getElementById('darkToggle')?.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
+        localStorage.setItem('sigma_dark', isDark);
+    });
+    
+    if (localStorage.getItem('sigma_dark') === 'true') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+    }
+    
+    document.getElementById('addProductForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+            document.getElementById('message').innerHTML = '<div class="error">Please login first</div>';
+            setTimeout(() => { window.location.href = 'login.html'; }, 1500);
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('name', document.getElementById('productName').value);
+        formData.append('price', document.getElementById('productPrice').value);
+        formData.append('category', document.getElementById('productCategory').value);
+        formData.append('stock', document.getElementById('productStock').value);
+        formData.append('description', document.getElementById('productDescription').value);
+        
+        if (currentImageType === 'file') {
+            const fileInput = document.getElementById('productImage');
+            if (fileInput.files.length > 0) {
+                formData.append('image', fileInput.files[0]);
+            }
+        } else {
+            const urlInput = document.getElementById('productImageUrl').value;
+            if (urlInput) {
+                formData.append('imageUrl', urlInput);
+            }
+        }
+        
+        const messageDiv = document.getElementById('message');
+        messageDiv.innerHTML = '<div class="success">Adding product...</div>';
+        
+        try {
+            const response = await fetch(`${API_URL}/api/seller/products`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': token
+                },
+                body: formData
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                messageDiv.innerHTML = '<div class="success"> Product added successfully!</div>';
+                document.getElementById('addProductForm').reset();
+                document.getElementById('productImageUrl').value = '';
+                setImageType('file');
+                setTimeout(() => {
+                    window.location.href = 'seller-products.html';
+                }, 1500);
+            } else {
+                messageDiv.innerHTML = `<div class="error">âŒ ${data.error || 'Failed to add product'}</div>`;
+            }
+        } catch(error) {
+            console.error('Error:', error);
+            messageDiv.innerHTML = '<div class="error">âŒ Cannot connect to server. Make sure you are logged in.</div>';
+        }
+    });
+    
+    updateCartCount();
+</script>
+<script src="navbar.js"></script>
+</body>
+</html>
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->

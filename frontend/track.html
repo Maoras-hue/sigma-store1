@@ -1,0 +1,239 @@
+﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sigma â€” track order</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .track-container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .status-step {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 10px;
+            background: #f5f5f5;
+        }
+        .status-step.completed {
+            background: #e8f5e9;
+            border-left: 4px solid #4caf50;
+        }
+        .status-step.current {
+            background: #fff3e0;
+            border-left: 4px solid #e05a2a;
+        }
+        .status-icon {
+            font-size: 24px;
+            margin-right: 15px;
+        }
+        .status-text {
+            flex: 1;
+        }
+        .status-text h3 {
+            margin-bottom: 5px;
+        }
+        .status-text p {
+            color: #666;
+            font-size: 0.85rem;
+        }
+        .order-info {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        body.dark .track-container {
+            background: #1e1e1e;
+        }
+        body.dark .order-info {
+            background: #2a2a2a;
+        }
+        body.dark .status-step {
+            background: #2a2a2a;
+        }
+    </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-699CL509Z4');
+</script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">Ïƒ SIGMA</a>
+    <div class="nav">
+        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="container">
+        <div class="track-container">
+            <h2 style="text-align: center; margin-bottom: 1.5rem;"> Track Your Order</h2>
+            
+            <div id="orderInfo" class="order-info">
+                <p><strong>Order ID:</strong> <span id="orderId">Loading...</span></p>
+                <p><strong>Date:</strong> <span id="orderDate">-</span></p>
+                <p><strong>Total:</strong> <span id="orderTotal">-</span></p>
+            </div>
+            
+            <div id="statusSteps">
+                <div class="status-step" id="stepPending">
+                    <div class="status-icon"></div>
+                    <div class="status-text">
+                        <h3>Order Placed</h3>
+                        <p>Your order has been received</p>
+                    </div>
+                </div>
+                <div class="status-step" id="stepProcessing">
+                    <div class="status-icon"></div>
+                    <div class="status-text">
+                        <h3>Processing</h3>
+                        <p>We're preparing your order</p>
+                    </div>
+                </div>
+                <div class="status-step" id="stepShipped">
+                    <div class="status-icon"></div>
+                    <div class="status-text">
+                        <h3>Shipped</h3>
+                        <p>Your order is on the way</p>
+                    </div>
+                </div>
+                <div class="status-step" id="stepDelivered">
+                    <div class="status-icon"></div>
+                    <div class="status-text">
+                        <h3>Delivered</h3>
+                        <p>Your order has been delivered</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="errorMsg" style="text-align: center; color: #e05a2a; display: none;">
+                Order not found. Please check your Order ID.
+            </div>
+            
+            <div style="text-align: center; margin-top: 1.5rem;">
+                <a href="index.html" style="color: #e05a2a;">â† Back to shop</a>`n        <a href="reviews.html">reviews</a>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>IBRA'S studio â€” mardan, pk</p>
+</footer>
+
+<script>
+    const BACKEND_URL = 'https://sigma-store-api.onrender.com';
+    
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const badge = document.getElementById('cartCount');
+        if (badge) badge.innerText = total;
+    }
+    
+    async function trackOrder() {
+        const urlParams = new URLSearchParams(window.location.search);
+        let orderId = urlParams.get('order');
+        
+        if (!orderId) {
+            orderId = prompt('Enter your Order ID:');
+            if (!orderId) return;
+        }
+        
+        document.getElementById('orderId').innerText = orderId;
+        
+        try {
+            const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}`, {
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const order = data.order;
+                
+                document.getElementById('orderDate').innerText = new Date(order.createdAt).toLocaleString();
+                document.getElementById('orderTotal').innerText = '$' + order.total;
+                
+                // Update status colors
+                const statuses = ['pending', 'processing', 'shipped', 'delivered'];
+                const currentStatus = order.status;
+                const currentIndex = statuses.indexOf(currentStatus);
+                
+                for (let i = 0; i <= currentIndex; i++) {
+                    const step = document.getElementById(`step${statuses[i].charAt(0).toUpperCase() + statuses[i].slice(1)}`);
+                    if (step) step.classList.add('completed');
+                }
+                
+                if (currentIndex < statuses.length - 1) {
+                    const nextStep = document.getElementById(`step${statuses[currentIndex + 1].charAt(0).toUpperCase() + statuses[currentIndex + 1].slice(1)}`);
+                    if (nextStep) nextStep.classList.add('current');
+                }
+                
+            } else {
+                document.getElementById('errorMsg').style.display = 'block';
+                document.getElementById('orderInfo').style.display = 'none';
+                document.getElementById('statusSteps').style.display = 'none';
+            }
+        } catch(e) {
+            document.getElementById('errorMsg').style.display = 'block';
+            document.getElementById('errorMsg').innerHTML = 'Cannot connect to server. Make sure backend is running.';
+        }
+    }
+    
+    // Dark mode
+    document.getElementById('darkToggle')?.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
+        localStorage.setItem('sigma_dark', isDark);
+    });
+    
+    if (localStorage.getItem('sigma_dark') === 'true') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+    }
+    
+    updateCartCount();
+    trackOrder();
+</script>
+    <script src="navbar.js"></script>
+</body>
+</html>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->

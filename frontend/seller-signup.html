@@ -1,0 +1,280 @@
+﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Become a Seller - Sigma</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .seller-form {
+            max-width: 500px;
+            margin: 50px auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+        .seller-form h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .seller-form input, .seller-form select, .seller-form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 8px 0 16px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .seller-form button {
+            width: 100%;
+            background: #e05a2a;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .seller-form button:hover {
+            background: #111;
+        }
+        .success {
+            color: green;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 10px;
+            background: #e8f5e9;
+            border-radius: 8px;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 10px;
+            background: #ffebee;
+            border-radius: 8px;
+        }
+        .info {
+            color: blue;
+            text-align: center;
+            margin-top: 1rem;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 8px;
+        }
+        body.dark .seller-form {
+            background: #1e1e1e;
+        }
+        body.dark .success {
+            background: #1b5e20;
+            color: white;
+        }
+        body.dark .error {
+            background: #b71c1c;
+            color: white;
+        }
+        body.dark .info {
+            background: #0d47a1;
+            color: white;
+        }
+        body.dark input, body.dark select, body.dark textarea {
+            background: #2a2a2a;
+            border-color: #444;
+            color: white;
+        }
+    </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-699CL509Z4');
+</script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">Ïƒ sigma</a>
+    <div class="nav">
+        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="seller-dashboard.html">sell</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="container">
+        <div class="seller-form">
+            <h2> Become a Seller</h2>
+            <p style="text-align: center; margin-bottom: 1rem; color: #666;">Start selling your products on Sigma</p>
+            
+            <div id="loginWarning" class="info" style="display: none;">
+                 Please login first. <a href="login.html" style="color: blue;">Click here to login</a>
+            </div>
+            
+            <form id="sellerForm" style="display: none;">
+                <label>Store Name</label>
+                <input type="text" id="storeName" required placeholder="My Awesome Store">
+                
+                <label>Store Description</label>
+                <textarea id="storeDescription" rows="3" required placeholder="Tell customers what you sell..."></textarea>
+                
+                <label>Category</label>
+                <select id="category" required>
+                    <option value="">Select Category</option>
+                    <option value="electronics">Electronics</option>
+                    <option value="clothing">Clothing</option>
+                    <option value="digital">Digital Products</option>
+                    <option value="home">Home & Living</option>
+                    <option value="beauty">Beauty & Care</option>
+                </select>
+                
+                <button type="submit">Apply Now</button>
+            </form>
+            
+            <div id="message"></div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>sigma studio â€” mardan, pk</p>
+</footer>
+
+<script>
+    const API_URL = 'https://sigma-store-api.onrender.com';
+    
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        const total = cart.reduce((s, i) => s + i.quantity, 0);
+        document.getElementById('cartCount').innerText = total;
+    }
+    
+    // Dark mode
+    document.getElementById('darkToggle')?.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
+        localStorage.setItem('sigma_dark', isDark);
+    });
+    
+    if (localStorage.getItem('sigma_dark') === 'true') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+    }
+    
+    // Get auth token from localStorage
+    function getAuthToken() {
+        return localStorage.getItem('authToken');
+    }
+    
+    // Check if user is logged in
+    async function checkLogin() {
+        const token = getAuthToken();
+        
+        if (!token) {
+            document.getElementById('loginWarning').style.display = 'block';
+            document.getElementById('sellerForm').style.display = 'none';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_URL}/api/me`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': token
+                }
+            });
+            
+            if (response.ok) {
+                document.getElementById('loginWarning').style.display = 'none';
+                document.getElementById('sellerForm').style.display = 'block';
+            } else {
+                document.getElementById('loginWarning').style.display = 'block';
+                document.getElementById('sellerForm').style.display = 'none';
+                localStorage.removeItem('authToken');
+            }
+        } catch(e) {
+            document.getElementById('loginWarning').style.display = 'block';
+            document.getElementById('sellerForm').style.display = 'none';
+            document.getElementById('loginWarning').innerHTML = ' Cannot connect to backend. Make sure server is running on port 3000';
+        }
+    }
+    
+    // Submit seller application
+    document.getElementById('sellerForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const storeName = document.getElementById('storeName').value;
+        const storeDescription = document.getElementById('storeDescription').value;
+        const category = document.getElementById('category').value;
+        const token = getAuthToken();
+        const messageDiv = document.getElementById('message');
+        
+        if (!token) {
+            messageDiv.innerHTML = '<div class="error"> Please login first</div>';
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1500);
+            return;
+        }
+        
+        messageDiv.innerHTML = '<div class="info">Submitting application...</div>';
+        
+        try {
+            const response = await fetch(`${API_URL}/api/seller/apply`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify({ storeName, storeDescription, category })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                messageDiv.innerHTML = '<div class="success"> Application submitted! Admin will review your application.</div>';
+                document.getElementById('sellerForm').reset();
+                setTimeout(() => {
+                    window.location.href = 'seller-dashboard.html';
+                }, 2000);
+            } else {
+                messageDiv.innerHTML = '<div class="error"> ' + (data.error || 'Failed to submit application') + '</div>';
+            }
+        } catch(error) {
+            console.error('Error:', error);
+            messageDiv.innerHTML = '<div class="error"> Cannot connect to server. Make sure backend is running on port 3000</div>';
+        }
+    });
+    
+    updateCartCount();
+    checkLogin();
+</script>
+    <script src="navbar.js"></script>
+</body>
+</html>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->

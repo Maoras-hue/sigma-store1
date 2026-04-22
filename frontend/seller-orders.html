@@ -1,0 +1,180 @@
+﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - Seller Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .orders-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .orders-table th, .orders-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .orders-table th {
+            background: #f5f5f5;
+        }
+        .status-select {
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        body.dark .orders-table {
+            background: #1e1e1e;
+        }
+        body.dark .orders-table th {
+            background: #2a2a2a;
+        }
+        body.dark .orders-table td {
+            border-bottom-color: #333;
+        }
+    </style>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-699CL509Z4');
+</script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">Ïƒ sigma</a>
+    <div class="nav">
+        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="seller-dashboard.html">seller</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="container">
+        <h2> My Orders</h2>
+        <table class="orders-table">
+            <thead>
+                <tr><th>Order ID</th><th>Customer</th><th>Products</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr>
+            </thead>
+            <tbody id="ordersList"></tbody>
+        </table>
+    </div>
+</main>
+
+<footer>
+    <p>sigma studio â€” mardan, pk</p>
+</footer>
+
+<script>
+    https://sigma-store-api.onrender.com
+    
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+        const badge = document.getElementById('cartCount');
+        if (badge) badge.innerText = total;
+    }
+    
+    document.getElementById('darkToggle')?.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
+        localStorage.setItem('sigma_dark', isDark);
+    });
+    
+    if (localStorage.getItem('sigma_dark') === 'true') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+    }
+    
+    async function loadOrders() {
+        try {
+            const response = await fetch(`${API_URL}/api/seller/orders`, {
+                credentials: 'include'
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                const ordersList = document.getElementById('ordersList');
+                
+                if (data.orders.length === 0) {
+                    ordersList.innerHTML = '<tr><td colspan="7">No orders yet</td></tr>';
+                } else {
+                    ordersList.innerHTML = data.orders.map(order => `
+                        <tr>
+                            <td>${order.orderId}</td>
+                            <td>${order.userEmail}</td>
+                            <td>${order.items.map(i => i.name).join(', ')}</td>
+                            <td>$${order.total}</td>
+                            <td>
+                                <select class="status-select" onchange="updateStatus('${order.orderId}', this.value)">
+                                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
+                                    <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                                    <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                </select>
+                            </td>
+                            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
+                            <td><button onclick="viewOrder('${order.orderId}')">View</button></td>
+                        </tr>
+                    `).join('');
+                }
+            }
+        } catch(e) {
+            console.error('Error:', e);
+        }
+    }
+    
+    async function updateStatus(orderId, status) {
+        const response = await fetch(`${API_URL}/api/seller/orders/${orderId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ status })
+        });
+        
+        if (response.ok) {
+            alert('Status updated!');
+        }
+    }
+    
+    function viewOrder(orderId) {
+        window.location.href = `track.html?order=${orderId}`;
+    }
+    
+    loadOrders();
+    updateCartCount();
+</script>
+    <script src="navbar.js"></script>
+</body>
+</html>
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+(function(){
+var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+s1.async=true;
+s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
+s1.charset='UTF-8';
+s1.setAttribute('crossorigin','*');
+s0.parentNode.insertBefore(s1,s0);
+})();
+</script>
+<!--End of Tawk.to Script-->
