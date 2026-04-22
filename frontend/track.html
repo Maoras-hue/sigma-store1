@@ -1,10 +1,10 @@
-﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
+<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sigma â€” track order</title>
+    <title>sigma — track order</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .track-container {
@@ -74,7 +74,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">Ïƒ SIGMA</a>
+    <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
         <a href="about.html">about</a>
@@ -84,7 +84,7 @@
         <a href="terms.html">terms</a>
         <a href="refund.html">refund</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
@@ -135,14 +135,14 @@
             </div>
             
             <div style="text-align: center; margin-top: 1.5rem;">
-                <a href="index.html" style="color: #e05a2a;">â† Back to shop</a>`n        <a href="reviews.html">reviews</a>
+                <a href="index.html" style="color: #e05a2a;">← Back to shop</a>`n        <a href="reviews.html">reviews</a>
             </div>
         </div>
     </div>
 </main>
 
 <footer>
-    <p>IBRA'S studio â€” mardan, pk</p>
+    <p>IBRA'S studio — mardan, pk</p>
 </footer>
 
 <script>
@@ -208,13 +208,13 @@
     document.getElementById('darkToggle')?.addEventListener('click', () => {
         document.body.classList.toggle('dark');
         const isDark = document.body.classList.contains('dark');
-        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
+        document.getElementById('darkToggle').innerText = isDark ? '☀️' : '🌙';
         localStorage.setItem('sigma_dark', isDark);
     });
     
     if (localStorage.getItem('sigma_dark') === 'true') {
         document.body.classList.add('dark');
-        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+        document.getElementById('darkToggle').innerText = '☀️';
     }
     
     updateCartCount();
