@@ -233,3 +233,68 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
 });
 // force update 
+// Interactive Effects 
+document.addEventListener('DOMContentLoaded', function() { 
+const buttons = document.querySelectorAll('.btn, .add-btn, .filter-btn'); 
+buttons.forEach(btn =
+btn.classList.add('btn-magnetic'); 
+btn.addEventListener('mousemove', function(e) { 
+const rect = this.getBoundingClientRect(); 
+const x = e.clientX - rect.left; 
+const y = e.clientY - rect.top; 
+const centerX = rect.width / 2; 
+const centerY = rect.height / 2; 
+const moveX = (x - centerX) / 15; 
+const moveY = (y - centerY) / 15; 
+this.style.transform = 'translate(' + moveX + 'px, ' + moveY + 'px)'; 
+}); 
+btn.addEventListener('mouseleave', function() { this.style.transform = 'translate(0, 0)'; }); 
+btn.addEventListener('click', function(e) { 
+const ripple = document.createElement('span'); 
+ripple.classList.add('ripple'); 
+const rect = this.getBoundingClientRect(); 
+const x = e.clientX - rect.left; 
+const y = e.clientY - rect.top; 
+ripple.style.left = x + 'px'; 
+ripple.style.top = y + 'px'; 
+this.appendChild(ripple); 
+setTimeout(function() { ripple.remove(); }, 600); 
+}); 
+}); 
+}); 
+window.addEventListener('scroll', function() { 
+const header = document.querySelector('.header'); 
+if (header) { 
+if (window.scrollY  { header.classList.add('scrolled'); } 
+else { header.classList.remove('scrolled'); } 
+} 
+}); 
+function pulseCart() { 
+const cartBtn = document.querySelector('.cart-btn'); 
+if (cartBtn) { 
+cartBtn.classList.add('pulse'); 
+setTimeout(function() { cartBtn.classList.remove('pulse'); }, 500); 
+} 
+} 
+const originalAddToCart = window.addToCart; 
+if (originalAddToCart) { 
+window.addToCart = function(id, name, price) { 
+originalAddToCart(id, name, price); 
+pulseCart(); 
+}; 
+} 
+function showConfetti() { 
+const colors = ['#e05a2a', '#ff8c42', '#4caf50', '#2196f3', '#9c27b0']; 
+const confetti = document.createElement('div'); 
+confetti.classList.add('confetti'); 
+confetti.style.left = Math.random() * 100 + '%%'; 
+confetti.style.width = (Math.random() * 8 + 4) + 'px'; 
+confetti.style.height = confetti.style.width; 
+confetti.style.background = colors[Math.floor(Math.random() * colors.length)]; 
+confetti.style.animationDuration = (Math.random() * 2 + 2) + 's'; 
+confetti.style.animationDelay = Math.random() * 0.5 + 's'; 
+document.body.appendChild(confetti); 
+setTimeout(function() { confetti.remove(); }, 3000); 
+} 
+} 
+window.showConfetti = showConfetti; 
