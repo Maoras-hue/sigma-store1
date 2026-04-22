@@ -11,55 +11,231 @@
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
         .header { padding: 20px 0; border-bottom: 1px solid #eee; }
         .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #e05a2a, #ff8c42); -webkit-background-clip: text; background-clip: text; color: transparent; }
-        .hero { text-align: center; padding: 80px 0 60px; }
-        .badge { background: rgba(224,90,42,0.1); color: #e05a2a; padding: 5px 15px; border-radius: 50px; display: inline-block; }
+        .hero { text-align: center; padding: 60px 0 40px; }
+        .badge { background: rgba(224,90,42,0.1); color: #e05a2a; padding: 5px 15px; border-radius: 50px; display: inline-block; font-size: 14px; }
         .hero h1 { font-size: 48px; margin: 20px 0; }
         .hero h1 span { color: #e05a2a; }
         .price { font-size: 48px; color: #e05a2a; font-weight: 800; margin: 20px 0; }
-        .btn { padding: 15px 40px; border-radius: 50px; text-decoration: none; font-weight: 600; display: inline-block; }
-        .btn-primary { background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; }
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin: 60px 0; }
-        .feature-card { background: #f8f9fa; border-radius: 16px; padding: 30px; }
-        .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; margin: 60px 0; }
-        .pricing-card { background: #f8f9fa; border-radius: 20px; padding: 40px; text-align: center; }
-        .pricing-card.featured { background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; }
-        .pricing-price { font-size: 48px; font-weight: 800; }
-        .payment-section { background: #f8f9fa; border-radius: 20px; padding: 40px; text-align: center; margin: 40px 0; }
-        .contact-info a { color: #e05a2a; text-decoration: none; }
-        .footer { text-align: center; padding: 40px 0; border-top: 1px solid #eee; margin-top: 40px; }
-        @media (max-width: 768px) { .hero h1 { font-size: 32px; } }
+        .price small { font-size: 16px; color: #666; font-weight: normal; }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            margin: 60px 0;
+        }
+        .pricing-card {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 30px;
+            transition: all 0.3s;
+            position: relative;
+        }
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .pricing-card.featured {
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            color: white;
+        }
+        .pricing-card.featured .btn-primary {
+            background: white;
+            color: #e05a2a;
+        }
+        .pricing-card h3 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+        .pricing-price {
+            font-size: 42px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+        .pricing-price small {
+            font-size: 14px;
+        }
+        .pricing-description {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        .pricing-features {
+            list-style: none;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .pricing-features li {
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .pricing-features li::before {
+            content: "✓";
+            color: #4caf50;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .pricing-card.featured .pricing-features li::before {
+            color: white;
+        }
+        .btn {
+            display: inline-block;
+            padding: 14px 30px;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 20px;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .btn-primary {
+            background: #e05a2a;
+            color: white;
+        }
+        .btn-primary:hover {
+            background: #c44a1f;
+            transform: translateY(-2px);
+        }
+        .btn-outline {
+            border: 2px solid #e05a2a;
+            color: #e05a2a;
+            background: transparent;
+        }
+        .btn-outline:hover {
+            background: #e05a2a;
+            color: white;
+        }
+        .payment-section {
+            background: #f8f9fa;
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            margin: 40px 0;
+        }
+        .payment-methods {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .payment-method {
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+        }
+        .contact-info a {
+            color: #e05a2a;
+            text-decoration: none;
+        }
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid #eee;
+            margin-top: 40px;
+            color: #666;
+        }
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 32px; }
+            .pricing-grid { grid-template-columns: 1fr; }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header"><div class="logo">SIGMA STORE</div></div>
+        <div class="header">
+            <div class="logo">SIGMA STORE</div>
+        </div>
+        
         <div class="hero">
             <div class="badge">Complete Full-Stack E-Commerce Platform</div>
             <h1>Launch Your Online Store<br>with <span>Sigma Store</span></h1>
             <div class="price">$179 <small>one-time payment</small></div>
-            <a href="#contact" class="btn btn-primary">Buy Now</a>
         </div>
-        <div class="features-grid">
-            <div class="feature-card"><h3>Full E-Commerce</h3><p>Shopping cart, wishlist, order tracking</p></div>
-            <div class="feature-card"><h3>Guest Checkout</h3><p>Buy without creating an account</p></div>
-            <div class="feature-card"><h3>Product Reviews</h3><p>Star ratings and customer reviews</p></div>
-            <div class="feature-card"><h3>Stripe + PayPal</h3><p>Accept credit cards and PayPal</p></div>
-            <div class="feature-card"><h3>Mobile Responsive</h3><p>Works on all devices</p></div>
-            <div class="feature-card"><h3>Dark Mode</h3><p>Built-in dark mode toggle</p></div>
-        </div>
+
         <div class="pricing-grid">
-            <div class="pricing-card"><h3>Basic</h3><div class="pricing-price">$179</div><p>Template + Docs + Demo Products</p></div>
-            <div class="pricing-card featured"><h3>Premium</h3><div class="pricing-price">$349</div><p>+ Installation + Custom Logo + Priority Support</p></div>
-            <div class="pricing-card"><h3>Enterprise</h3><div class="pricing-price">$499</div><p>+ Custom Features + 24/7 Support + Lifetime Updates</p></div>
+            <!-- Basic Card -->
+            <div class="pricing-card">
+                <h3>Basic</h3>
+                <div class="pricing-price">$179</div>
+                <div class="pricing-description">Complete template. You install yourself.</div>
+                <ul class="pricing-features">
+                    <li>Sigma Store Template (ZIP file)</li>
+                    <li>Complete Documentation</li>
+                    <li>Demo Products Included (8 products)</li>
+                    <li>Lifetime Updates</li>
+                    <li>Email Support</li>
+                    <li>Guest Checkout</li>
+                    <li>Product Reviews with Stars</li>
+                    <li>Multi-Vendor Marketplace</li>
+                    <li>Stripe + PayPal Ready</li>
+                    <li>Dark Mode</li>
+                    <li>Mobile Responsive</li>
+                </ul>
+                <a href="#contact" class="btn btn-outline">Buy Basic</a>
+            </div>
+
+            <!-- Premium Card (Featured) -->
+            <div class="pricing-card featured">
+                <h3>Premium</h3>
+                <div class="pricing-price">$349</div>
+                <div class="pricing-description">Everything in Basic + Installation Service</div>
+                <ul class="pricing-features">
+                    <li>Everything in Basic</li>
+                    <li>Installation Service (I install for you)</li>
+                    <li>Logo Integration</li>
+                    <li>1 Hour Training Session</li>
+                    <li>Priority Email Support</li>
+                    <li>Server Setup Assistance</li>
+                    <li>30 Days Priority Support</li>
+                </ul>
+                <a href="#contact" class="btn btn-primary">Buy Premium</a>
+            </div>
+
+            <!-- Enterprise Card -->
+            <div class="pricing-card">
+                <h3>Enterprise</h3>
+                <div class="pricing-price">$499</div>
+                <div class="pricing-description">Everything in Premium + Full Customization</div>
+                <ul class="pricing-features">
+                    <li>Everything in Premium</li>
+                    <li>Custom Colors (Match your brand)</li>
+                    <li>Up to 3 Custom Features</li>
+                    <li>2 Hour Training Session</li>
+                    <li>24/7 WhatsApp Support</li>
+                    <li>Deployment Assistance</li>
+                    <li>Lifetime Priority Support</li>
+                </ul>
+                <a href="#contact" class="btn btn-outline">Buy Enterprise</a>
+            </div>
         </div>
+
         <div class="payment-section" id="contact">
             <h2>How to Buy</h2>
             <p>Contact us directly to purchase. We accept multiple payment methods.</p>
-            <p style="margin: 20px 0;">JazzCash | Easypaisa | Bank Transfer | PayPal</p>
-            <div class="contact-info"><p>Email: <a href="mailto:ifiwas1898617@gmail.com">ifiwas1898617@gmail.com</a></p><p>WhatsApp: <a href="https://wa.me/923259042317">+92 325 9042317</a></p></div>
+            <div class="payment-methods">
+                <span class="payment-method">JazzCash</span>
+                <span class="payment-method">Easypaisa</span>
+                <span class="payment-method">Bank Transfer</span>
+                <span class="payment-method">PayPal</span>
+            </div>
+            <div class="contact-info">
+                <p>Email: <a href="mailto:ifiwas1898617@gmail.com">ifiwas1898617@gmail.com</a></p>
+                <p>WhatsApp: <a href="https://wa.me/923259042317">+92 325 9042317</a></p>
+            </div>
         </div>
-        <div style="text-align: center; padding: 40px 0;"><a href="https://sigma-store1.vercel.app" target="_blank">View Live Demo</a></div>
-        <div class="footer"><p>2026 Sigma Studio | Built by Ibrahim, Pakistan</p></div>
+
+        <div style="text-align: center; padding: 40px 0;">
+            <a href="https://sigma-store1.vercel.app" target="_blank" style="color: #e05a2a;">View Live Demo</a>
+        </div>
+
+        <div class="footer">
+            <p>2026 Sigma Studio | Built by Ibrahim, Pakistan</p>
+        </div>
     </div>
 </body>
 </html>
