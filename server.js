@@ -34,8 +34,6 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
-
-// Serve admin files - FIXED
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 app.use(express.static('admin'));
 
@@ -59,14 +57,50 @@ function getUserFromToken(token) {
 }
 
 // ============================================
-// DATABASE CONNECTION
+// DATABASE CONNECTION & TABLE CREATION
 // ============================================
 connectDB();
-// ============================================
-// CREATE CHAT TABLE IF NOT EXISTS
-// ============================================
-(async function createChatTable() {
+
+// Create products table if not exists
+(async function initDatabase() {
     try {
+        await executeQuery(`CREATE TABLE IF NOT EXISTS products (
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            price REAL,
+            category TEXT,
+            image TEXT,
+            stock INTEGER,
+            created_at TEXT
+        )`);
+        console.log('Products table ready');
+        
+        await executeQuery(`CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE,
+            name TEXT,
+            password TEXT,
+            created_at TEXT
+        )`);
+        console.log('Users table ready');
+        
+        await executeQuery(`CREATE TABLE IF NOT EXISTS orders (
+            order_id TEXT PRIMARY KEY,
+            user_id TEXT,
+            user_email TEXT,
+            items TEXT,
+            subtotal REAL,
+            shipping REAL,
+            total REAL,
+            notes TEXT,
+            status TEXT,
+            payment_method TEXT,
+            payment_id TEXT,
+            payment_status TEXT,
+            created_at TEXT
+        )`);
+        console.log('Orders table ready');
+        
         await executeQuery(`CREATE TABLE IF NOT EXISTS chat_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
@@ -76,8 +110,9 @@ connectDB();
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )`);
         console.log('Chat table ready');
+        
     } catch (error) {
-        console.error('Error creating chat table:', error.message);
+        console.error('Database init error:', error.message);
     }
 })();
 
@@ -202,12 +237,14 @@ app.get('/api/me', async (req, res) => {
 });
 
 // ============================================
-// PRODUCT ROUTES
+// PRODUCT ROUTES - PERSISTENT STORAGE
 // ============================================
 
+// Get all products from database
 app.get('/api/products', async (req, res) => {
     try {
         const products = await findAll('products');
+        console.log('Products loaded from DB:', products.length);
         res.json(products);
     } catch (error) {
         console.error('Error fetching products:', error);
@@ -215,12 +252,14 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
+// Image upload setup
 const storage = multer.diskStorage({
     destination: function(req, file, cb) { cb(null, 'uploads/'); },
     filename: function(req, file, cb) { cb(null, Date.now() + '-' + file.originalname); }
 });
 const upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
+// Add product - SAVES TO DATABASE PERMANENTLY
 app.post('/api/products', upload.single('image'), async (req, res) => {
     try {
         const { name, price, category, stock, imageUrl } = req.body;
@@ -232,6 +271,7 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
         const productId = 'p' + Date.now();
         let image = req.file ? req.file.filename : (imageUrl || null);
         
+        // SAVE TO DATABASE - PERMANENT
         await insertOne('products', {
             id: productId,
             name: name,
@@ -242,19 +282,52 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
             created_at: new Date().toISOString()
         });
         
-        res.json({ success: true, product: { id: productId, name: name, price: price } });
+        console.log('Product SAVED to database:', name, 'ID:', productId);
+        
+        // Return the new product so frontend can add it immediately
+        res.json({ 
+            success: true, 
+            product: { 
+                id: productId, 
+                name: name, 
+                price: parseFloat(price), 
+                category: category || 'digital',
+                image: image,
+                stock: stock || 999
+            } 
+        });
     } catch (error) {
         console.error('Error adding product:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
 
+// Delete product from database
 app.delete('/api/products/:id', async (req, res) => {
     try {
         await deleteOne('products', 'id', req.params.id);
+        console.log('Product DELETED from database:', req.params.id);
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting product:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Update product image
+app.put('/api/products/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { image } = req.body;
+        
+        if (image) {
+            await updateOne('products', id, 'id', { image: image });
+            res.json({ success: true, message: 'Image updated' });
+        } else {
+            res.status(400).json({ error: 'No image provided' });
+        }
+    } catch (error) {
+        console.error('Error updating product:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
@@ -346,13 +419,13 @@ app.get('/api/admin/orders', async (req, res) => {
 });
 
 // ============================================
-// CHAT API ROUTES - FIXED
+// CHAT API ROUTES
 // ============================================
 
 app.post('/api/chat/save', async (req, res) => {
     try {
         const { userId, userName, message, isAdmin } = req.body;
-        console.log('Saving chat:', { userId, userName, message, isAdmin });
+        console.log('Saving message from:', userName);
         
         await executeQuery(
             'INSERT INTO chat_messages (user_id, user_name, message, is_admin) VALUES (?, ?, ?, ?)',
@@ -368,8 +441,6 @@ app.post('/api/chat/save', async (req, res) => {
 app.get('/api/chat/history/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
-        console.log('Getting history for:', userId);
-        
         const messages = await executeQuery(
             'SELECT * FROM chat_messages WHERE user_id = ? ORDER BY created_at ASC LIMIT 50',
             [userId]
@@ -383,15 +454,12 @@ app.get('/api/chat/history/:userId', async (req, res) => {
 
 app.get('/api/admin/chats', async (req, res) => {
     try {
-        console.log('Fetching all chats');
-        
         const chats = await executeQuery(
             `SELECT user_id, user_name, COUNT(*) as count, MAX(created_at) as last_message 
              FROM chat_messages 
              GROUP BY user_id 
              ORDER BY last_message DESC`
         );
-        console.log('Chats found:', chats);
         res.json({ chats: chats || [] });
     } catch (error) {
         console.error('Admin chats error:', error);
@@ -476,7 +544,7 @@ app.get('/admin/chat.html', (req, res) => {
     if (fs.existsSync(filePath)) {
         res.sendFile(filePath);
     } else {
-        res.status(404).send('Chat page not found. Make sure admin/chat.html exists.');
+        res.status(404).send('Chat page not found');
     }
 });
 
