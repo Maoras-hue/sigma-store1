@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -171,7 +171,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">σ SIGMA</a>
+    <a href="index.html" class="logo">s SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -184,15 +184,15 @@
         <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <button class="dark-toggle" id="darkToggle">??</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="products-container">
         <div class="products-header">
-            <h1>📦 My Products</h1>
-            <a href="seller-add-product.html" class="add-btn">➕ Add New Product</a>
+            <h1>?? My Products</h1>
+            <a href="seller-add-product.html" class="add-btn">? Add New Product</a>
         </div>
         
         <div id="productsContent">
@@ -202,7 +202,7 @@
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio � Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -264,9 +264,9 @@
             if (response.status === 403) {
                 container.innerHTML = `
                     <div class="login-prompt">
-                        <h3>🏪 Not an Approved Seller</h3>
+                        <h3>?? Not an Approved Seller</h3>
                         <p>You need to be an approved seller to view products.</p>
-                        <a href="seller-signup.html" class="add-btn" style="margin-top: 1rem; display: inline-block;">Apply Now →</a>
+                        <a href="seller-signup.html" class="add-btn" style="margin-top: 1rem; display: inline-block;">Apply Now ?</a>
                     </div>
                 `;
                 return;
@@ -275,7 +275,7 @@
             if (!response.ok) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <p>❌ Failed to load products</p>
+                        <p>? Failed to load products</p>
                         <button onclick="loadProducts()" class="add-btn">Try Again</button>
                     </div>
                 `;
@@ -288,8 +288,8 @@
             if (products.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <p>📦 You haven't added any products yet.</p>
-                        <a href="seller-add-product.html" class="add-btn">Add Your First Product →</a>
+                        <p>?? You haven't added any products yet.</p>
+                        <a href="seller-add-product.html" class="add-btn">Add Your First Product ?</a>
                     </div>
                 `;
                 return;
@@ -313,9 +313,9 @@
                         <div class="product-info">
                             <div class="product-name">${escapeHtml(product.name)}</div>
                             <div class="product-price">$${product.price}</div>
-                            <div class="product-stock">📊 Stock: ${product.stock || 999}</div>
+                            <div class="product-stock">?? Stock: ${product.stock || 999}</div>
                             <div class="product-actions">
-                                <button class="delete-btn" onclick="deleteProduct('${product.id}')">🗑️ Delete</button>
+                                <button class="delete-btn" onclick="deleteProduct('${product.id}')">??? Delete</button>
                             </div>
                         </div>
                     </div>
@@ -329,7 +329,7 @@
             console.error('Load products error:', error);
             container.innerHTML = `
                 <div class="empty-state">
-                    <p>⚠️ Cannot connect to server</p>
+                    <p>?? Cannot connect to server</p>
                     <button onclick="loadProducts()" class="add-btn">Retry</button>
                 </div>
             `;
@@ -354,10 +354,10 @@
             });
             
             if (response.ok) {
-                alert('✅ Product deleted successfully');
+                alert('? Product deleted successfully');
                 loadProducts();
             } else {
-                alert('❌ Failed to delete product');
+                alert('? Failed to delete product');
             }
         } catch (error) {
             console.error('Delete error:', error);
@@ -383,9 +383,9 @@
         if (!isLoggedIn()) {
             document.getElementById('productsContent').innerHTML = `
                 <div class="login-prompt">
-                    <h3>🔐 Please Login</h3>
+                    <h3>?? Please Login</h3>
                     <p>You need to be logged in to view your products.</p>
-                    <a href="login.html" class="add-btn" style="margin-top: 1rem; display: inline-block;">Login Now →</a>
+                    <a href="login.html" class="add-btn" style="margin-top: 1rem; display: inline-block;">Login Now ?</a>
                 </div>
             `;
             return;
@@ -396,9 +396,9 @@
         if (!isSeller) {
             document.getElementById('productsContent').innerHTML = `
                 <div class="login-prompt">
-                    <h3>🏪 Become a Seller First</h3>
+                    <h3>?? Become a Seller First</h3>
                     <p>You need to be an approved seller to add and manage products.</p>
-                    <a href="seller-signup.html" class="add-btn" style="margin-top: 1rem; display: inline-block;">Apply Now →</a>
+                    <a href="seller-signup.html" class="add-btn" style="margin-top: 1rem; display: inline-block;">Apply Now ?</a>
                 </div>
             `;
             return;
@@ -422,3 +422,5 @@
 
 </body>
 </html>
+`n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="chat-widget.js"></script>

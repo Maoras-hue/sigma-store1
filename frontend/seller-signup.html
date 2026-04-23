@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -169,7 +169,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">σ SIGMA</a>
+    <a href="index.html" class="logo">s SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -182,14 +182,14 @@
         <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <button class="dark-toggle" id="darkToggle">??</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="signup-container">
         <div class="signup-header">
-            <h1>🏪 Become a Seller</h1>
+            <h1>?? Become a Seller</h1>
             <p>Start selling your products on Sigma Store</p>
         </div>
         
@@ -200,7 +200,7 @@
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio � Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -303,7 +303,7 @@
             const data = await response.json();
             
             if (response.ok) {
-                messageDiv.textContent = '✅ Application submitted successfully! Admin will review your application. Redirecting...';
+                messageDiv.textContent = '? Application submitted successfully! Admin will review your application. Redirecting...';
                 messageDiv.className = 'message success';
                 
                 setTimeout(() => {
@@ -330,9 +330,9 @@
         if (!isLoggedIn()) {
             container.innerHTML = `
                 <div class="login-prompt">
-                    <h3>🔐 Please Login</h3>
+                    <h3>?? Please Login</h3>
                     <p>You need to be logged in to apply as a seller.</p>
-                    <a href="login.html" class="action-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Login Now →</a>
+                    <a href="login.html" class="action-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Login Now ?</a>
                 </div>
             `;
             return;
@@ -343,21 +343,21 @@
         
         container.innerHTML = `
             <div class="signup-card">
-                <h3 style="margin-bottom: 1rem;">📝 Seller Application Form</h3>
+                <h3 style="margin-bottom: 1rem;">?? Seller Application Form</h3>
                 <p style="color: #666; margin-bottom: 1.5rem;">Fill out the form below to apply as a seller. Admin will review your application within 24-48 hours.</p>
                 
                 <div class="form-group">
-                    <label>🏪 Store Name *</label>
+                    <label>?? Store Name *</label>
                     <input type="text" id="storeName" placeholder="e.g., Tech Store Pakistan">
                 </div>
                 
                 <div class="form-group">
-                    <label>📖 Store Description *</label>
+                    <label>?? Store Description *</label>
                     <textarea id="storeDescription" rows="4" placeholder="Describe what products you sell, your experience, etc."></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label>📂 Category *</label>
+                    <label>?? Category *</label>
                     <select id="category">
                         <option value="">Select a category</option>
                         <option value="electronics">Electronics</option>
@@ -371,21 +371,21 @@
                     </select>
                 </div>
                 
-                <button class="submit-btn" onclick="submitApplication()">Submit Application →</button>
+                <button class="submit-btn" onclick="submitApplication()">Submit Application ?</button>
                 
                 <div id="formMessage" class="message"></div>
             </div>
             
             <div class="signup-card" style="margin-top: 1.5rem;">
-                <h3 style="margin-bottom: 1rem;">💰 Seller Benefits</h3>
+                <h3 style="margin-bottom: 1rem;">?? Seller Benefits</h3>
                 <ul class="benefits-list">
-                    <li>✓ 90% commission on every sale (10% platform fee)</li>
-                    <li>✓ No monthly subscription fees</li>
-                    <li>✓ Instant payouts via JazzCash/Easypaisa/Bank</li>
-                    <li>✓ Free product listing (unlimited products)</li>
-                    <li>✓ Access to thousands of customers</li>
-                    <li>✓ Seller dashboard to manage products & orders</li>
-                    <li>✓ 24/7 seller support</li>
+                    <li>? 90% commission on every sale (10% platform fee)</li>
+                    <li>? No monthly subscription fees</li>
+                    <li>? Instant payouts via JazzCash/Easypaisa/Bank</li>
+                    <li>? Free product listing (unlimited products)</li>
+                    <li>? Access to thousands of customers</li>
+                    <li>? Seller dashboard to manage products & orders</li>
+                    <li>? 24/7 seller support</li>
                 </ul>
             </div>
         `;
@@ -406,3 +406,5 @@
 
 </body>
 </html>
+`n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="chat-widget.js"></script>

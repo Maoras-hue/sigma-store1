@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -166,7 +166,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">σ SIGMA</a>
+    <a href="index.html" class="logo">s SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -179,14 +179,14 @@
         <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <button class="dark-toggle" id="darkToggle">??</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="dashboard-container">
         <div class="dashboard-header">
-            <h1>🏪 Seller Dashboard</h1>
+            <h1>?? Seller Dashboard</h1>
         </div>
         
         <div id="dashboardContent">
@@ -196,7 +196,7 @@
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio � Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -230,9 +230,9 @@
         if (!isLoggedIn()) {
             container.innerHTML = `
                 <div class="login-prompt">
-                    <h3>🔐 Please Login</h3>
+                    <h3>?? Please Login</h3>
                     <p>You need to be logged in to access the seller dashboard.</p>
-                    <a href="login.html" class="action-btn" style="margin-top: 1rem; display: inline-block;">Login Now →</a>
+                    <a href="login.html" class="action-btn" style="margin-top: 1rem; display: inline-block;">Login Now ?</a>
                 </div>
             `;
             return;
@@ -249,10 +249,10 @@
                 // Not a seller yet
                 container.innerHTML = `
                     <div class="apply-section">
-                        <h3>📝 Become a Seller</h3>
+                        <h3>?? Become a Seller</h3>
                         <p>Sell your own products on Sigma Store. Reach thousands of customers!</p>
                         <p><strong>Benefits:</strong> 90% commission, no monthly fees, instant payouts</p>
-                        <a href="seller-signup.html" class="apply-btn">Apply Now →</a>
+                        <a href="seller-signup.html" class="apply-btn">Apply Now ?</a>
                     </div>
                 `;
                 return;
@@ -261,9 +261,9 @@
             if (response.status === 401) {
                 container.innerHTML = `
                     <div class="login-prompt">
-                        <h3>🔐 Session Expired</h3>
+                        <h3>?? Session Expired</h3>
                         <p>Please login again.</p>
-                        <a href="login.html" class="action-btn" style="margin-top: 1rem; display: inline-block;">Login Now →</a>
+                        <a href="login.html" class="action-btn" style="margin-top: 1rem; display: inline-block;">Login Now ?</a>
                     </div>
                 `;
                 return;
@@ -272,9 +272,9 @@
             if (!response.ok) {
                 container.innerHTML = `
                     <div class="apply-section">
-                        <h3>⚠️ Error Loading Dashboard</h3>
+                        <h3>?? Error Loading Dashboard</h3>
                         <p>Please try again later.</p>
-                        <a href="index.html" class="action-btn" style="margin-top: 1rem; display: inline-block;">Back to Shop →</a>
+                        <a href="index.html" class="action-btn" style="margin-top: 1rem; display: inline-block;">Back to Shop ?</a>
                     </div>
                 `;
                 return;
@@ -292,10 +292,10 @@
                 statusText = 'Pending Approval';
             } else if (seller.status === 'approved') {
                 statusClass = 'status-approved';
-                statusText = 'Approved ✓';
+                statusText = 'Approved ?';
             } else if (seller.status === 'rejected') {
                 statusClass = 'status-rejected';
-                statusText = 'Rejected ✗';
+                statusText = 'Rejected ?';
             }
             
             container.innerHTML = `
@@ -321,7 +321,7 @@
                 <div style="background: white; border-radius: 20px; padding: 1.5rem; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
                     <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
                         <div>
-                            <h3 style="margin-bottom: 0.5rem;">🏪 ${seller.store_name}</h3>
+                            <h3 style="margin-bottom: 0.5rem;">?? ${seller.store_name}</h3>
                             <p style="color: #666;">Status: <span class="${statusClass}">${statusText}</span></p>
                         </div>
                         <div>
@@ -331,13 +331,13 @@
                 </div>
                 
                 <div class="action-buttons">
-                    <a href="seller-add-product.html" class="action-btn">➕ Add New Product</a>
-                    <a href="seller-products.html" class="action-btn">📦 My Products</a>
-                    <a href="seller-orders.html" class="action-btn">📋 My Orders</a>
+                    <a href="seller-add-product.html" class="action-btn">? Add New Product</a>
+                    <a href="seller-products.html" class="action-btn">?? My Products</a>
+                    <a href="seller-orders.html" class="action-btn">?? My Orders</a>
                 </div>
                 
                 <div style="background: white; border-radius: 20px; padding: 1.5rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
-                    <h3 style="margin-bottom: 1rem;">💡 Seller Tips</h3>
+                    <h3 style="margin-bottom: 1rem;">?? Seller Tips</h3>
                     <ul style="margin-left: 1.5rem; color: #666;">
                         <li>Add high-quality product images to increase sales</li>
                         <li>Respond to customer inquiries quickly</li>
@@ -351,9 +351,9 @@
             console.error('Dashboard error:', error);
             container.innerHTML = `
                 <div class="apply-section">
-                    <h3>⚠️ Connection Error</h3>
+                    <h3>?? Connection Error</h3>
                     <p>Cannot connect to server. Please check your internet connection.</p>
-                    <button onclick="location.reload()" class="action-btn" style="margin-top: 1rem;">Retry →</button>
+                    <button onclick="location.reload()" class="action-btn" style="margin-top: 1rem;">Retry ?</button>
                 </div>
             `;
         }
@@ -371,3 +371,5 @@
 
 </body>
 </html>
+`n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="chat-widget.js"></script>

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -209,7 +209,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">σ SIGMA</a>
+    <a href="index.html" class="logo">s SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -222,42 +222,42 @@
         <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <button class="dark-toggle" id="darkToggle">??</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="reviews-container">
         <div class="reviews-header">
-            <h1>⭐ Customer Reviews</h1>
+            <h1>? Customer Reviews</h1>
             <p>See what others are saying about our products</p>
         </div>
         
         <!-- Write Review Section -->
         <div id="writeReviewSection" class="write-review">
-            <h3>📝 Write a Review</h3>
+            <h3>?? Write a Review</h3>
             <div id="loginWarning" style="display:none;" class="login-prompt">
-                🔐 Please <a href="login.html">login</a> to write a review
+                ?? Please <a href="login.html">login</a> to write a review
             </div>
             <div id="reviewForm" style="display:none;">
                 <select id="productSelect" class="product-select">
                     <option value="">Select a product</option>
                 </select>
                 <div class="rating-stars" id="ratingStars">
-                    <span class="star" data-rating="1">☆</span>
-                    <span class="star" data-rating="2">☆</span>
-                    <span class="star" data-rating="3">☆</span>
-                    <span class="star" data-rating="4">☆</span>
-                    <span class="star" data-rating="5">☆</span>
+                    <span class="star" data-rating="1">?</span>
+                    <span class="star" data-rating="2">?</span>
+                    <span class="star" data-rating="3">?</span>
+                    <span class="star" data-rating="4">?</span>
+                    <span class="star" data-rating="5">?</span>
                 </div>
                 <textarea id="reviewComment" class="review-textarea" rows="4" placeholder="Share your experience with this product..."></textarea>
-                <button id="submitReview" class="submit-review-btn">Submit Review →</button>
+                <button id="submitReview" class="submit-review-btn">Submit Review ?</button>
             </div>
         </div>
         
         <!-- Reviews List -->
         <div class="reviews-list">
-            <h3>📖 All Reviews</h3>
+            <h3>?? All Reviews</h3>
             <div id="reviewsList">
                 <div class="no-reviews">Select a product to see reviews</div>
             </div>
@@ -266,7 +266,7 @@
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio � Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -290,10 +290,10 @@
                 stars.forEach(s => {
                     const rating = parseInt(s.dataset.rating);
                     if (rating <= selectedRating) {
-                        s.innerHTML = '★';
+                        s.innerHTML = '?';
                         s.classList.add('active');
                     } else {
-                        s.innerHTML = '☆';
+                        s.innerHTML = '?';
                         s.classList.remove('active');
                     }
                 });
@@ -339,7 +339,7 @@
             const reviews = data.reviews || [];
             
             if (reviews.length === 0) {
-                reviewsDiv.innerHTML = '<div class="no-reviews">⭐ No reviews yet. Be the first to review this product!</div>';
+                reviewsDiv.innerHTML = '<div class="no-reviews">? No reviews yet. Be the first to review this product!</div>';
                 return;
             }
             
@@ -349,7 +349,7 @@
                         <span class="reviewer-name">${escapeHtml(r.user_name)}</span>
                         <span class="review-date">${new Date(r.created_at).toLocaleDateString()}</span>
                     </div>
-                    <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                    <div class="review-stars">${'?'.repeat(r.rating)}${'?'.repeat(5 - r.rating)}</div>
                     <div class="review-comment">${escapeHtml(r.comment)}</div>
                 </div>
             `).join('');
@@ -402,12 +402,12 @@
             });
             
             if (response.ok) {
-                alert('✅ Review submitted successfully!');
+                alert('? Review submitted successfully!');
                 document.getElementById('reviewComment').value = '';
                 selectedRating = 0;
                 const stars = document.querySelectorAll('.star');
                 stars.forEach(s => {
-                    s.innerHTML = '☆';
+                    s.innerHTML = '?';
                     s.classList.remove('active');
                 });
                 loadReviews(productId);
@@ -469,3 +469,5 @@
 
 </body>
 </html>
+`n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="chat-widget.js"></script>

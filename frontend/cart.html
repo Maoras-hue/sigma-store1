@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -236,7 +236,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">σ SIGMA</a>
+    <a href="index.html" class="logo">s SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -249,14 +249,14 @@
         <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <button class="dark-toggle" id="darkToggle">??</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="cart-container">
         <div class="cart-header">
-            <h1>🛒 Your Shopping Cart</h1>
+            <h1>?? Your Shopping Cart</h1>
         </div>
         
         <div id="cartContent">
@@ -266,7 +266,7 @@
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio � Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -346,8 +346,8 @@
         if (cart.length === 0) {
             container.innerHTML = `
                 <div class="empty-cart">
-                    <p>🛒 Your cart is empty</p>
-                    <a href="index.html" class="continue-shopping">Continue Shopping →</a>
+                    <p>?? Your cart is empty</p>
+                    <a href="index.html" class="continue-shopping">Continue Shopping ?</a>
                 </div>
             `;
             return;
@@ -368,15 +368,15 @@
                         <button class="qty-btn" onclick="updateQty('${item.id}', 1)">+</button>
                     </div>
                     <div class="item-total">$${itemTotal.toFixed(2)}</div>
-                    <button class="remove-btn" onclick="removeItem('${item.id}')">🗑️</button>
+                    <button class="remove-btn" onclick="removeItem('${item.id}')">???</button>
                 </div>
             `;
         }
         itemsHtml += '</div>';
         
         const freeShippingMsg = subtotal < 120 ? 
-            `<div class="free-shipping">✨ Add $${(120 - subtotal).toFixed(2)} more for free shipping ✨</div>` : 
-            `<div class="free-shipping">🎉 Free shipping applied! 🎉</div>`;
+            `<div class="free-shipping">? Add $${(120 - subtotal).toFixed(2)} more for free shipping ?</div>` : 
+            `<div class="free-shipping">?? Free shipping applied! ??</div>`;
         
         const summaryHtml = `
             <div class="cart-summary">
@@ -450,14 +450,14 @@
         
         let buttonsHtml = `
             <button class="payment-btn whatsapp" onclick="sendWhatsAppOrder()">
-                📱 Order via WhatsApp (JazzCash/Easypaisa) - $${total.toFixed(2)}
+                ?? Order via WhatsApp (JazzCash/Easypaisa) - $${total.toFixed(2)}
             </button>
         `;
         
         if (paymentConfig.stripe && paymentConfig.stripe.enabled) {
             buttonsHtml += `
                 <button class="payment-btn stripe" onclick="initStripePayment()">
-                    💳 Pay with Credit Card (Stripe) - $${total.toFixed(2)}
+                    ?? Pay with Credit Card (Stripe) - $${total.toFixed(2)}
                 </button>
             `;
         }
@@ -465,7 +465,7 @@
         if (paymentConfig.paypal && paymentConfig.paypal.enabled) {
             buttonsHtml += `
                 <button class="payment-btn paypal" onclick="initPayPalPayment()">
-                    💙 PayPal - $${total.toFixed(2)}
+                    ?? PayPal - $${total.toFixed(2)}
                 </button>
             `;
         }
@@ -556,7 +556,7 @@
             if (user && user.name) userName = user.name;
         } catch(e) {}
         
-        const message = `🛒 NEW ORDER #${order.orderId}\n\n👤 Customer: ${userName}\n\n📦 ITEMS:\n${itemsList}\n💰 Subtotal: $${subtotal.toFixed(2)}\n🚚 Shipping: ${shipping === 0 ? 'Free' : '$' + shipping.toFixed(2)}\n💵 TOTAL: $${total.toFixed(2)}\n\n📝 Notes: ${notes || 'None'}\n\n🔗 Track: ${window.location.origin}/track.html?order=${order.orderId}`;
+        const message = `?? NEW ORDER #${order.orderId}\n\n?? Customer: ${userName}\n\n?? ITEMS:\n${itemsList}\n?? Subtotal: $${subtotal.toFixed(2)}\n?? Shipping: ${shipping === 0 ? 'Free' : '$' + shipping.toFixed(2)}\n?? TOTAL: $${total.toFixed(2)}\n\n?? Notes: ${notes || 'None'}\n\n?? Track: ${window.location.origin}/track.html?order=${order.orderId}`;
         
         const encodedMessage = encodeURIComponent(message);
         window.open(`https://wa.me/923259042317?text=${encodedMessage}`, '_blank');
@@ -565,7 +565,7 @@
         updateCartCount();
         renderCart();
         
-        showToast(`✅ Order placed! ID: ${order.orderId}`);
+        showToast(`? Order placed! ID: ${order.orderId}`);
     }
     
     async function initStripePayment() {
@@ -611,3 +611,5 @@
 
 </body>
 </html>
+`n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="chat-widget.js"></script>

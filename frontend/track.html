@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -238,7 +238,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">σ SIGMA</a>
+    <a href="index.html" class="logo">s SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -251,20 +251,20 @@
         <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="track-container">
         <div class="track-header">
-            <h1>ðŸ” Track Your Order</h1>
+            <h1>🔍 Track Your Order</h1>
             <p>Enter your Order ID to check status</p>
         </div>
         
         <div class="search-box">
             <input type="text" id="orderInput" placeholder="Enter Order ID (e.g., ORD1234567890)">
-            <button onclick="trackOrder()">Track Order â†’</button>
+            <button onclick="trackOrder()">Track Order →</button>
         </div>
         
         <div id="orderResult">
@@ -274,7 +274,7 @@
 </main>
 
 <footer>
-    <p>Sigma Studio â€” Mardan, Pakistan</p>
+    <p>Sigma Studio — Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -292,7 +292,7 @@
         const resultDiv = document.getElementById('orderResult');
         
         if (!orderId) {
-            resultDiv.innerHTML = '<div class="not-found"><p>âš ï¸ Please enter an Order ID</p></div>';
+            resultDiv.innerHTML = '<div class="not-found"><p>⚠️ Please enter an Order ID</p></div>';
             return;
         }
         
@@ -304,9 +304,9 @@
             if (!response.ok) {
                 resultDiv.innerHTML = `
                     <div class="order-card not-found">
-                        <p>âŒ Order not found</p>
+                        <p>❌ Order not found</p>
                         <p style="margin-top:1rem; font-size:0.9rem;">Please check your Order ID and try again.</p>
-                        <a href="index.html" style="display:inline-block; margin-top:1rem; color:#e05a2a;">â† Back to Shop</a>
+                        <a href="index.html" style="display:inline-block; margin-top:1rem; color:#e05a2a;">← Back to Shop</a>
                     </div>
                 `;
                 return;
@@ -349,12 +349,12 @@
                 
                 if (i < statusIndex) {
                     statusClass = 'completed';
-                    icon = 'âœ“';
+                    icon = '✓';
                 } else if (i === statusIndex) {
                     statusClass = 'current';
-                    icon = 'â—';
+                    icon = '●';
                 } else {
-                    icon = 'â—‹';
+                    icon = '○';
                 }
                 
                 statusHtml += `
@@ -384,7 +384,7 @@
             resultDiv.innerHTML = `
                 <div class="order-card">
                     <div class="order-header">
-                        <div class="order-id">ðŸ“¦ Order #${order.order_id}</div>
+                        <div class="order-id">📦 Order #${order.order_id}</div>
                         <div class="order-date">${new Date(order.created_at).toLocaleDateString()}</div>
                     </div>
                     
@@ -413,7 +413,7 @@
                     </div>
                     
                     <div style="text-align: center; margin-top: 1.5rem;">
-                        <a href="index.html" style="color:#e05a2a;">â† Continue Shopping</a>
+                        <a href="index.html" style="color:#e05a2a;">← Continue Shopping</a>
                     </div>
                 </div>
             `;
@@ -422,7 +422,7 @@
             console.error('Track error:', error);
             resultDiv.innerHTML = `
                 <div class="order-card not-found">
-                    <p>âŒ Error connecting to server</p>
+                    <p>❌ Error connecting to server</p>
                     <p style="margin-top:1rem; font-size:0.9rem;">Please try again later.</p>
                 </div>
             `;
@@ -459,3 +459,5 @@
 
 </body>
 </html>
+`n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="chat-widget.js"></script>

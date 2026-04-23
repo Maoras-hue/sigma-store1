@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -170,7 +170,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">σ SIGMA</a>
+    <a href="index.html" class="logo">s SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -183,14 +183,14 @@
         <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <button class="dark-toggle" id="darkToggle">??</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="orders-container">
         <div class="orders-header">
-            <h1>📋 My Orders</h1>
+            <h1>?? My Orders</h1>
         </div>
         
         <div id="ordersContent">
@@ -200,7 +200,7 @@
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio � Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -261,7 +261,7 @@
             if (!response.ok) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <p>❌ Failed to load orders</p>
+                        <p>? Failed to load orders</p>
                         <button onclick="loadOrders()" class="add-btn" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 50px; cursor: pointer;">Try Again</button>
                     </div>
                 `;
@@ -274,7 +274,7 @@
             if (orders.length === 0) {
                 container.innerHTML = `
                     <div class="empty-state">
-                        <p>📦 No orders yet.</p>
+                        <p>?? No orders yet.</p>
                         <p>When customers order your products, they will appear here.</p>
                     </div>
                 `;
@@ -355,7 +355,7 @@
             console.error('Load orders error:', error);
             container.innerHTML = `
                 <div class="empty-state">
-                    <p>⚠️ Cannot connect to server</p>
+                    <p>?? Cannot connect to server</p>
                     <button onclick="loadOrders()" class="add-btn" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 50px; cursor: pointer;">Retry</button>
                 </div>
             `;
@@ -380,10 +380,10 @@
             });
             
             if (response.ok) {
-                alert(`✅ Order status updated to ${newStatus}`);
+                alert(`? Order status updated to ${newStatus}`);
                 loadOrders();
             } else {
-                alert('❌ Failed to update status');
+                alert('? Failed to update status');
                 loadOrders();
             }
         } catch (error) {
@@ -419,9 +419,9 @@
         if (!isLoggedIn()) {
             document.getElementById('ordersContent').innerHTML = `
                 <div class="login-prompt">
-                    <h3>🔐 Please Login</h3>
+                    <h3>?? Please Login</h3>
                     <p>You need to be logged in to view orders.</p>
-                    <a href="login.html" class="add-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Login Now →</a>
+                    <a href="login.html" class="add-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Login Now ?</a>
                 </div>
             `;
             return;
@@ -432,9 +432,9 @@
         if (!isSeller) {
             document.getElementById('ordersContent').innerHTML = `
                 <div class="login-prompt">
-                    <h3>🏪 Become a Seller First</h3>
+                    <h3>?? Become a Seller First</h3>
                     <p>You need to be an approved seller to view orders.</p>
-                    <a href="seller-signup.html" class="add-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Apply Now →</a>
+                    <a href="seller-signup.html" class="add-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Apply Now ?</a>
                 </div>
             `;
             return;
@@ -459,3 +459,5 @@
 
 </body>
 </html>
+`n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script src="chat-widget.js"></script>
