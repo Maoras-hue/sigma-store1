@@ -702,6 +702,116 @@ app.get('/api/my-orders', async (req, res) => {
         res.status(500).json({ error: 'Server error' });
     }
 });
+// ============================================
+// PROFILE PICTURE UPLOAD
+// ============================================
+
+// Configure multer for profile pictures
+const profileStorage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        const profileDir = path.join(__dirname, 'uploads', 'profiles');
+        if (!fs.existsSync(profileDir)) {
+            fs.mkdirSync(profileDir, { recursive: true });
+        }
+        cb(null, profileDir);
+    },
+    filename: function(req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const profileUpload = multer({ 
+    storage: profileStorage,
+    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
+    fileFilter: function(req, file, cb) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images allowed (JPEG, PNG, GIF, WEBP)'));
+        }
+    }
+});
+
+// Upload profile picture
+app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        
+        const profilePictureUrl = `/uploads/profiles/${req.file.filename}`;
+        
+        await updateOne('users', session.userId, 'id', { profile_picture: profilePictureUrl });
+        
+        res.json({ 
+            success: true, 
+            profilePicture: profilePictureUrl,
+            message: 'Profile picture updated successfully'
+        });
+    } catch (error) {
+        console.error('Upload error:', error);
+        res.status(500).json({ error: 'Failed to upload profile picture' });
+    }
+});
+
+// Get profile picture
+app.get('/api/profile-picture', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const user = await findOne('users', 'id', session.userId);
+        
+        res.json({ 
+            profilePicture: user?.profile_picture || null,
+            hasPicture: !!user?.profile_picture
+        });
+    } catch (error) {
+        console.error('Get profile picture error:', error);
+        res.status(500).json({ error: 'Failed to get profile picture' });
+    }
+});
+
+// Delete profile picture
+app.delete('/api/profile-picture', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        // Get current picture to delete file
+        const user = await findOne('users', 'id', session.userId);
+        if (user?.profile_picture) {
+            const filePath = path.join(__dirname, user.profile_picture);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        }
+        
+        await updateOne('users', session.userId, 'id', { profile_picture: null });
+        
+        res.json({ success: true, message: 'Profile picture removed' });
+    } catch (error) {
+        console.error('Delete error:', error);
+        res.status(500).json({ error: 'Failed to delete profile picture' });
+    }
+});
 server.listen(PORT, () => {
     console.log('========================================');
     console.log('SIGMA STORE IS RUNNING!');

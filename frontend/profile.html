@@ -217,15 +217,36 @@
 </div>
 
 <main>
-    <div class="profile-container">
-        <div class="profile-header">
-            <h1>My Profile</h1>
+    <!-- Profile Picture Section -->
+<div class="profile-card">
+    <h2>Profile Picture</h2>
+    <div style="text-align: center;">
+        <div id="profilePictureContainer" style="margin-bottom: 1rem;">
+            <img id="profileImage" src="https://placehold.co/120x120/ccc/white?text=No+Image" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #e05a2a;">
         </div>
-        
-        <div id="profileContent">
-            <!-- Content will be loaded here -->
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <label for="pictureUpload" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 10px 20px; border-radius: 50px; cursor: pointer;">📸 Upload Picture</label>
+            <input type="file" id="pictureUpload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
+            <button id="removePictureBtn" onclick="removeProfilePicture()" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer;">🗑️ Remove Picture</button>
         </div>
+        <div id="pictureMessage" class="message" style="margin-top: 1rem;"></div>
     </div>
+</div>
+
+<!-- Personal Info Section -->
+<div class="profile-card">
+    <h2>Personal Information</h2>
+    <div id="profileMessage" class="message"></div>
+    <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="profileName">
+    </div>
+    <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="profileEmail">
+    </div>
+    <button class="btn" onclick="updateProfile()">Update Profile</button>
+</div>
 </main>
 
 <footer>
@@ -239,6 +260,108 @@
     const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
     let currentUser = null;
     
+
+// ============================================
+// PROFILE PICTURE FUNCTIONS
+// ============================================
+
+async function loadProfilePicture() {
+    const token = getAuthToken();
+    try {
+        const response = await fetch(`${API_URL}/api/profile-picture`, {
+            headers: { 'Authorization': token }
+        });
+        const data = await response.json();
+        
+        if (data.profilePicture) {
+            document.getElementById('profileImage').src = API_URL + data.profilePicture;
+        } else {
+            document.getElementById('profileImage').src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
+        }
+    } catch (error) {
+        console.error('Load picture error:', error);
+    }
+}
+
+async function uploadProfilePicture(input) {
+    const file = input.files[0];
+    if (!file) return;
+    
+    const token = getAuthToken();
+    const formData = new FormData();
+    formData.append('profilePicture', file);
+    
+    const messageDiv = document.getElementById('pictureMessage');
+    messageDiv.textContent = 'Uploading...';
+    messageDiv.className = 'message info';
+    messageDiv.style.display = 'block';
+    
+    try {
+        const response = await fetch(`${API_URL}/api/upload-profile-picture`, {
+            method: 'POST',
+            headers: { 'Authorization': token },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            messageDiv.textContent = 'Profile picture updated!';
+            messageDiv.className = 'message success';
+            setTimeout(() => messageDiv.style.display = 'none', 3000);
+            loadProfilePicture();
+            
+            // Update stored user
+            const storedUser = localStorage.getItem('sigma_user');
+            if (storedUser) {
+                const user = JSON.parse(storedUser);
+                user.profile_picture = data.profilePicture;
+                localStorage.setItem('sigma_user', JSON.stringify(user));
+            }
+        } else {
+            messageDiv.textContent = data.error || 'Upload failed';
+            messageDiv.className = 'message error';
+        }
+    } catch (error) {
+        messageDiv.textContent = 'Error uploading picture';
+        messageDiv.className = 'message error';
+    }
+    
+    input.value = '';
+}
+
+async function removeProfilePicture() {
+    if (!confirm('Remove your profile picture?')) return;
+    
+    const token = getAuthToken();
+    const messageDiv = document.getElementById('pictureMessage');
+    
+    messageDiv.textContent = 'Removing...';
+    messageDiv.className = 'message info';
+    messageDiv.style.display = 'block';
+    
+    try {
+        const response = await fetch(`${API_URL}/api/profile-picture`, {
+            method: 'DELETE',
+            headers: { 'Authorization': token }
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            messageDiv.textContent = 'Profile picture removed!';
+            messageDiv.className = 'message success';
+            setTimeout(() => messageDiv.style.display = 'none', 3000);
+            loadProfilePicture();
+        } else {
+            messageDiv.textContent = data.error || 'Remove failed';
+            messageDiv.className = 'message error';
+        }
+    } catch (error) {
+        messageDiv.textContent = 'Error removing picture';
+        messageDiv.className = 'message error';
+    }
+}
     // ============================================
     // CHECK LOGIN
     // ============================================
@@ -458,7 +581,7 @@
     // ============================================
     // RENDER PAGE
     // ============================================
-    
+    await loadProfilePicture();
     async function renderPage() {
         const container = document.getElementById('profileContent');
         

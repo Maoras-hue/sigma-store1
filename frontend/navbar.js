@@ -59,7 +59,14 @@ function logoutAndRedirect() {
 // ============================================
 // UPDATE AUTH BUTTON WITH DROPDOWN
 // ============================================
-
+dropdown.innerHTML = `
+    <div style="display:flex; align-items:center; padding:12px 20px; border-bottom:1px solid #eee;">
+        <img id="dropdownProfilePic" src="${profilePicUrl}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:10px;">
+        <span>${displayName}</span>
+    </div>
+    <a href="profile.html" style="display:block; padding:12px 20px; color:#333; text-decoration:none;">👤 My Profile</a>
+    <a href="#" onclick="logoutAndRedirect()" style="display:block; padding:12px 20px; color:#e05a2a; text-decoration:none;">🚪 Logout</a>
+`;
 function updateAuthButton() {
     var authLink = document.getElementById('authLink');
     if (!authLink) return;
@@ -95,10 +102,10 @@ function updateAuthButton() {
                 
                 dropdown.innerHTML = `
                     <a href="profile.html" style="display:block; padding:12px 20px; color:#333; text-decoration:none; border-bottom:1px solid #eee; transition:background 0.2s;">
-                        👤 My Profile
+                         My Profile
                     </a>
                     <a href="#" onclick="logoutAndRedirect()" style="display:block; padding:12px 20px; color:#e05a2a; text-decoration:none; transition:background 0.2s;">
-                        🚪 Logout
+                         Logout
                     </a>
                 `;
                 
