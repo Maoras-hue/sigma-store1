@@ -1,6 +1,7 @@
 ﻿// ============================================
 // SIGMA STORE - MAIN FRONTEND SCRIPT
 // ============================================
+
 let products = [];
 let currentFilter = 'all';
 let searchTerm = '';
@@ -10,12 +11,12 @@ let currentSort = 'default';
 // LOAD PRODUCTS FROM BACKEND
 // ============================================
 async function loadProducts() {
-    console.log('Loading products from:', API_URL);
+    console.log('Loading products from:', window.BACKEND_URL);
     const grid = document.getElementById('productsGrid');
     if (grid) grid.innerHTML = '<div class="spinner"></div>';
     
     try {
-        const response = await fetch(`${API_URL}/api/products`);
+        const response = await fetch(`${window.BACKEND_URL}/api/products`);
         if (!response.ok) throw new Error('Failed to fetch products');
         products = await response.json();
         console.log('Products loaded:', products.length);
@@ -23,7 +24,7 @@ async function loadProducts() {
         renderRecentlyViewed();
     } catch (error) {
         console.error('Error loading products:', error);
-        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">❌ Cannot load products. Make sure backend is running.</p>';
+        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">❌ Cannot load products. Please try again later.</p>';
     }
 }
 
@@ -42,7 +43,6 @@ function showToast(message, type = 'success') {
         padding: 12px 24px;
         border-radius: 50px;
         z-index: 9999;
-        font-size: 14px;
         animation: fadeInUp 0.3s ease;
         box-shadow: 0 4px 15px rgba(0,0,0,0.2);
     `;
@@ -89,7 +89,7 @@ function updateQty(id, delta) {
         cart[index].quantity += delta;
         if (cart[index].quantity < 1) cart.splice(index, 1);
         saveCart(cart);
-        renderCart();
+        if (typeof renderCart === 'function') renderCart();
     }
 }
 
@@ -97,7 +97,8 @@ function removeItem(id) {
     let cart = getCart();
     cart = cart.filter(i => i.id !== id);
     saveCart(cart);
-    renderCart();
+    if (typeof renderCart === 'function') renderCart();
+    showToast('Item removed from cart');
 }
 
 function pulseCart() {
@@ -169,7 +170,7 @@ function renderRecentlyViewed() {
             <div style="display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #eee;">
                 <img src="${imgSrc}" style="width:45px;height:45px;object-fit:cover;border-radius:8px;" onerror="this.src='https://placehold.co/45x45/111/white?text=?'">
                 <div style="flex:1">
-                    <div style="font-size:13px; font-weight:500;">${p.name}</div>
+                    <div style="font-size:13px; font-weight:500;">${escapeHtml(p.name)}</div>
                     <div style="font-size:12px; color:#e05a2a;">$${p.price}</div>
                 </div>
                 <button onclick="addToCart('${p.id}','${escapeHtml(p.name)}',${p.price})" style="background:#111;color:white;border:none;padding:5px 12px;border-radius:20px;cursor:pointer;font-size:12px;">Buy</button>
@@ -188,7 +189,7 @@ function getProductImage(product) {
     if (product.image.startsWith('http')) {
         return product.image;
     }
-    return `${API_URL}/uploads/${product.image}`;
+    return `${window.BACKEND_URL}/uploads/${product.image}`;
 }
 
 function escapeHtml(str) {
@@ -215,17 +216,14 @@ function renderProducts() {
     
     let filtered = [...products];
     
-    // Apply category filter
     if (currentFilter !== 'all') {
         filtered = filtered.filter(p => p.category === currentFilter);
     }
     
-    // Apply search filter
     if (searchTerm.trim()) {
         filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
     }
     
-    // Apply sorting
     if (currentSort === 'priceLow') {
         filtered.sort((a, b) => a.price - b.price);
     } else if (currentSort === 'priceHigh') {
@@ -245,7 +243,7 @@ function renderProducts() {
             <div class="product-card" onclick="addToRecentlyViewed('${p.id}')">
                 <div style="position:relative;">
                     <img src="${imageSrc}" class="product-image" onerror="this.src='https://placehold.co/400x300/ff6b6b/white?text=Image+Error'" loading="lazy">
-                    <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" class="wishlist-btn" style="position:absolute;top:10px;right:10px;background:white;border:none;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+                    <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" style="position:absolute;top:10px;right:10px;background:white;border:none;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
                         <span style="color:${heartColor};">♥</span>
                     </button>
                 </div>
@@ -257,70 +255,6 @@ function renderProducts() {
             </div>
         `;
     }).join('');
-}
-
-// ============================================
-// RENDER CART PAGE
-// ============================================
-function renderCart() {
-    const container = document.getElementById('cartItems');
-    if (!container) return;
-    
-    const cart = getCart();
-    
-    if (cart.length === 0) {
-        container.innerHTML = '<p style="text-align:center;padding:40px;">🛒 Your cart is empty</p>';
-        const totalContainer = document.getElementById('cartTotal');
-        if (totalContainer) totalContainer.innerHTML = '';
-        return;
-    }
-    
-    let subtotal = 0;
-    let html = '<div style="background:white; border-radius:16px; overflow:hidden;">';
-    
-    for (let item of cart) {
-        const itemTotal = item.price * item.quantity;
-        subtotal += itemTotal;
-        html += `
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; border-bottom:1px solid #eee; flex-wrap:wrap; gap:10px;">
-                <div style="flex:2;">
-                    <strong>${escapeHtml(item.name)}</strong><br>
-                    <span style="font-size:13px; color:#666;">$${item.price} each</span>
-                </div>
-                <div style="display:flex; gap:8px; align-items:center;">
-                    <button onclick="updateQty('${item.id}', -1)" style="width:30px;height:30px;border-radius:50%;border:1px solid #ddd;background:white;cursor:pointer;">-</button>
-                    <span style="min-width:30px;text-align:center;">${item.quantity}</span>
-                    <button onclick="updateQty('${item.id}', 1)" style="width:30px;height:30px;border-radius:50%;border:1px solid #ddd;background:white;cursor:pointer;">+</button>
-                    <button onclick="removeItem('${item.id}')" style="background:#e05a2a;color:white;border:none;padding:6px 12px;border-radius:20px;cursor:pointer;">Remove</button>
-                </div>
-                <div style="min-width:80px;text-align:right;"><strong>$${itemTotal}</strong></div>
-            </div>
-        `;
-    }
-    
-    const shipping = subtotal > 120 ? 0 : 12;
-    const total = subtotal + shipping;
-    
-    html += '</div>';
-    container.innerHTML = html;
-    
-    const totalContainer = document.getElementById('cartTotal');
-    if (totalContainer) {
-        totalContainer.innerHTML = `
-            <div style="background:white; border-radius:16px; padding:20px; margin-top:20px;">
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span>Subtotal:</span><span>$${subtotal}</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
-                    <span>Shipping:</span><span>${shipping === 0 ? 'Free' : '$' + shipping}</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; font-size:20px; font-weight:bold; margin-top:15px; padding-top:15px; border-top:2px solid #eee;">
-                    <span>Total:</span><span>$${total}</span>
-                </div>
-                ${subtotal < 120 ? `<p style="color:#666; font-size:12px; margin-top:10px;">💡 Add $${120 - subtotal} more for free shipping</p>` : '<p style="color:#4caf50; font-size:12px; margin-top:10px;">✓ Free shipping applied</p>'}
-            </div>
-        `;
-    }
 }
 
 // ============================================
@@ -376,106 +310,6 @@ function setupEventListeners() {
 }
 
 // ============================================
-// CREATE ORDER FUNCTION
-// ============================================
-async function createOrder(paymentMethod, paymentId = null) {
-    const cart = getCart();
-    if (cart.length === 0) {
-        showToast('Cart is empty', 'error');
-        return null;
-    }
-    
-    let subtotal = 0;
-    for (let item of cart) {
-        subtotal += item.price * item.quantity;
-    }
-    const shipping = subtotal > 120 ? 0 : 12;
-    const total = subtotal + shipping;
-    const notes = document.getElementById('orderNotes')?.value || '';
-    const token = localStorage.getItem('authToken');
-    
-    if (!token) {
-        if (confirm('Please login to place order. Go to login page?')) {
-            window.location.href = 'login.html';
-        }
-        return null;
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/api/orders`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': token
-            },
-            body: JSON.stringify({
-                items: cart,
-                subtotal: subtotal,
-                shipping: shipping,
-                total: total,
-                notes: notes,
-                paymentMethod: paymentMethod,
-                paymentId: paymentId
-            })
-        });
-        
-        const data = await response.json();
-        if (data.success) {
-            return data.order;
-        } else {
-            showToast(data.error || 'Order failed', 'error');
-            return null;
-        }
-    } catch (error) {
-        console.error('Order error:', error);
-        showToast('Server error. Please try again.', 'error');
-        return null;
-    }
-}
-
-// ============================================
-// WHATSAPP ORDER
-// ============================================
-async function sendWhatsAppOrder() {
-    const cart = getCart();
-    if (cart.length === 0) {
-        showToast('Cart is empty', 'error');
-        return;
-    }
-    
-    const order = await createOrder('whatsapp');
-    if (!order) return;
-    
-    let itemsList = '';
-    for (let item of cart) {
-        itemsList += `${item.name} x ${item.quantity} = $${item.price * item.quantity}\n`;
-    }
-    
-    let subtotal = 0;
-    for (let item of cart) subtotal += item.price * item.quantity;
-    const shipping = subtotal > 120 ? 0 : 12;
-    const total = subtotal + shipping;
-    const notes = document.getElementById('orderNotes')?.value || '';
-    
-    let userName = 'Customer';
-    try {
-        const user = JSON.parse(localStorage.getItem('sigma_user') || 'null');
-        if (user && user.name) userName = user.name;
-    } catch(e) {}
-    
-    const message = `🛒 NEW ORDER #${order.orderId}\n\n👤 Customer: ${userName}\n\n📦 ITEMS:\n${itemsList}\n💰 Subtotal: $${subtotal}\n🚚 Shipping: ${shipping === 0 ? 'Free' : '$' + shipping}\n💵 TOTAL: $${total}\n\n📝 Notes: ${notes || 'None'}\n\n🔗 Track: ${window.location.origin}/track.html?order=${order.orderId}`;
-    
-    const encodedMessage = encodeURIComponent(message);
-    window.open(`https://wa.me/923259042317?text=${encodedMessage}`, '_blank');
-    
-    localStorage.removeItem('sigma_cart');
-    updateCartCount();
-    if (typeof renderCart === 'function') renderCart();
-    
-    showToast(`✓ Order placed! ID: ${order.orderId}`);
-}
-
-// ============================================
 // INITIALIZE ON PAGE LOAD
 // ============================================
 document.addEventListener('DOMContentLoaded', () => {
@@ -485,75 +319,11 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
 });
 
-// ============================================
-// MAGNETIC BUTTON EFFECTS
-// ============================================
-document.addEventListener('DOMContentLoaded', function() {
-    const buttons = document.querySelectorAll('.btn, .add-btn, .filter-btn');
-    buttons.forEach(btn => {
-        btn.addEventListener('mousemove', function(e) {
-            const rect = this.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const moveX = (x - centerX) / 15;
-            const moveY = (y - centerY) / 15;
-            this.style.transform = `translate(${moveX}px, ${moveY}px)`;
-        });
-        btn.addEventListener('mouseleave', function() {
-            this.style.transform = 'translate(0, 0)';
-        });
-        btn.addEventListener('click', function(e) {
-            const ripple = document.createElement('span');
-            ripple.classList.add('ripple');
-            const rect = this.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-            this.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
-        });
-    });
-});
-
-// ============================================
-// SCROLL HEADER EFFECT
-// ============================================
-window.addEventListener('scroll', function() {
-    const header = document.querySelector('.header');
-    if (header) {
-        if (window.scrollY > 50) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    }
-});
-
-// ============================================
-// CONFETTI EFFECT
-// ============================================
-function showConfetti() {
-    const colors = ['#e05a2a', '#ff8c42', '#4caf50', '#2196f3', '#9c27b0', '#ffeb3b'];
-    for (let i = 0; i < 100; i++) {
-        const confetti = document.createElement('div');
-        confetti.classList.add('confetti');
-        confetti.style.left = Math.random() * 100 + '%';
-        confetti.style.width = (Math.random() * 10 + 5) + 'px';
-        confetti.style.height = confetti.style.width;
-        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
-        confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
-        confetti.style.animationDelay = Math.random() * 0.5 + 's';
-        document.body.appendChild(confetti);
-        setTimeout(() => confetti.remove(), 3500);
-    }
-}
-
-window.showConfetti = showConfetti;
+// Make functions global
 window.addToCart = addToCart;
 window.updateQty = updateQty;
 window.removeItem = removeItem;
-window.sendWhatsAppOrder = sendWhatsAppOrder;
 window.toggleWishlist = toggleWishlist;
+window.showConfetti = function() {
+    console.log('Confetti!');
+};
