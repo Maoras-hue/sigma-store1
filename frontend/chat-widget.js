@@ -1,6 +1,51 @@
-// SIMPLE CHAT WIDGET - WORKING VERSION
+// COMPLETE CHAT WIDGET - WORKING WITH ADMIN PANEL
 (function() {
     console.log('Chat widget loading...');
+    
+    const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+    
+    // Get or create user ID
+    function getUserId() {
+        let userId = localStorage.getItem('chat_user_id');
+        if (!userId) {
+            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chat_user_id', userId);
+        }
+        return userId;
+    }
+    
+    // Get user name if logged in
+    function getUserName() {
+        const user = localStorage.getItem('sigma_user');
+        if (user) {
+            try {
+                const userData = JSON.parse(user);
+                return userData.name || userData.email.split('@')[0];
+            } catch(e) {}
+        }
+        return 'Guest';
+    }
+    
+    // Save message to server
+    async function saveMessage(message) {
+        try {
+            const response = await fetch(API_URL + '/api/chat/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: getUserId(),
+                    userName: getUserName(),
+                    message: message,
+                    isAdmin: false
+                })
+            });
+            if (response.ok) {
+                console.log('Message saved');
+            }
+        } catch(e) {
+            console.error('Save error:', e);
+        }
+    }
     
     // Check if widget already exists
     if (document.getElementById('custom_chat_widget')) {
@@ -42,7 +87,62 @@
     widget.appendChild(chatWindow);
     document.body.appendChild(widget);
     
-    // Add dark mode styles
+    // Add message to chat window
+    function addMessage(message, isOwn) {
+        var container = document.getElementById('chat_messages_container');
+        if (container.children.length === 1 && container.children[0].innerText === 'Send a message to support') {
+            container.innerHTML = '';
+        }
+        
+        var msgDiv = document.createElement('div');
+        msgDiv.style.marginBottom = '10px';
+        msgDiv.style.padding = '10px 12px';
+        msgDiv.style.borderRadius = '15px';
+        msgDiv.style.maxWidth = '85%';
+        msgDiv.style.wordWrap = 'break-word';
+        
+        if (isOwn) {
+            msgDiv.style.background = 'linear-gradient(135deg,#e05a2a,#ff8c42)';
+            msgDiv.style.color = 'white';
+            msgDiv.style.marginLeft = 'auto';
+            msgDiv.style.textAlign = 'right';
+        } else {
+            msgDiv.style.background = '#e9ecef';
+            msgDiv.style.color = '#333';
+            msgDiv.style.marginRight = 'auto';
+        }
+        
+        msgDiv.textContent = message;
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    // Send message function
+    async function sendMessage() {
+        var input = document.getElementById('chat_input');
+        var message = input.value.trim();
+        if (!message) return;
+        
+        // Add to chat window
+        addMessage(message, true);
+        
+        // Save to server
+        await saveMessage(message);
+        
+        // Show confirmation
+        var statusDiv = document.createElement('div');
+        statusDiv.style.textAlign = 'center';
+        statusDiv.style.fontSize = '12px';
+        statusDiv.style.color = '#4caf50';
+        statusDiv.style.marginTop = '5px';
+        statusDiv.textContent = '✓ Message sent to admin';
+        document.getElementById('chat_messages_container').appendChild(statusDiv);
+        setTimeout(function() { statusDiv.remove(); }, 2000);
+        
+        input.value = '';
+    }
+    
+    // Dark mode styles
     var style = document.createElement('style');
     style.textContent = `
         body.dark #chat_window {
@@ -55,6 +155,10 @@
             background: #334155;
             border-color: #475569;
             color: white;
+        }
+        body.dark #chat_messages_container div:not([style*="background:linear-gradient"]) {
+            background: #334155 !important;
+            color: #e2e8f0 !important;
         }
     `;
     document.head.appendChild(style);
@@ -70,14 +174,10 @@
         document.getElementById('chat_toggle_btn').style.display = 'flex';
     };
     
-    document.getElementById('chat_send_btn').onclick = function() {
-        var input = document.getElementById('chat_input');
-        var message = input.value.trim();
-        if (message) {
-            alert('Message sent: ' + message + '\n\nAdmin will reply at: https://sigma-store-api.onrender.com/admin/chat.html');
-            input.value = '';
-        }
-    };
+    document.getElementById('chat_send_btn').onclick = sendMessage;
+    document.getElementById('chat_input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
     
     console.log('Chat widget created successfully');
 })();
