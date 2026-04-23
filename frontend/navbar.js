@@ -10,6 +10,53 @@ function updateCartCount() {
     const badge = document.getElementById('cartCount');
     if (badge) badge.innerText = total;
 }
+async function updateAuthButton() {
+    const authLink = document.getElementById('authLink');
+    if (!authLink) return;
+    
+    if (!isLoggedIn()) {
+        authLink.innerHTML = 'Login';
+        authLink.href = 'login.html';
+        authLink.onclick = null;
+        return;
+    }
+    
+    const userStr = localStorage.getItem('sigma_user');
+    if (userStr) {
+        try {
+            const user = JSON.parse(userStr);
+            const displayName = user.name || user.email.split('@')[0];
+            authLink.innerHTML = `${displayName} ▼`;
+            authLink.href = '#';
+            authLink.onclick = (e) => {
+                e.preventDefault();
+                // Create dropdown menu
+                const dropdown = document.createElement('div');
+                dropdown.style.position = 'absolute';
+                dropdown.style.right = '20px';
+                dropdown.style.top = '60px';
+                dropdown.style.background = 'white';
+                dropdown.style.borderRadius = '8px';
+                dropdown.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
+                dropdown.style.padding = '10px 0';
+                dropdown.style.zIndex = '1000';
+                dropdown.innerHTML = `
+                    <a href="profile.html" style="display:block; padding:8px 20px; color:#333; text-decoration:none;">My Profile</a>
+                    <a href="#" onclick="clearAuth(); window.location.href='index.html';" style="display:block; padding:8px 20px; color:#e05a2a; text-decoration:none;">Logout</a>
+                `;
+                document.body.appendChild(dropdown);
+                setTimeout(() => dropdown.remove(), 5000);
+                dropdown.onclick = (e) => e.stopPropagation();
+            };
+        } catch(e) {
+            authLink.innerHTML = 'Login';
+            authLink.href = 'login.html';
+        }
+    } else {
+        authLink.innerHTML = 'Login';
+        authLink.href = 'login.html';
+    }
+}
 
 function isLoggedIn() {
     const token = localStorage.getItem('sigma_token');

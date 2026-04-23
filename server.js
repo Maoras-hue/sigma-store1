@@ -563,6 +563,145 @@ app.post('/api/notify-shop-refresh', (req, res) => {
 app.get('/api/last-product-update', (req, res) => {
     res.json({ lastUpdate: lastProductUpdate });
 });
+
+// ============================================
+// PROFILE MANAGEMENT ROUTES
+// ============================================
+
+// Get user profile
+app.get('/api/profile', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const user = await findOne('users', 'id', session.userId);
+        
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                created_at: user.created_at
+            }
+        });
+    } catch (error) {
+        console.error('Profile error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Update profile (name, email)
+app.put('/api/profile', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const { name, email } = req.body;
+        
+        if (!name && !email) {
+            return res.status(400).json({ error: 'Nothing to update' });
+        }
+        
+        const updates = {};
+        if (name) updates.name = name;
+        if (email) updates.email = email;
+        
+        await updateOne('users', session.userId, 'id', updates);
+        
+        // Update session user data
+        const updatedUser = await findOne('users', 'id', session.userId);
+        
+        res.json({
+            success: true,
+            user: {
+                id: updatedUser.id,
+                name: updatedUser.name,
+                email: updatedUser.email
+            }
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Change password
+app.put('/api/change-password', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const { currentPassword, newPassword } = req.body;
+        
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Current password and new password required' });
+        }
+        
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'New password must be at least 6 characters' });
+        }
+        
+        const user = await findOne('users', 'id', session.userId);
+        
+        const validPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await updateOne('users', session.userId, 'id', { password: hashedPassword });
+        
+        res.json({ success: true, message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Get user orders
+app.get('/api/my-orders', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const orders = await executeQuery(
+            'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
+            [session.userId]
+        );
+        
+        for (let order of orders) {
+            if (order.items && typeof order.items === 'string') {
+                order.items = JSON.parse(order.items);
+            }
+        }
+        
+        res.json({ success: true, orders: orders || [] });
+    } catch (error) {
+        console.error('My orders error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 server.listen(PORT, () => {
     console.log('========================================');
     console.log('SIGMA STORE IS RUNNING!');
