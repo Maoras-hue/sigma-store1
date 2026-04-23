@@ -62,6 +62,24 @@ function getUserFromToken(token) {
 // DATABASE CONNECTION
 // ============================================
 connectDB();
+// ============================================
+// CREATE CHAT TABLE IF NOT EXISTS
+// ============================================
+(async function createChatTable() {
+    try {
+        await executeQuery(`CREATE TABLE IF NOT EXISTS chat_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            user_name TEXT,
+            message TEXT,
+            is_admin INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+        console.log('Chat table ready');
+    } catch (error) {
+        console.error('Error creating chat table:', error.message);
+    }
+})();
 
 // ============================================
 // TEST ROUTE
