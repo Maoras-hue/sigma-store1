@@ -7,7 +7,13 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
-const socketIo = require('socket.io');
+let socketIo;
+try {
+    socketIo = require('socket.io');
+} catch(e) {
+    console.log('Socket.io not available, chat disabled');
+    socketIo = null;
+}
 const { connectDB, executeQuery, insertOne, findOne, findAll, updateOne, deleteOne, DB_TYPE } = require('./config/db');
 
 const app = express();
@@ -355,7 +361,68 @@ app.get('/api/admin/chats', async (req, res) => {
 // ============================================
 
 const server = http.createServer(app);
-const io = socketIo(server, {
+let io = null;
+
+if (socketIo) {
+    io = socketIo(server, {
+        cors: {
+            origin: '*',
+            methods: ['GET', 'POST']
+        }
+    });
+    
+    // Socket.io events here...
+    const connectedUsers = {};
+    
+    io.on('connection', (socket) => {
+        console.log('Client connected:', socket.id);
+        
+        socket.on('user-join', (userId) => {
+            connectedUsers[userId] = socket.id;
+            console.log('User joined:', userId);
+        });
+        
+        socket.on('admin-join', () => {
+            socket.isAdmin = true;
+            console.log('Admin connected');
+        });
+        
+        socket.on('customer-message', (data) => {
+            console.log('Customer message from:', data.userId);
+            io.emit('new-message', {
+                userId: data.userId,
+                userName: data.userName,
+                message: data.message,
+                timestamp: new Date().toISOString(),
+                isAdmin: false
+            });
+        });
+        
+        socket.on('admin-message', (data) => {
+            console.log('Admin message to:', data.userId);
+            const customerSocketId = connectedUsers[data.userId];
+            if (customerSocketId) {
+                io.to(customerSocketId).emit('new-message', {
+                    message: data.message,
+                    timestamp: new Date().toISOString(),
+                    isAdmin: true
+                });
+            }
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('Client disconnected:', socket.id);
+            for (let userId in connectedUsers) {
+                if (connectedUsers[userId] === socket.id) {
+                    delete connectedUsers[userId];
+                    break;
+                }
+            }
+        });
+    });
+} else {
+    console.log('Socket.io not available - chat feature disabled');
+}{
     cors: {
         origin: '*',
         methods: ['GET', 'POST']
