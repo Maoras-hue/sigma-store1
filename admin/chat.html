@@ -32,6 +32,7 @@
         .error{color:red;margin-top:10px;}
         .no-users{padding:15px;text-align:center;color:#888;}
         .refresh-btn{background:#e05a2a;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;}
+        .auto-refresh-status{font-size:12px;color:#4caf50;margin-left:10px;}
     </style>
 </head>
 <body>
@@ -46,7 +47,7 @@
     
     <div id="adminPanel" style="display:none;">
         <div class="header">
-            <h2>Support Chat Panel</h2>
+            <h2>Support Chat Panel <span id="autoStatus" class="auto-refresh-status">(Auto-refresh ON)</span></h2>
             <div>
                 <button class="refresh-btn" onclick="loadUsers()">Refresh</button>
                 <button onclick="logout()" style="background:white;color:#e05a2a;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;margin-left:10px;">Logout</button>
@@ -75,6 +76,7 @@
         var currentUserId = null;
         var API_URL = window.location.origin;
         var ADMIN_PASSWORD = 'sigma123';
+        var autoRefreshInterval = null;
         
         function login() {
             var password = document.getElementById('adminPassword').value;
@@ -84,16 +86,36 @@
                 document.getElementById('adminPanel').style.display = 'block';
                 initSocket();
                 loadUsers();
+                startAutoRefresh();
             } else {
                 document.getElementById('loginError').innerText = 'Wrong password';
             }
         }
         
         function logout() {
+            stopAutoRefresh();
             localStorage.removeItem('adminLoggedIn');
             if (socket) socket.disconnect();
             document.getElementById('loginContainer').style.display = 'flex';
             document.getElementById('adminPanel').style.display = 'none';
+        }
+        
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(function() {
+                loadUsers();
+                if (currentUserId) {
+                    loadChatHistory(currentUserId);
+                }
+            }, 3000);
+            document.getElementById('autoStatus').innerText = '(Auto-refresh ON - every 3 sec)';
+        }
+        
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
         }
         
         function initSocket() {
@@ -106,9 +128,7 @@
                 if (data.userId === currentUserId && !data.isAdmin) {
                     addMessageToChat(data.message, false);
                 }
-                if (data.userId !== currentUserId) {
-                    loadUsers();
-                }
+                loadUsers();
             });
         }
         
@@ -122,7 +142,8 @@
                     var html = '';
                     for (var i = 0; i < data.chats.length; i++) {
                         var chat = data.chats[i];
-                        html += '<div class="user-item" onclick="selectUser(\'' + chat.user_id + '\', \'' + chat.user_name.replace(/'/g, "\\'") + '\')">' +
+                        var activeClass = (currentUserId === chat.user_id) ? 'active' : '';
+                        html += '<div class="user-item ' + activeClass + '" onclick="selectUser(\'' + chat.user_id + '\', \'' + chat.user_name.replace(/'/g, "\\'") + '\')">' +
                             '<div class="user-name">' + chat.user_name + '</div>' +
                             '<div class="user-last">' + new Date(chat.last_message).toLocaleString() + '</div>' +
                             '</div>';
@@ -133,24 +154,10 @@
                 }
             } catch(e) {
                 console.error('Load users error:', e);
-                document.getElementById('usersList').innerHTML = '<div class="no-users">Error loading users. Make sure backend is running.</div>';
             }
         }
         
-        async function selectUser(userId, userName) {
-            currentUserId = userId;
-            document.getElementById('chatHeader').innerHTML = '<h3>Chatting with: ' + userName + '</h3>';
-            
-            // Highlight selected user
-            var items = document.querySelectorAll('.user-item');
-            for (var i = 0; i < items.length; i++) {
-                items[i].classList.remove('active');
-            }
-            if (event && event.target) {
-                var el = event.target.closest('.user-item');
-                if (el) el.classList.add('active');
-            }
-            
+        async function loadChatHistory(userId) {
             try {
                 var response = await fetch(API_URL + '/api/chat/history/' + userId);
                 var data = await response.json();
@@ -172,6 +179,22 @@
             } catch(e) {
                 console.error('Load history error:', e);
             }
+        }
+        
+        async function selectUser(userId, userName) {
+            currentUserId = userId;
+            document.getElementById('chatHeader').innerHTML = '<h3>Chatting with: ' + userName + '</h3>';
+            
+            var items = document.querySelectorAll('.user-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].classList.remove('active');
+            }
+            if (event && event.target) {
+                var el = event.target.closest('.user-item');
+                if (el) el.classList.add('active');
+            }
+            
+            await loadChatHistory(userId);
         }
         
         function addMessageToChat(message, isCustomer) {
@@ -230,6 +253,7 @@
             document.getElementById('adminPanel').style.display = 'block';
             initSocket();
             loadUsers();
+            startAutoRefresh();
         }
     </script>
 </body>
