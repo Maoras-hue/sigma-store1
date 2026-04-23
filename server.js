@@ -328,12 +328,14 @@ app.get('/api/admin/orders', async (req, res) => {
 });
 
 // ============================================
-// CHAT API ROUTES
+// CHAT API ROUTES - FIXED
 // ============================================
 
 app.post('/api/chat/save', async (req, res) => {
     try {
         const { userId, userName, message, isAdmin } = req.body;
+        console.log('Saving chat:', { userId, userName, message, isAdmin });
+        
         await executeQuery(
             'INSERT INTO chat_messages (user_id, user_name, message, is_admin) VALUES (?, ?, ?, ?)',
             [userId, userName, message, isAdmin ? 1 : 0]
@@ -341,32 +343,41 @@ app.post('/api/chat/save', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Save chat error:', error);
-        res.status(500).json({ error: 'Failed to save message' });
+        res.status(500).json({ error: error.message });
     }
 });
 
 app.get('/api/chat/history/:userId', async (req, res) => {
     try {
+        const userId = req.params.userId;
+        console.log('Getting history for:', userId);
+        
         const messages = await executeQuery(
             'SELECT * FROM chat_messages WHERE user_id = ? ORDER BY created_at ASC LIMIT 50',
-            [req.params.userId]
+            [userId]
         );
-        res.json({ messages: messages });
+        res.json({ messages: messages || [] });
     } catch (error) {
         console.error('History error:', error);
-        res.status(500).json({ error: 'Failed to get history' });
+        res.status(500).json({ error: error.message });
     }
 });
 
 app.get('/api/admin/chats', async (req, res) => {
     try {
+        console.log('Fetching all chats');
+        
         const chats = await executeQuery(
-            'SELECT user_id, user_name, COUNT(*) as count, MAX(created_at) as last_message FROM chat_messages GROUP BY user_id ORDER BY last_message DESC'
+            `SELECT user_id, user_name, COUNT(*) as count, MAX(created_at) as last_message 
+             FROM chat_messages 
+             GROUP BY user_id 
+             ORDER BY last_message DESC`
         );
-        res.json({ chats: chats });
+        console.log('Chats found:', chats);
+        res.json({ chats: chats || [] });
     } catch (error) {
         console.error('Admin chats error:', error);
-        res.status(500).json({ error: 'Failed to get chats' });
+        res.status(500).json({ error: error.message });
     }
 });
 
