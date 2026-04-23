@@ -1,239 +1,461 @@
-<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sigma — track order</title>
+    <title>Sigma Store - Track Order</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         .track-container {
-            max-width: 600px;
-            margin: 50px auto;
-            background: white;
-            border-radius: 16px;
+            max-width: 800px;
+            margin: 0 auto;
             padding: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
+        
+        .track-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .track-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .search-box {
+            background: white;
+            border-radius: 60px;
+            padding: 5px;
+            display: flex;
+            gap: 10px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        .search-box input {
+            flex: 1;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 60px;
+            font-size: 1rem;
+            outline: none;
+        }
+        
+        .search-box button {
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            color: white;
+            border: none;
+            border-radius: 60px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .search-box button:hover {
+            transform: scale(1.02);
+        }
+        
+        .order-card {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            margin-top: 2rem;
+        }
+        
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid #eee;
+            margin-bottom: 1.5rem;
+        }
+        
+        .order-id {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #e05a2a;
+        }
+        
+        .order-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .status-timeline {
+            margin: 2rem 0;
+        }
+        
         .status-step {
             display: flex;
             align-items: center;
-            margin: 20px 0;
-            padding: 15px;
-            border-radius: 10px;
-            background: #f5f5f5;
+            margin-bottom: 1rem;
+            position: relative;
         }
-        .status-step.completed {
-            background: #e8f5e9;
-            border-left: 4px solid #4caf50;
+        
+        .status-step:not(:last-child)::before {
+            content: '';
+            position: absolute;
+            left: 20px;
+            top: 40px;
+            width: 2px;
+            height: calc(100% - 20px);
+            background: #e0e0e0;
         }
-        .status-step.current {
-            background: #fff3e0;
-            border-left: 4px solid #e05a2a;
+        
+        .status-step.completed::before {
+            background: #4caf50;
         }
+        
         .status-icon {
-            font-size: 24px;
-            margin-right: 15px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            z-index: 1;
+            font-size: 1.2rem;
         }
-        .status-text {
+        
+        .status-step.completed .status-icon {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-step.current .status-icon {
+            background: #e05a2a;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(224,90,42,0.4); }
+            50% { box-shadow: 0 0 0 10px rgba(224,90,42,0); }
+        }
+        
+        .status-content {
             flex: 1;
         }
-        .status-text h3 {
-            margin-bottom: 5px;
+        
+        .status-title {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
         }
-        .status-text p {
-            color: #666;
+        
+        .status-desc {
             font-size: 0.85rem;
+            color: #666;
         }
-        .order-info {
-            background: #f9f9f9;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+        
+        .order-details {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1rem;
+            margin-top: 1.5rem;
         }
-        body.dark .track-container {
-            background: #1e1e1e;
+        
+        .order-details h3 {
+            margin-bottom: 1rem;
+            font-size: 1rem;
         }
-        body.dark .order-info {
-            background: #2a2a2a;
+        
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid #e0e0e0;
         }
-        body.dark .status-step {
-            background: #2a2a2a;
+        
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+        
+        .items-list {
+            margin-top: 1rem;
+        }
+        
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            font-size: 0.9rem;
+        }
+        
+        .not-found {
+            text-align: center;
+            padding: 3rem;
+        }
+        
+        body.dark .order-card,
+        body.dark .search-box {
+            background: #1e293b;
+        }
+        
+        body.dark .search-box input {
+            background: #1e293b;
+            color: white;
+        }
+        
+        body.dark .order-details {
+            background: #0f172a;
+        }
+        
+        body.dark .detail-row {
+            border-bottom-color: #334155;
+        }
+        
+        body.dark .status-step:not(:last-child)::before {
+            background: #334155;
+        }
+        
+        @media (max-width: 768px) {
+            .track-container {
+                padding: 1rem;
+            }
+            .search-box {
+                flex-direction: column;
+                border-radius: 20px;
+            }
+            .search-box button {
+                width: 100%;
+            }
         }
     </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-699CL509Z4');
-</script>
 </head>
 <body>
 
 <div class="header">
     <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
-        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
         <a href="about.html">about</a>
         <a href="blog.html">blog</a>
         <a href="privacy.html">privacy</a>
         <a href="wishlist.html">wishlist</a>
         <a href="terms.html">terms</a>
         <a href="refund.html">refund</a>
+        <a href="track.html">track order</a>
+        <a href="login.html" id="authLink">login</a>
     </div>
     <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
-    <div class="container">
-        <div class="track-container">
-            <h2 style="text-align: center; margin-bottom: 1.5rem;"> Track Your Order</h2>
-            
-            <div id="orderInfo" class="order-info">
-                <p><strong>Order ID:</strong> <span id="orderId">Loading...</span></p>
-                <p><strong>Date:</strong> <span id="orderDate">-</span></p>
-                <p><strong>Total:</strong> <span id="orderTotal">-</span></p>
-            </div>
-            
-            <div id="statusSteps">
-                <div class="status-step" id="stepPending">
-                    <div class="status-icon"></div>
-                    <div class="status-text">
-                        <h3>Order Placed</h3>
-                        <p>Your order has been received</p>
-                    </div>
-                </div>
-                <div class="status-step" id="stepProcessing">
-                    <div class="status-icon"></div>
-                    <div class="status-text">
-                        <h3>Processing</h3>
-                        <p>We're preparing your order</p>
-                    </div>
-                </div>
-                <div class="status-step" id="stepShipped">
-                    <div class="status-icon"></div>
-                    <div class="status-text">
-                        <h3>Shipped</h3>
-                        <p>Your order is on the way</p>
-                    </div>
-                </div>
-                <div class="status-step" id="stepDelivered">
-                    <div class="status-icon"></div>
-                    <div class="status-text">
-                        <h3>Delivered</h3>
-                        <p>Your order has been delivered</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="errorMsg" style="text-align: center; color: #e05a2a; display: none;">
-                Order not found. Please check your Order ID.
-            </div>
-            
-            <div style="text-align: center; margin-top: 1.5rem;">
-                <a href="index.html" style="color: #e05a2a;">← Back to shop</a>`n        <a href="reviews.html">reviews</a>
-            </div>
+    <div class="track-container">
+        <div class="track-header">
+            <h1>🔍 Track Your Order</h1>
+            <p>Enter your Order ID to check status</p>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" id="orderInput" placeholder="Enter Order ID (e.g., ORD1234567890)">
+            <button onclick="trackOrder()">Track Order →</button>
+        </div>
+        
+        <div id="orderResult">
+            <!-- Order details will appear here -->
         </div>
     </div>
 </main>
 
 <footer>
-    <p>IBRA'S studio — mardan, pk</p>
+    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
+<script src="config.js"></script>
+<script src="navbar.js"></script>
 <script>
-    const BACKEND_URL = 'https://sigma-store-api.onrender.com';
+    const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
     
-    function updateCartCount() {
-        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
-        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-        const badge = document.getElementById('cartCount');
-        if (badge) badge.innerText = total;
-    }
+    // ============================================
+    // TRACK ORDER FUNCTION
+    // ============================================
     
     async function trackOrder() {
-        const urlParams = new URLSearchParams(window.location.search);
-        let orderId = urlParams.get('order');
+        const orderId = document.getElementById('orderInput').value.trim();
+        const resultDiv = document.getElementById('orderResult');
         
         if (!orderId) {
-            orderId = prompt('Enter your Order ID:');
-            if (!orderId) return;
+            resultDiv.innerHTML = '<div class="not-found"><p>⚠️ Please enter an Order ID</p></div>';
+            return;
         }
         
-        document.getElementById('orderId').innerText = orderId;
+        resultDiv.innerHTML = '<div style="text-align:center; padding:2rem;"><div class="spinner"></div><p>Loading order details...</p></div>';
         
         try {
-            const response = await fetch(`${BACKEND_URL}/api/orders/${orderId}`, {
-                credentials: 'include'
-            });
+            const response = await fetch(`${API_URL}/api/orders/${orderId}`);
             
-            if (response.ok) {
-                const data = await response.json();
-                const order = data.order;
-                
-                document.getElementById('orderDate').innerText = new Date(order.createdAt).toLocaleString();
-                document.getElementById('orderTotal').innerText = '$' + order.total;
-                
-                // Update status colors
-                const statuses = ['pending', 'processing', 'shipped', 'delivered'];
-                const currentStatus = order.status;
-                const currentIndex = statuses.indexOf(currentStatus);
-                
-                for (let i = 0; i <= currentIndex; i++) {
-                    const step = document.getElementById(`step${statuses[i].charAt(0).toUpperCase() + statuses[i].slice(1)}`);
-                    if (step) step.classList.add('completed');
-                }
-                
-                if (currentIndex < statuses.length - 1) {
-                    const nextStep = document.getElementById(`step${statuses[currentIndex + 1].charAt(0).toUpperCase() + statuses[currentIndex + 1].slice(1)}`);
-                    if (nextStep) nextStep.classList.add('current');
-                }
-                
-            } else {
-                document.getElementById('errorMsg').style.display = 'block';
-                document.getElementById('orderInfo').style.display = 'none';
-                document.getElementById('statusSteps').style.display = 'none';
+            if (!response.ok) {
+                resultDiv.innerHTML = `
+                    <div class="order-card not-found">
+                        <p>❌ Order not found</p>
+                        <p style="margin-top:1rem; font-size:0.9rem;">Please check your Order ID and try again.</p>
+                        <a href="index.html" style="display:inline-block; margin-top:1rem; color:#e05a2a;">← Back to Shop</a>
+                    </div>
+                `;
+                return;
             }
-        } catch(e) {
-            document.getElementById('errorMsg').style.display = 'block';
-            document.getElementById('errorMsg').innerHTML = 'Cannot connect to server. Make sure backend is running.';
+            
+            const data = await response.json();
+            const order = data.order;
+            
+            // Parse items if needed
+            let items = order.items;
+            if (typeof items === 'string') {
+                items = JSON.parse(items);
+            }
+            
+            // Calculate order totals
+            let subtotal = 0;
+            for (let item of items) {
+                subtotal += item.price * item.quantity;
+            }
+            const shipping = subtotal > 120 ? 0 : 12;
+            const total = order.total || subtotal + shipping;
+            
+            // Status steps
+            const statuses = [
+                { key: 'pending', title: 'Order Placed', desc: 'Your order has been received' },
+                { key: 'processing', title: 'Processing', desc: 'We are preparing your order' },
+                { key: 'shipped', title: 'Shipped', desc: 'Your order is on the way' },
+                { key: 'delivered', title: 'Delivered', desc: 'Your order has been delivered' }
+            ];
+            
+            const currentStatus = order.status || 'pending';
+            let statusIndex = statuses.findIndex(s => s.key === currentStatus);
+            if (statusIndex === -1) statusIndex = 0;
+            
+            let statusHtml = '<div class="status-timeline">';
+            for (let i = 0; i < statuses.length; i++) {
+                const s = statuses[i];
+                let statusClass = '';
+                let icon = '';
+                
+                if (i < statusIndex) {
+                    statusClass = 'completed';
+                    icon = '✓';
+                } else if (i === statusIndex) {
+                    statusClass = 'current';
+                    icon = '●';
+                } else {
+                    icon = '○';
+                }
+                
+                statusHtml += `
+                    <div class="status-step ${statusClass}">
+                        <div class="status-icon">${icon}</div>
+                        <div class="status-content">
+                            <div class="status-title">${s.title}</div>
+                            <div class="status-desc">${s.desc}</div>
+                        </div>
+                    </div>
+                `;
+            }
+            statusHtml += '</div>';
+            
+            // Items HTML
+            let itemsHtml = '<div class="items-list">';
+            for (let item of items) {
+                itemsHtml += `
+                    <div class="item-row">
+                        <span>${item.name} x ${item.quantity}</span>
+                        <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                    </div>
+                `;
+            }
+            itemsHtml += '</div>';
+            
+            resultDiv.innerHTML = `
+                <div class="order-card">
+                    <div class="order-header">
+                        <div class="order-id">📦 Order #${order.order_id}</div>
+                        <div class="order-date">${new Date(order.created_at).toLocaleDateString()}</div>
+                    </div>
+                    
+                    ${statusHtml}
+                    
+                    <div class="order-details">
+                        <h3>Order Summary</h3>
+                        ${itemsHtml}
+                        <div class="detail-row">
+                            <span>Subtotal:</span>
+                            <span>$${subtotal.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-row">
+                            <span>Shipping:</span>
+                            <span>${shipping === 0 ? 'Free' : '$' + shipping.toFixed(2)}</span>
+                        </div>
+                        <div class="detail-row" style="font-weight:700; margin-top:0.5rem; padding-top:0.5rem; border-top:1px solid #e0e0e0;">
+                            <span>Total:</span>
+                            <span>$${total.toFixed(2)}</span>
+                        </div>
+                        ${order.notes ? `<div class="detail-row"><span>Notes:</span><span>${order.notes}</span></div>` : ''}
+                        <div class="detail-row">
+                            <span>Payment Method:</span>
+                            <span>${order.payment_method === 'whatsapp' ? 'WhatsApp Order' : (order.payment_method || 'Pending')}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 1.5rem;">
+                        <a href="index.html" style="color:#e05a2a;">← Continue Shopping</a>
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('Track error:', error);
+            resultDiv.innerHTML = `
+                <div class="order-card not-found">
+                    <p>❌ Error connecting to server</p>
+                    <p style="margin-top:1rem; font-size:0.9rem;">Please try again later.</p>
+                </div>
+            `;
         }
     }
     
-    // Dark mode
-    document.getElementById('darkToggle')?.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        const isDark = document.body.classList.contains('dark');
-        document.getElementById('darkToggle').innerText = isDark ? '☀️' : '🌙';
-        localStorage.setItem('sigma_dark', isDark);
-    });
+    // ============================================
+    // CHECK URL PARAMETER
+    // ============================================
     
-    if (localStorage.getItem('sigma_dark') === 'true') {
-        document.body.classList.add('dark');
-        document.getElementById('darkToggle').innerText = '☀️';
+    function checkUrlForOrder() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get('order');
+        if (orderId) {
+            document.getElementById('orderInput').value = orderId;
+            trackOrder();
+        }
     }
     
-    updateCartCount();
-    trackOrder();
+    // ============================================
+    // ENTER KEY SUPPORT
+    // ============================================
+    
+    document.getElementById('orderInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') trackOrder();
+    });
+    
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+        checkUrlForOrder();
+        updateCartCount();
+    });
 </script>
-    <script src="navbar.js"></script>
+
 </body>
 </html>
-
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->

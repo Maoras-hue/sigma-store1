@@ -1,49 +1,80 @@
-﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Refund Policy - Sigma</title>
+    <title>Sigma Store - Refund Policy</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         .legal-container {
             max-width: 900px;
-            margin: 2rem auto;
-            background: white;
+            margin: 0 auto;
             padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
-        .legal-container h1 {
+        
+        .legal-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .legal-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .legal-header p {
+            color: #666;
+        }
+        
+        .legal-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        .legal-card h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
             color: #e05a2a;
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        .legal-card h2:first-child {
+            margin-top: 0;
+        }
+        
+        .legal-card p {
+            color: #555;
+            line-height: 1.7;
             margin-bottom: 1rem;
         }
-        .legal-container h2 {
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-            font-size: 1.2rem;
+        
+        .legal-card ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #555;
         }
-        .legal-container p {
-            margin-bottom: 0.8rem;
+        
+        .legal-card li {
+            margin-bottom: 0.5rem;
             line-height: 1.6;
-            color: #444;
         }
-        .legal-container ul {
-            margin-left: 2rem;
-            margin-bottom: 1rem;
-        }
-        .legal-container li {
-            margin-bottom: 0.5rem;
-            line-height: 1.5;
-        }
+        
         .refund-box {
-            background: #f0fdf4;
+            background: #e8f5e9;
             border-left: 4px solid #4caf50;
             padding: 1rem;
             margin: 1rem 0;
             border-radius: 8px;
         }
+        
         .no-refund-box {
             background: #ffebee;
             border-left: 4px solid #e05a2a;
@@ -51,162 +82,218 @@
             margin: 1rem 0;
             border-radius: 8px;
         }
+        
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+        }
+        
+        .highlight {
+            background: rgba(224,90,42,0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
         .last-updated {
-            color: #888;
-            font-size: 0.8rem;
             margin-top: 2rem;
             padding-top: 1rem;
             border-top: 1px solid #eee;
+            font-size: 0.8rem;
+            color: #888;
+            text-align: center;
         }
-        body.dark .legal-container {
-            background: #1e1e1e;
+        
+        body.dark .legal-card {
+            background: #1e293b;
         }
-        body.dark .legal-container p {
-            color: #ccc;
+        
+        body.dark .legal-card p,
+        body.dark .legal-card ul,
+        body.dark .legal-card li {
+            color: #94a3b8;
         }
+        
         body.dark .refund-box {
             background: #1b5e20;
         }
+        
         body.dark .no-refund-box {
             background: #b71c1c;
         }
+        
+        body.dark .info-box {
+            background: #0d47a1;
+        }
+        
+        body.dark .last-updated {
+            border-top-color: #334155;
+        }
+        
+        @media (max-width: 768px) {
+            .legal-container {
+                padding: 1rem;
+            }
+            .legal-card {
+                padding: 1.5rem;
+            }
+        }
     </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-699CL509Z4');
-</script>
 </head>
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">Ïƒ sigma</a>
+    <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
-        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
         <a href="about.html">about</a>
         <a href="blog.html">blog</a>
         <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
         <a href="terms.html">terms</a>
         <a href="refund.html">refund</a>
-        <a href="wishlist.html">wishlist</a>
+        <a href="track.html">track order</a>
+        <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
-    <div class="container">
-        <div class="legal-container">
-            <h1> Refund Policy</h1>
-            <p>At Sigma Studio, we want you to be completely satisfied with your purchase.</p>
-
+    <div class="legal-container">
+        <div class="legal-header">
+            <h1>💰 Refund Policy</h1>
+            <p>Last Updated: April 22, 2026</p>
+        </div>
+        
+        <div class="legal-card">
             <div class="refund-box">
-                <strong> 30-Day Money-Back Guarantee</strong><br>
-                If you're not satisfied with your purchase, you may request a refund within 30 days.
+                <strong>✅ 30-Day Money-Back Guarantee</strong><br>
+                If you're not satisfied with your purchase, you may request a refund within 30 days of purchase.
             </div>
-
-            <h2>Digital Products Refund Policy</h2>
-            <p>Since our products are digital and delivered instantly, refunds are handled on a case-by-case basis.</p>
-
-            <h2>Eligible for Refund:</h2>
-            <ul>
-                <li> Product doesn't work as described</li>
-                <li> Product contains major defects or bugs</li>
-                <li> You accidentally purchased the wrong product (within 24 hours)</li>
-                <li> Duplicate purchase of the same product</li>
-            </ul>
-
-            <div class="no-refund-box">
-                <strong> Not Eligible for Refund:</strong><br>
-                <ul style="margin-top: 0.5rem;">
-                    <li> Change of mind after download</li>
-                    <li> Didn't read product description properly</li>
-                    <li> Compatibility issues not mentioned in description</li>
-                    <li> You no longer need the product</li>
+            
+            <h2>1. Digital Products Refund Policy</h2>
+            <p>Since our products are digital (source code, templates) and delivered instantly upon payment, refunds are handled on a case-by-case basis. We want you to be completely satisfied with your purchase.</p>
+            
+            <div class="refund-box">
+                <strong>✅ Eligible for Refund:</strong>
+                <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+                    <li>Product doesn't work as described in the documentation</li>
+                    <li>Product contains major defects or bugs that cannot be fixed</li>
+                    <li>You accidentally purchased the wrong product (within 24 hours)</li>
+                    <li>Duplicate purchase of the same product</li>
+                    <li>Product files are corrupted or unreadable</li>
                 </ul>
             </div>
-
-            <h2>How to Request a Refund</h2>
-            <p>To request a refund, please email us at <strong>refund@sigma.studio</strong> with:</p>
+            
+            <div class="no-refund-box">
+                <strong>❌ Not Eligible for Refund:</strong>
+                <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+                    <li>Change of mind after downloading the product</li>
+                    <li>Didn't read product description properly before purchase</li>
+                    <li>Compatibility issues not mentioned in the product description</li>
+                    <li>You no longer need the product</li>
+                    <li>Lost or deleted the files (we can provide a new download link)</li>
+                    <li>You didn't read the installation guide</li>
+                </ul>
+            </div>
+            
+            <div class="info-box">
+                <strong>ℹ️ Important Notes:</strong>
+                <ul style="margin-top: 0.5rem; margin-bottom: 0;">
+                    <li>Refunds are processed to the original payment method</li>
+                    <li>Processing time: 5-7 business days after approval</li>
+                    <li>You must provide proof of purchase (order ID/email)</li>
+                    <li>After refund, your license to use the product is revoked</li>
+                </ul>
+            </div>
+            
+            <h2>2. How to Request a Refund</h2>
+            <p>To request a refund, please email us at <strong class="highlight">ifiwas1898617@gmail.com</strong> with:</p>
             <ul>
-                <li>Your order number</li>
-                <li>Email address used for purchase</li>
-                <li>Reason for refund request</li>
-                <li>Screenshots of any issues (if applicable)</li>
+                <li>📦 Your order number / ID</li>
+                <li>📧 Email address used for purchase</li>
+                <li>📝 Reason for refund request (be specific)</li>
+                <li>📸 Screenshots or video of the issue (if applicable)</li>
+                <li>💻 Your environment details (Node version, OS, etc.)</li>
             </ul>
-
-            <h2>Refund Process</h2>
+            
+            <h2>3. Refund Process</h2>
             <p>Once we receive your refund request:</p>
             <ul>
-                <li>We will review your request within 2-3 business days</li>
-                <li>If approved, refund will be processed within 5-7 business days</li>
-                <li>Refund will be issued to your original payment method</li>
-                <li>You will receive a confirmation email</li>
+                <li>📨 We will review your request within <strong>2-3 business days</strong></li>
+                <li>🔧 If the issue is technical, we will first try to help you fix it</li>
+                <li>✅ If approved, refund will be processed within <strong>5-7 business days</strong></li>
+                <li>💰 Refund will be issued to your original payment method</li>
+                <li>📧 You will receive a confirmation email once processed</li>
             </ul>
-
-            <h2>For Sellers</h2>
-            <p>If you are a seller and a customer requests a refund for your product:</p>
+            
+            <h2>4. Partial Refunds</h2>
+            <p>In some cases, partial refunds may be offered:</p>
             <ul>
-                <li>You will be notified of the refund request</li>
-                <li>Funds will be deducted from your balance</li>
-                <li>You may dispute the refund with evidence</li>
+                <li>If only part of a bundle is defective</li>
+                <li>If you received a discount or promotional price</li>
+                <li>If you've had the product for more than 30 days</li>
             </ul>
-
-            <h2>Contact Us</h2>
-            <p>For refund questions, contact: <strong>refund@sigma.studio</strong></p>
-
+            
+            <h2>5. For Sellers (Multi-Vendor Marketplace)</h2>
+            <p>If you are a seller on our platform and a customer requests a refund for your product:</p>
+            <ul>
+                <li>📢 You will be notified of the refund request</li>
+                <li>💰 Funds will be deducted from your seller balance</li>
+                <li>⚖️ You may dispute the refund by providing evidence within 7 days</li>
+                <li>🔍 Sigma Store will review and make a final decision</li>
+                <li>📉 Multiple refunds may affect your seller status</li>
+            </ul>
+            
+            <h2>6. Chargebacks</h2>
+            <p>If you file a chargeback with your bank without requesting a refund first:</p>
+            <ul>
+                <li>⛔ Your account will be immediately suspended</li>
+                <li>📋 Your license to use the product will be revoked</li>
+                <li>⚖️ We reserve the right to dispute the chargeback with evidence of delivery</li>
+                <li>💰 You may be responsible for chargeback fees</li>
+            </ul>
+            
+            <h2>7. Subscription & Service Refunds</h2>
+            <p>For services like installation, training, or customization:</p>
+            <ul>
+                <li>Installation service: 50% refund if cancelled before work starts</li>
+                <li>Training sessions: No refund after session is delivered</li>
+                <li>Custom features: No refund after development has started</li>
+            </ul>
+            
+            <h2>8. Contact Us</h2>
+            <p>For refund questions or to submit a refund request:</p>
+            <ul>
+                <li>📧 Email: <a href="mailto:ifiwas1898617@gmail.com" style="color:#e05a2a;">ifiwas1898617@gmail.com</a></li>
+                <li>💬 WhatsApp: <a href="https://wa.me/923259042317" style="color:#e05a2a;">+92 325 9042317</a></li>
+                <li>📝 Subject Line: "REFUND REQUEST - [Your Order ID]"</li>
+            </ul>
+            
             <div class="last-updated">
-                Last Updated: April 8, 2026
+                This Refund Policy was last updated on April 22, 2026
             </div>
         </div>
     </div>
 </main>
 
 <footer>
-    <p>sigma studio â€” mardan, pakistan</p>
+    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
-<script src="script.js"></script>
+<script src="config.js"></script>
+<script src="navbar.js"></script>
 <script>
-    function updateCartCount() {
-        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
-        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-        const badge = document.getElementById('cartCount');
-        if (badge) badge.innerText = total;
-    }
-    
-    document.getElementById('darkToggle')?.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        const isDark = document.body.classList.contains('dark');
-        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
-        localStorage.setItem('sigma_dark', isDark);
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCartCount();
     });
-    
-    if (localStorage.getItem('sigma_dark') === 'true') {
-        document.body.classList.add('dark');
-        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
-    }
-    
-    updateCartCount();
 </script>
-    <script src="navbar.js"></script>
+
 </body>
 </html>
-
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->

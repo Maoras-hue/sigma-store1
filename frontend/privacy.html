@@ -1,199 +1,234 @@
-﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Privacy Policy - Sigma</title>
+    <title>Sigma Store - Privacy Policy</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         .legal-container {
             max-width: 900px;
-            margin: 2rem auto;
-            background: white;
+            margin: 0 auto;
             padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
         }
-        .legal-container h1 {
-            color: #e05a2a;
-            margin-bottom: 1rem;
+        
+        .legal-header {
+            text-align: center;
+            margin-bottom: 2rem;
         }
-        .legal-container h2 {
-            margin-top: 1.5rem;
+        
+        .legal-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
             margin-bottom: 0.5rem;
-            font-size: 1.2rem;
         }
-        .legal-container p {
-            margin-bottom: 0.8rem;
-            line-height: 1.6;
-            color: #444;
+        
+        .legal-header p {
+            color: #666;
         }
-        .legal-container ul {
-            margin-left: 2rem;
+        
+        .legal-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        .legal-card h2 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #e05a2a;
+            margin: 1.5rem 0 1rem 0;
+        }
+        
+        .legal-card h2:first-child {
+            margin-top: 0;
+        }
+        
+        .legal-card p {
+            color: #555;
+            line-height: 1.7;
             margin-bottom: 1rem;
         }
+        
+        .legal-card ul {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #555;
+        }
+        
+        .legal-card li {
+            margin-bottom: 0.5rem;
+            line-height: 1.6;
+        }
+        
         .last-updated {
-            color: #888;
-            font-size: 0.8rem;
             margin-top: 2rem;
             padding-top: 1rem;
             border-top: 1px solid #eee;
+            font-size: 0.8rem;
+            color: #888;
+            text-align: center;
         }
-        body.dark .legal-container {
-            background: #1e1e1e;
+        
+        body.dark .legal-card {
+            background: #1e293b;
         }
-        body.dark .legal-container p {
-            color: #ccc;
+        
+        body.dark .legal-card p,
+        body.dark .legal-card ul,
+        body.dark .legal-card li {
+            color: #94a3b8;
+        }
+        
+        body.dark .last-updated {
+            border-top-color: #334155;
+        }
+        
+        @media (max-width: 768px) {
+            .legal-container {
+                padding: 1rem;
+            }
+            .legal-card {
+                padding: 1.5rem;
+            }
         }
     </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-699CL509Z4');
-</script>
 </head>
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">Ïƒ sigma</a>
+    <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
-        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
         <a href="about.html">about</a>
         <a href="blog.html">blog</a>
         <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
         <a href="terms.html">terms</a>
         <a href="refund.html">refund</a>
-        <a href="wishlist.html">wishlist</a>
+        <a href="track.html">track order</a>
+        <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
-    <div class="container">
-        <div class="legal-container">
-            <h1> Privacy Policy</h1>
-            <p>Your privacy is important to us. This policy explains how we collect, use, and protect your information.</p>
-
+    <div class="legal-container">
+        <div class="legal-header">
+            <h1>🔒 Privacy Policy</h1>
+            <p>Last Updated: April 22, 2026</p>
+        </div>
+        
+        <div class="legal-card">
             <h2>1. Information We Collect</h2>
-            <p>We collect the following information when you use our website:</p>
+            <p>When you use Sigma Store, we collect the following information:</p>
             <ul>
-                <li><strong>Account Information:</strong> Name, email address, password</li>
-                <li><strong>Order Information:</strong> Products purchased, order history</li>
-                <li><strong>Payment Information:</strong> Payment method, transaction details (we do not store full card details)</li>
-                <li><strong>Usage Data:</strong> Pages visited, products viewed, time spent</li>
+                <li><strong>Account Information:</strong> Name, email address, password (encrypted)</li>
+                <li><strong>Order Information:</strong> Products purchased, order history, shipping details</li>
+                <li><strong>Payment Information:</strong> Payment method used (we do NOT store full card details)</li>
+                <li><strong>Usage Data:</strong> Pages visited, products viewed, time spent on site</li>
+                <li><strong>Device Information:</strong> Browser type, IP address, device type</li>
             </ul>
-
+            
             <h2>2. How We Use Your Information</h2>
+            <p>Your information helps us provide better service:</p>
             <ul>
-                <li>To process and fulfill your orders</li>
-                <li>To communicate with you about orders and updates</li>
-                <li>To improve our website and products</li>
-                <li>To send promotional emails (you can opt out)</li>
-                <li>To prevent fraud and ensure security</li>
+                <li>✓ Process and fulfill your orders</li>
+                <li>✓ Communicate with you about orders and updates</li>
+                <li>✓ Improve our website and products</li>
+                <li>✓ Send promotional emails (you can opt out anytime)</li>
+                <li>✓ Prevent fraud and ensure security</li>
+                <li>✓ Personalize your shopping experience</li>
             </ul>
-
-            <h2>3. Cookies</h2>
-            <p>We use cookies to:</p>
+            
+            <h2>3. Cookies & Tracking</h2>
+            <p>We use cookies to enhance your experience:</p>
             <ul>
-                <li>Keep you logged in</li>
-                <li>Remember your cart items</li>
-                <li>Remember your preferences (dark mode)</li>
-                <li>Analyze website traffic</li>
+                <li><strong>Essential Cookies:</strong> Keep you logged in, remember cart items</li>
+                <li><strong>Preference Cookies:</strong> Remember dark mode setting</li>
+                <li><strong>Analytics Cookies:</strong> Understand how visitors use our site</li>
             </ul>
             <p>You can disable cookies in your browser settings, but some features may not work properly.</p>
-
+            
             <h2>4. Data Sharing</h2>
-            <p>We do not sell your personal information. We may share data with:</p>
+            <p><strong>We do NOT sell your personal information.</strong> We may share data with:</p>
             <ul>
-                <li><strong>Payment processors:</strong> To process payments securely</li>
-                <li><strong>Email service:</strong> To send order confirmations</li>
-                <li><strong>Legal authorities:</strong> If required by law</li>
+                <li><strong>Payment Processors:</strong> Stripe, PayPal to process payments securely</li>
+                <li><strong>Email Service:</strong> To send order confirmations and updates</li>
+                <li><strong>Hosting Provider:</strong> Render.com and Vercel host our services</li>
+                <li><strong>Legal Authorities:</strong> If required by law</li>
             </ul>
-
+            
             <h2>5. Data Security</h2>
-            <p>We implement security measures to protect your data:</p>
+            <p>We take security seriously:</p>
             <ul>
-                <li>Passwords are hashed and encrypted</li>
-                <li>Secure connections (SSL when deployed)</li>
-                <li>Regular security updates</li>
+                <li>🔐 Passwords are hashed using bcrypt (never stored in plain text)</li>
+                <li>🔒 HTTPS encryption for all data transmission</li>
+                <li>🛡️ Regular security updates and monitoring</li>
+                <li>📦 Limited access to user data</li>
             </ul>
-
+            
             <h2>6. Your Rights</h2>
-            <p>You have the right to:</p>
+            <p>You have control over your data:</p>
             <ul>
-                <li>Access your personal data</li>
-                <li>Correct inaccurate data</li>
-                <li>Delete your account and data</li>
-                <li>Opt out of marketing emails</li>
+                <li>📖 Access your personal data</li>
+                <li>✏️ Correct inaccurate information</li>
+                <li>🗑️ Delete your account and all associated data</li>
+                <li>📧 Opt out of marketing emails</li>
+                <li>📥 Download your data</li>
             </ul>
-            <p>To exercise these rights, email us at <strong>privacy@sigma.studio</strong></p>
-
+            <p>To exercise these rights, email us at <strong>ifiwas1898617@gmail.com</strong></p>
+            
             <h2>7. Children's Privacy</h2>
-            <p>Our website is not intended for children under 13. We do not knowingly collect information from children under 13.</p>
-
+            <p>Our website is not intended for children under 13. We do not knowingly collect information from children under 13. If you believe a child has provided us with personal information, please contact us immediately.</p>
+            
             <h2>8. Third-Party Links</h2>
-            <p>Our website may contain links to third-party websites. We are not responsible for their privacy practices.</p>
-
-            <h2>9. Changes to This Policy</h2>
-            <p>We may update this privacy policy from time to time. Changes will be posted on this page.</p>
-
-            <h2>10. Contact Us</h2>
-            <p>For privacy questions, contact: <strong>privacy@sigma.studio</strong></p>
-
+            <p>Our website may contain links to third-party websites (WhatsApp, PayPal, Stripe). We are not responsible for their privacy practices. Please review their policies separately.</p>
+            
+            <h2>9. Data Retention</h2>
+            <p>We retain your personal data for as long as your account is active. If you delete your account, we will delete your personal information within 30 days. Order information may be retained for legal and tax purposes.</p>
+            
+            <h2>10. International Data Transfers</h2>
+            <p>Your information may be transferred to and processed in countries outside Pakistan. We ensure appropriate safeguards are in place to protect your data.</p>
+            
+            <h2>11. Changes to This Policy</h2>
+            <p>We may update this privacy policy from time to time. Changes will be posted on this page with an updated "Last Updated" date. Significant changes will be notified via email.</p>
+            
+            <h2>12. Contact Us</h2>
+            <p>If you have any questions about this Privacy Policy, please contact us:</p>
+            <ul>
+                <li>📧 Email: <a href="mailto:ifiwas1898617@gmail.com" style="color:#e05a2a;">ifiwas1898617@gmail.com</a></li>
+                <li>💬 WhatsApp: <a href="https://wa.me/923259042317" style="color:#e05a2a;">+92 325 9042317</a></li>
+                <li>📍 Location: Mardan, Khyber Pakhtunkhwa, Pakistan</li>
+            </ul>
+            
             <div class="last-updated">
-                Last Updated: April 8, 2026
+                This Privacy Policy was last updated on April 22, 2026
             </div>
         </div>
     </div>
 </main>
 
 <footer>
-    <p>sigma studio â€” mardan, pakistan</p>
+    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
-<script src="script.js"></script>
+<script src="config.js"></script>
+<script src="navbar.js"></script>
 <script>
-    function updateCartCount() {
-        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
-        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-        const badge = document.getElementById('cartCount');
-        if (badge) badge.innerText = total;
-    }
-    
-    document.getElementById('darkToggle')?.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        const isDark = document.body.classList.contains('dark');
-        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
-        localStorage.setItem('sigma_dark', isDark);
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCartCount();
     });
-    
-    if (localStorage.getItem('sigma_dark') === 'true') {
-        document.body.classList.add('dark');
-        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
-    }
-    
-    updateCartCount();
 </script>
-    <script src="navbar.js"></script>
+
 </body>
 </html>
-
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->

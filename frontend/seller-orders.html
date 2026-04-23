@@ -1,180 +1,461 @@
-﻿<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Orders - Seller Dashboard</title>
+    <title>Sigma Store - Seller Orders</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        .orders-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .orders-header {
+            margin-bottom: 2rem;
+        }
+        
+        .orders-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
         .orders-table {
+            background: white;
+            border-radius: 20px;
+            overflow-x: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        table {
             width: 100%;
             border-collapse: collapse;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
         }
-        .orders-table th, .orders-table td {
-            padding: 12px;
+        
+        th {
             text-align: left;
+            padding: 1rem;
+            background: #f8f9fa;
+            font-weight: 600;
+            border-bottom: 2px solid #eee;
+        }
+        
+        td {
+            padding: 1rem;
             border-bottom: 1px solid #eee;
+            vertical-align: middle;
         }
-        .orders-table th {
-            background: #f5f5f5;
-        }
+        
         .status-select {
-            padding: 5px 10px;
-            border-radius: 5px;
+            padding: 0.5rem;
+            border-radius: 8px;
             border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
         }
+        
+        .status-pending {
+            background: #ff9800;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        
+        .status-processing {
+            background: #2196f3;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        
+        .status-shipped {
+            background: #9c27b0;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        
+        .status-delivered {
+            background: #4caf50;
+            color: white;
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        
+        .view-btn {
+            background: #1a1a2e;
+            color: white;
+            border: none;
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .view-btn:hover {
+            background: #e05a2a;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem;
+            background: white;
+            border-radius: 20px;
+        }
+        
+        .empty-state p {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+        
+        .login-prompt {
+            background: #fff3e0;
+            border-radius: 20px;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+        }
+        
         body.dark .orders-table {
-            background: #1e1e1e;
+            background: #1e293b;
         }
-        body.dark .orders-table th {
-            background: #2a2a2a;
+        
+        body.dark th {
+            background: #0f172a;
+            border-bottom-color: #334155;
         }
-        body.dark .orders-table td {
-            border-bottom-color: #333;
+        
+        body.dark td {
+            border-bottom-color: #334155;
+        }
+        
+        body.dark .empty-state {
+            background: #1e293b;
+        }
+        
+        body.dark .login-prompt {
+            background: #1b5e20;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .orders-container {
+                padding: 1rem;
+            }
+            th, td {
+                font-size: 0.8rem;
+                padding: 0.5rem;
+            }
         }
     </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-699CL509Z4');
-</script>
 </head>
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">Ïƒ sigma</a>
+    <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
-        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
         <a href="about.html">about</a>
         <a href="blog.html">blog</a>
         <a href="privacy.html">privacy</a>
         <a href="wishlist.html">wishlist</a>
         <a href="terms.html">terms</a>
         <a href="refund.html">refund</a>
-        <a href="seller-dashboard.html">seller</a>
+        <a href="track.html">track order</a>
+        <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
-    <div class="container">
-        <h2> My Orders</h2>
-        <table class="orders-table">
-            <thead>
-                <tr><th>Order ID</th><th>Customer</th><th>Products</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr>
-            </thead>
-            <tbody id="ordersList"></tbody>
-        </table>
+    <div class="orders-container">
+        <div class="orders-header">
+            <h1>📋 My Orders</h1>
+        </div>
+        
+        <div id="ordersContent">
+            <!-- Orders will be loaded here -->
+        </div>
     </div>
 </main>
 
 <footer>
-    <p>sigma studio â€” mardan, pk</p>
+    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
+<script src="config.js"></script>
+<script src="navbar.js"></script>
 <script>
-    https://sigma-store-api.onrender.com
+    const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+    let allOrders = [];
     
-    function updateCartCount() {
-        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
-        const total = cart.reduce((sum, item) => sum + item.quantity, 0);
-        const badge = document.getElementById('cartCount');
-        if (badge) badge.innerText = total;
+    // ============================================
+    // CHECK LOGIN AND SELLER STATUS
+    // ============================================
+    
+    function getAuthToken() {
+        return localStorage.getItem('authToken');
     }
     
-    document.getElementById('darkToggle')?.addEventListener('click', () => {
-        document.body.classList.toggle('dark');
-        const isDark = document.body.classList.contains('dark');
-        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
-        localStorage.setItem('sigma_dark', isDark);
-    });
-    
-    if (localStorage.getItem('sigma_dark') === 'true') {
-        document.body.classList.add('dark');
-        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+    function isLoggedIn() {
+        const token = getAuthToken();
+        const expiry = localStorage.getItem('authTokenExpiry');
+        if (!token || !expiry) return false;
+        return Date.now() < parseInt(expiry);
     }
+    
+    async function checkSellerStatus() {
+        const token = getAuthToken();
+        
+        try {
+            const response = await fetch(`${API_URL}/api/seller/dashboard`, {
+                headers: { 'Authorization': token }
+            });
+            
+            if (response.status === 200) {
+                const data = await response.json();
+                if (data.seller && data.seller.status === 'approved') {
+                    return true;
+                }
+            }
+            return false;
+        } catch (error) {
+            return false;
+        }
+    }
+    
+    // ============================================
+    // LOAD ORDERS
+    // ============================================
     
     async function loadOrders() {
+        const container = document.getElementById('ordersContent');
+        const token = getAuthToken();
+        
+        container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading orders...</p></div>';
+        
         try {
-            const response = await fetch(`${API_URL}/api/seller/orders`, {
-                credentials: 'include'
+            const response = await fetch(`${API_URL}/api/admin/orders`);
+            
+            if (!response.ok) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>❌ Failed to load orders</p>
+                        <button onclick="loadOrders()" class="add-btn" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 50px; cursor: pointer;">Try Again</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            const data = await response.json();
+            const orders = data.orders || [];
+            
+            if (orders.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <p>📦 No orders yet.</p>
+                        <p>When customers order your products, they will appear here.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = `
+                <div class="orders-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            
+            for (let order of orders) {
+                let items = order.items;
+                if (typeof items === 'string') {
+                    try {
+                        items = JSON.parse(items);
+                    } catch(e) {
+                        items = [];
+                    }
+                }
+                
+                const itemCount = items ? items.length : 0;
+                const itemNames = items ? items.map(i => i.name).join(', ') : '';
+                
+                let statusClass = '';
+                let statusText = order.status || 'pending';
+                
+                if (statusText === 'pending') statusClass = 'status-pending';
+                else if (statusText === 'processing') statusClass = 'status-processing';
+                else if (statusText === 'shipped') statusClass = 'status-shipped';
+                else if (statusText === 'delivered') statusClass = 'status-delivered';
+                
+                html += `
+                    <tr>
+                        <td><strong>${order.order_id}</strong></td>
+                        <td>${escapeHtml(order.user_email || 'N/A')}</td>
+                        <td>
+                            <span title="${escapeHtml(itemNames)}">${itemCount} item(s)</span>
+                        </td>
+                        <td>$${order.total || 0}</td>
+                        <td>
+                            <select class="status-select" data-order-id="${order.order_id}" onchange="updateOrderStatus('${order.order_id}', this.value)">
+                                <option value="pending" ${statusText === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="processing" ${statusText === 'processing' ? 'selected' : ''}>Processing</option>
+                                <option value="shipped" ${statusText === 'shipped' ? 'selected' : ''}>Shipped</option>
+                                <option value="delivered" ${statusText === 'delivered' ? 'selected' : ''}>Delivered</option>
+                            </select>
+                        </td>
+                        <td>${new Date(order.created_at).toLocaleDateString()}</td>
+                        <td>
+                            <button class="view-btn" onclick="viewOrder('${order.order_id}')">View</button>
+                        </td>
+                    </tr>
+                `;
+            }
+            
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            
+        } catch (error) {
+            console.error('Load orders error:', error);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>⚠️ Cannot connect to server</p>
+                    <button onclick="loadOrders()" class="add-btn" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 50px; cursor: pointer;">Retry</button>
+                </div>
+            `;
+        }
+    }
+    
+    // ============================================
+    // UPDATE ORDER STATUS
+    // ============================================
+    
+    async function updateOrderStatus(orderId, newStatus) {
+        const token = getAuthToken();
+        
+        try {
+            const response = await fetch(`${API_URL}/api/orders/${orderId}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify({ status: newStatus })
             });
             
             if (response.ok) {
-                const data = await response.json();
-                const ordersList = document.getElementById('ordersList');
-                
-                if (data.orders.length === 0) {
-                    ordersList.innerHTML = '<tr><td colspan="7">No orders yet</td></tr>';
-                } else {
-                    ordersList.innerHTML = data.orders.map(order => `
-                        <tr>
-                            <td>${order.orderId}</td>
-                            <td>${order.userEmail}</td>
-                            <td>${order.items.map(i => i.name).join(', ')}</td>
-                            <td>$${order.total}</td>
-                            <td>
-                                <select class="status-select" onchange="updateStatus('${order.orderId}', this.value)">
-                                    <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="processing" ${order.status === 'processing' ? 'selected' : ''}>Processing</option>
-                                    <option value="shipped" ${order.status === 'shipped' ? 'selected' : ''}>Shipped</option>
-                                    <option value="delivered" ${order.status === 'delivered' ? 'selected' : ''}>Delivered</option>
-                                </select>
-                            </td>
-                            <td>${new Date(order.createdAt).toLocaleDateString()}</td>
-                            <td><button onclick="viewOrder('${order.orderId}')">View</button></td>
-                        </tr>
-                    `).join('');
-                }
+                alert(`✅ Order status updated to ${newStatus}`);
+                loadOrders();
+            } else {
+                alert('❌ Failed to update status');
+                loadOrders();
             }
-        } catch(e) {
-            console.error('Error:', e);
+        } catch (error) {
+            console.error('Update status error:', error);
+            alert('Cannot connect to server');
+            loadOrders();
         }
     }
     
-    async function updateStatus(orderId, status) {
-        const response = await fetch(`${API_URL}/api/seller/orders/${orderId}/status`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'include',
-            body: JSON.stringify({ status })
-        });
-        
-        if (response.ok) {
-            alert('Status updated!');
-        }
-    }
+    // ============================================
+    // VIEW ORDER DETAILS
+    // ============================================
     
     function viewOrder(orderId) {
         window.location.href = `track.html?order=${orderId}`;
     }
     
-    loadOrders();
-    updateCartCount();
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ============================================
+    // RENDER PAGE
+    // ============================================
+    
+    async function renderPage() {
+        if (!isLoggedIn()) {
+            document.getElementById('ordersContent').innerHTML = `
+                <div class="login-prompt">
+                    <h3>🔐 Please Login</h3>
+                    <p>You need to be logged in to view orders.</p>
+                    <a href="login.html" class="add-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Login Now →</a>
+                </div>
+            `;
+            return;
+        }
+        
+        const isSeller = await checkSellerStatus();
+        
+        if (!isSeller) {
+            document.getElementById('ordersContent').innerHTML = `
+                <div class="login-prompt">
+                    <h3>🏪 Become a Seller First</h3>
+                    <p>You need to be an approved seller to view orders.</p>
+                    <a href="seller-signup.html" class="add-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Apply Now →</a>
+                </div>
+            `;
+            return;
+        }
+        
+        loadOrders();
+    }
+    
+    // ============================================
+    // INITIALIZE
+    // ============================================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCartCount();
+        renderPage();
+    });
+    
+    // Make functions global
+    window.updateOrderStatus = updateOrderStatus;
+    window.viewOrder = viewOrder;
 </script>
-    <script src="navbar.js"></script>
+
 </body>
 </html>
-
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->

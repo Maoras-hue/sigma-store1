@@ -2,140 +2,470 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Reviews - Sigma Store</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sigma Store - Product Reviews</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .review-card { background: white; border-radius: 12px; padding: 1rem; margin-bottom: 1rem; border: 1px solid #eee; }
-        .write-review { background: #f5f5f5; padding: 1.5rem; border-radius: 12px; margin-bottom: 2rem; }
-        .rating-star { cursor: pointer; font-size: 30px; color: #ddd; display: inline-block; }
-        .rating-star.active { color: #ffc107; }
-        body.dark .review-card { background: #1e1e1e; }
-        body.dark .write-review { background: #2a2a2a; }
+        .reviews-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .reviews-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        
+        .reviews-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Write Review Section */
+        .write-review {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        .write-review h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .product-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+        
+        .rating-stars {
+            display: flex;
+            gap: 0.5rem;
+            margin: 1rem 0;
+        }
+        
+        .star {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #ddd;
+            transition: all 0.2s;
+        }
+        
+        .star:hover,
+        .star.active {
+            color: #ffc107;
+        }
+        
+        .review-textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 1rem;
+        }
+        
+        .submit-review-btn {
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .submit-review-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(224,90,42,0.3);
+        }
+        
+        /* Reviews List */
+        .reviews-list {
+            background: white;
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        
+        .reviews-list h3 {
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .review-card {
+            border-bottom: 1px solid #eee;
+            padding: 1.5rem 0;
+        }
+        
+        .review-card:last-child {
+            border-bottom: none;
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .reviewer-name {
+            font-weight: 700;
+            color: #e05a2a;
+        }
+        
+        .review-date {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        
+        .review-stars {
+            color: #ffc107;
+            margin: 0.5rem 0;
+        }
+        
+        .review-comment {
+            color: #555;
+            line-height: 1.5;
+            margin-top: 0.5rem;
+        }
+        
+        .no-reviews {
+            text-align: center;
+            padding: 2rem;
+            color: #888;
+        }
+        
+        .login-prompt {
+            background: #f0fdf4;
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+        }
+        
+        .login-prompt a {
+            color: #e05a2a;
+            font-weight: 600;
+        }
+        
+        body.dark .write-review,
+        body.dark .reviews-list {
+            background: #1e293b;
+        }
+        
+        body.dark .write-review h3,
+        body.dark .reviews-list h3 {
+            color: #e2e8f0;
+        }
+        
+        body.dark .product-select,
+        body.dark .review-textarea {
+            background: #334155;
+            border-color: #475569;
+            color: white;
+        }
+        
+        body.dark .review-card {
+            border-bottom-color: #334155;
+        }
+        
+        body.dark .review-comment {
+            color: #94a3b8;
+        }
+        
+        body.dark .login-prompt {
+            background: #1b5e20;
+            color: white;
+        }
+        
+        @media (max-width: 768px) {
+            .reviews-container {
+                padding: 1rem;
+            }
+            .star {
+                font-size: 1.5rem;
+            }
+        }
     </style>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-699CL509Z4');
-</script>
 </head>
 <body>
+
 <div class="header">
-    <a href="index.html" class="logo">Ïƒ SIGMA</a>
+    <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
+
 <main>
-    <div class="container">
-        <h2>â­ Product Reviews</h2>
-        <div class="write-review">
-            <h3>Write a Review</h3>
-            <select id="productSelect" style="width:100%; padding:10px; margin-bottom:1rem;">
-                <option value="">Select a product</option>
-            </select>
-            <div id="ratingStars" style="margin:10px 0;">
-                <span class="rating-star" data-rating="1">â˜†</span>
-                <span class="rating-star" data-rating="2">â˜†</span>
-                <span class="rating-star" data-rating="3">â˜†</span>
-                <span class="rating-star" data-rating="4">â˜†</span>
-                <span class="rating-star" data-rating="5">â˜†</span>
-            </div>
-            <textarea id="reviewComment" rows="3" placeholder="Share your experience..." style="width:100%; padding:10px;"></textarea>
-            <button id="submitBtn" style="margin-top:10px; background:#e05a2a; color:white; border:none; padding:10px 20px; border-radius:5px;">Submit Review</button>
+    <div class="reviews-container">
+        <div class="reviews-header">
+            <h1>⭐ Customer Reviews</h1>
+            <p>See what others are saying about our products</p>
         </div>
-        <div id="reviewsList">Select a product to see reviews</div>
+        
+        <!-- Write Review Section -->
+        <div id="writeReviewSection" class="write-review">
+            <h3>📝 Write a Review</h3>
+            <div id="loginWarning" style="display:none;" class="login-prompt">
+                🔐 Please <a href="login.html">login</a> to write a review
+            </div>
+            <div id="reviewForm" style="display:none;">
+                <select id="productSelect" class="product-select">
+                    <option value="">Select a product</option>
+                </select>
+                <div class="rating-stars" id="ratingStars">
+                    <span class="star" data-rating="1">☆</span>
+                    <span class="star" data-rating="2">☆</span>
+                    <span class="star" data-rating="3">☆</span>
+                    <span class="star" data-rating="4">☆</span>
+                    <span class="star" data-rating="5">☆</span>
+                </div>
+                <textarea id="reviewComment" class="review-textarea" rows="4" placeholder="Share your experience with this product..."></textarea>
+                <button id="submitReview" class="submit-review-btn">Submit Review →</button>
+            </div>
+        </div>
+        
+        <!-- Reviews List -->
+        <div class="reviews-list">
+            <h3>📖 All Reviews</h3>
+            <div id="reviewsList">
+                <div class="no-reviews">Select a product to see reviews</div>
+            </div>
+        </div>
     </div>
 </main>
-<footer><p>Sigma Studio</p></footer>
+
+<footer>
+    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
+</footer>
+
 <script src="config.js"></script>
 <script src="navbar.js"></script>
 <script>
     const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
-    let selectedRating = 0;
     let products = [];
+    let selectedRating = 0;
+    let currentProductId = '';
     
-    document.querySelectorAll('.rating-star').forEach(star => {
-        star.onclick = function() {
-            selectedRating = parseInt(this.dataset.rating);
-            document.querySelectorAll('.rating-star').forEach(s => {
-                if(parseInt(s.dataset.rating) <= selectedRating) {
-                    s.innerHTML = 'â˜…';
-                    s.classList.add('active');
-                } else {
-                    s.innerHTML = 'â˜†';
-                    s.classList.remove('active');
-                }
-            });
-        };
-    });
+    // ============================================
+    // STAR RATING
+    // ============================================
+    
+    function initStars() {
+        const stars = document.querySelectorAll('.star');
+        stars.forEach(star => {
+            star.onclick = function() {
+                selectedRating = parseInt(this.dataset.rating);
+                stars.forEach(s => {
+                    const rating = parseInt(s.dataset.rating);
+                    if (rating <= selectedRating) {
+                        s.innerHTML = '★';
+                        s.classList.add('active');
+                    } else {
+                        s.innerHTML = '☆';
+                        s.classList.remove('active');
+                    }
+                });
+            };
+        });
+    }
+    
+    // ============================================
+    // LOAD PRODUCTS
+    // ============================================
     
     async function loadProducts() {
-        const res = await fetch(API_URL + '/api/products');
-        products = await res.json();
-        const select = document.getElementById('productSelect');
-        select.innerHTML = '<option value="">Select a product</option>' + products.map(p => `<option value="${p.id}">${p.name} - $${p.price}</option>`).join('');
+        try {
+            const response = await fetch(`${API_URL}/api/products`);
+            products = await response.json();
+            
+            const select = document.getElementById('productSelect');
+            select.innerHTML = '<option value="">Select a product</option>' + 
+                products.map(p => `<option value="${p.id}">${p.name} - $${p.price}</option>`).join('');
+        } catch (error) {
+            console.error('Error loading products:', error);
+        }
     }
+    
+    // ============================================
+    // LOAD REVIEWS
+    // ============================================
     
     async function loadReviews(productId) {
-        if(!productId) { document.getElementById('reviewsList').innerHTML = '<p>Select a product to see reviews</p>'; return; }
-        const res = await fetch(API_URL + '/api/products/' + productId + '/reviews');
-        const data = await res.json();
-        const reviews = data.reviews || [];
-        if(reviews.length === 0) { document.getElementById('reviewsList').innerHTML = '<p>No reviews yet. Be the first!</p>'; return; }
-        document.getElementById('reviewsList').innerHTML = reviews.map(r => `
-            <div class="review-card">
-                <strong>${r.user_name}</strong> - ${'â˜…'.repeat(r.rating)}${'â˜†'.repeat(5-r.rating)}<br>
-                <small>${new Date(r.created_at).toLocaleDateString()}</small>
-                <p>${r.comment}</p>
-            </div>
-        `).join('');
+        currentProductId = productId;
+        const reviewsDiv = document.getElementById('reviewsList');
+        
+        if (!productId) {
+            reviewsDiv.innerHTML = '<div class="no-reviews">Select a product to see reviews</div>';
+            return;
+        }
+        
+        reviewsDiv.innerHTML = '<div class="no-reviews">Loading reviews...</div>';
+        
+        try {
+            const response = await fetch(`${API_URL}/api/products/${productId}/reviews`);
+            const data = await response.json();
+            const reviews = data.reviews || [];
+            
+            if (reviews.length === 0) {
+                reviewsDiv.innerHTML = '<div class="no-reviews">⭐ No reviews yet. Be the first to review this product!</div>';
+                return;
+            }
+            
+            reviewsDiv.innerHTML = reviews.map(r => `
+                <div class="review-card">
+                    <div class="review-header">
+                        <span class="reviewer-name">${escapeHtml(r.user_name)}</span>
+                        <span class="review-date">${new Date(r.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
+                    <div class="review-comment">${escapeHtml(r.comment)}</div>
+                </div>
+            `).join('');
+        } catch (error) {
+            reviewsDiv.innerHTML = '<div class="no-reviews">Error loading reviews</div>';
+        }
     }
     
-    document.getElementById('productSelect').onchange = (e) => loadReviews(e.target.value);
+    // ============================================
+    // SUBMIT REVIEW
+    // ============================================
     
-    document.getElementById('submitBtn').onclick = async () => {
+    async function submitReview() {
         const productId = document.getElementById('productSelect').value;
         const comment = document.getElementById('reviewComment').value;
         const token = localStorage.getItem('authToken');
-        if(!productId) { alert('Select a product'); return; }
-        if(!selectedRating) { alert('Select a rating'); return; }
-        if(!token) { alert('Please login'); window.location.href='login.html'; return; }
         
-        const res = await fetch(API_URL + '/api/products/' + productId + '/reviews', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': token },
-            body: JSON.stringify({ rating: selectedRating, comment })
-        });
-        if(res.ok) {
-            alert('Review submitted!');
-            document.getElementById('reviewComment').value = '';
-            selectedRating = 0;
-            document.querySelectorAll('.rating-star').forEach(s => { s.innerHTML = 'â˜†'; s.classList.remove('active'); });
-            loadReviews(productId);
-        } else { alert('Failed to submit'); }
-    };
+        if (!productId) {
+            alert('Please select a product');
+            return;
+        }
+        
+        if (selectedRating === 0) {
+            alert('Please select a rating');
+            return;
+        }
+        
+        if (!comment.trim()) {
+            alert('Please write a comment');
+            return;
+        }
+        
+        if (!token) {
+            alert('Please login to submit a review');
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_URL}/api/products/${productId}/reviews`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': token
+                },
+                body: JSON.stringify({
+                    rating: selectedRating,
+                    comment: comment
+                })
+            });
+            
+            if (response.ok) {
+                alert('✅ Review submitted successfully!');
+                document.getElementById('reviewComment').value = '';
+                selectedRating = 0;
+                const stars = document.querySelectorAll('.star');
+                stars.forEach(s => {
+                    s.innerHTML = '☆';
+                    s.classList.remove('active');
+                });
+                loadReviews(productId);
+            } else {
+                const data = await response.json();
+                alert(data.error || 'Failed to submit review');
+            }
+        } catch (error) {
+            console.error('Submit error:', error);
+            alert('Error submitting review');
+        }
+    }
     
-    loadProducts();
+    // ============================================
+    // CHECK LOGIN STATUS
+    // ============================================
+    
+    function checkLoginStatus() {
+        const token = localStorage.getItem('authToken');
+        const loginWarning = document.getElementById('loginWarning');
+        const reviewForm = document.getElementById('reviewForm');
+        
+        if (token) {
+            loginWarning.style.display = 'none';
+            reviewForm.style.display = 'block';
+        } else {
+            loginWarning.style.display = 'block';
+            reviewForm.style.display = 'none';
+        }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // ============================================
+    // INITIALIZE
+    // ============================================
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        loadProducts();
+        checkLoginStatus();
+        initStars();
+        
+        document.getElementById('productSelect').addEventListener('change', (e) => {
+            loadReviews(e.target.value);
+        });
+        
+        document.getElementById('submitReview').addEventListener('click', submitReview);
+        updateCartCount();
+    });
 </script>
+
 </body>
-</html><!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
+</html>

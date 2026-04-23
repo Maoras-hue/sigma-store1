@@ -1,33 +1,141 @@
-<a href="https://wa.me/923001234567?text=Hi%%21%%20I%%20have%%20a%%20question" style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;" target="_blank">??</a> 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sigma — blog</title>
+    <title>Sigma Store - Blog</title>
     <link rel="stylesheet" href="style.css">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'G-699CL509Z4');
-</script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .blog-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .blog-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .blog-header h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        
+        .blog-header p {
+            color: #666;
+        }
+        
+        .blog-post {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        .blog-post:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+        
+        .post-date {
+            font-size: 0.8rem;
+            color: #e05a2a;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        
+        .post-excerpt {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+        }
+        
+        .read-more {
+            color: #e05a2a;
+            text-decoration: none;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            transition: all 0.3s;
+        }
+        
+        .read-more:hover {
+            gap: 0.6rem;
+        }
+        
+        .post-divider {
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #e05a2a, #ff8c42, transparent);
+            margin: 2rem 0;
+        }
+        
+        .category-tag {
+            display: inline-block;
+            background: rgba(224,90,42,0.1);
+            color: #e05a2a;
+            padding: 0.2rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        body.dark .blog-post {
+            background: #1e293b;
+        }
+        
+        body.dark .post-title {
+            color: #e2e8f0;
+        }
+        
+        body.dark .post-excerpt {
+            color: #94a3b8;
+        }
+        
+        @media (max-width: 768px) {
+            .blog-container {
+                padding: 1rem;
+            }
+            .blog-post {
+                padding: 1.5rem;
+            }
+            .post-title {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
 </head>
 <body>
 
 <div class="header">
     <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
-        <a href="index.html">shop</a>`n        <a href="reviews.html">reviews</a>
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
         <a href="about.html">about</a>
         <a href="blog.html">blog</a>
         <a href="privacy.html">privacy</a>
         <a href="wishlist.html">wishlist</a>
         <a href="terms.html">terms</a>
         <a href="refund.html">refund</a>
+        <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
     <button class="dark-toggle" id="darkToggle">🌙</button>
@@ -35,65 +143,167 @@
 </div>
 
 <main>
-    <div class="container">
-        <h2 style="margin: 1rem 0;">rants & updates</h2>
-        
-        <div style="display:flex; flex-direction:column; gap:1.5rem;">
-            <div style="border-bottom:1px solid #eee; padding-bottom:1rem;">
-                <h3>sigma store is live!</h3>
-                <span style="font-size:0.8rem; color:#888;">mar 15, 2026</span>
-                <p style="margin-top:0.5rem;">After weeks of coding, sigma store is finally live! You can buy digital & electronic products directly via whatsapp. <br>Order are tracked and confirmed via email.</p>
-            </div>
-            
-            <div style="border-bottom:1px solid #eee; padding-bottom:1rem;">
-                <h3>Why I built this store?</h3>
-                <span style="font-size:0.8rem; color:#888;">feb 28, 2026</span>
-                <p style="margin-top:0.5rem;">I was tired of overpriced templates and broken code. So at 17,I decided to build my own e-commerce platform. <br> No investors , no team just me and my laptop.</p>
-            </div>
-            
-            <div>
-                <h3>whatsapp ordder integration Added</h3>
-                <span style="font-size:0.8rem; color:#888;">jan 20, 2026</span>
-                <p style="margin-top:0.5rem;">Now customers can place order directly via whatsapp. <br> Just add items to cart, click the whatsapp button and send your order. <br>payment via jazzcash/easypaisa</p>
-            </div>
-
-            <hr>
-            <div>
-                <h3>Ordern tracking system</h3>
-                <span style="font-size: 0.8rem; color: #888;">Dec 18, 2025</span>
-                <p style="margin-top: 0.5rem;">Every order now get a unique id. Customers can track thier order status: <br>pending--> processing--> delivered. Real time updates via email. </p>
-            </div>
-
-            <hr>
-            <div>
-                <h3>Dark mode toggle now Available</h3>
-                <span style="font-size: 0.8rem; color: #888;"> dec 1,2025</span>
-                <p>Toggle between light and Dark mode. Your preference is saved automatically.</p>
-            </div>
+    <div class="blog-container">
+        <div class="blog-header">
+            <h1>📝 Sigma Blog</h1>
+            <p>Updates, rants, and everything in between</p>
         </div>
+        
+        <!-- Post 1 -->
+        <article class="blog-post">
+            <div class="category-tag">🚀 Launch</div>
+            <div class="post-date">March 15, 2026</div>
+            <h2 class="post-title">Sigma Store is Live!</h2>
+            <div class="post-excerpt">
+                After weeks of coding, debugging, and testing, Sigma Store is finally live! 
+                You can now buy digital and electronic products directly via WhatsApp. 
+                Orders are tracked and confirmed via email. This is just the beginning.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
+        
+        <div class="post-divider"></div>
+        
+        <!-- Post 2 -->
+        <article class="blog-post">
+            <div class="category-tag">💡 Story</div>
+            <div class="post-date">February 28, 2026</div>
+            <h2 class="post-title">Why I Built This Store</h2>
+            <div class="post-excerpt">
+                I was tired of overpriced templates and broken code. Most e-commerce platforms 
+                charge $500+ for something that doesn't even work properly. So at 17, I decided 
+                to build my own. No investors, no team — just me and my laptop.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
+        
+        <div class="post-divider"></div>
+        
+        <!-- Post 3 -->
+        <article class="blog-post">
+            <div class="category-tag">📱 Feature</div>
+            <div class="post-date">January 20, 2026</div>
+            <h2 class="post-title">WhatsApp Order Integration Added</h2>
+            <div class="post-excerpt">
+                Now customers can place orders directly via WhatsApp. Just add items to cart, 
+                click the WhatsApp button, and send your order. Payment via JazzCash/Easypaisa 
+                makes it super convenient for Pakistani customers.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
+        
+        <div class="post-divider"></div>
+        
+        <!-- Post 4 -->
+        <article class="blog-post">
+            <div class="category-tag">🔧 Update</div>
+            <div class="post-date">December 18, 2025</div>
+            <h2 class="post-title">Order Tracking System</h2>
+            <div class="post-excerpt">
+                Every order now gets a unique ID. Customers can track their order status in real-time: 
+                Pending → Processing → Shipped → Delivered. Email notifications keep everyone updated.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
+        
+        <div class="post-divider"></div>
+        
+        <!-- Post 5 -->
+        <article class="blog-post">
+            <div class="category-tag">🎨 Design</div>
+            <div class="post-date">December 1, 2025</div>
+            <h2 class="post-title">Dark Mode Toggle Now Available</h2>
+            <div class="post-excerpt">
+                Toggle between light and dark mode with one click. Your preference is saved automatically 
+                in your browser. Perfect for late-night shopping sessions.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
+        
+        <div class="post-divider"></div>
+        
+        <!-- Post 6 -->
+        <article class="blog-post">
+            <div class="category-tag">🏪 Feature</div>
+            <div class="post-date">November 10, 2025</div>
+            <h2 class="post-title">Multi-Vendor Marketplace</h2>
+            <div class="post-excerpt">
+                Sellers can now register on Sigma Store. Apply to become a seller, get approved by admin, 
+                and start selling your own products. Perfect for marketplace-style stores.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
+        
+        <div class="post-divider"></div>
+        
+        <!-- Post 7 -->
+        <article class="blog-post">
+            <div class="category-tag">⭐ Feature</div>
+            <div class="post-date">October 5, 2025</div>
+            <h2 class="post-title">Product Reviews with Star Ratings</h2>
+            <div class="post-excerpt">
+                Customers can now leave reviews and rate products with 1-5 stars. 
+                Builds trust and helps other buyers make informed decisions.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
+        
+        <div class="post-divider"></div>
+        
+        <!-- Post 8 -->
+        <article class="blog-post">
+            <div class="category-tag">💳 Payment</div>
+            <div class="post-date">September 15, 2025</div>
+            <h2 class="post-title">Stripe & PayPal Integration</h2>
+            <div class="post-excerpt">
+                International payments are now supported via Stripe and PayPal. 
+                Customers can pay with credit cards or PayPal accounts securely.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
+        
+        <div class="post-divider"></div>
+        
+        <!-- Post 9 -->
+        <article class="blog-post">
+            <div class="category-tag">🔐 Security</div>
+            <div class="post-date">August 20, 2025</div>
+            <h2 class="post-title">JWT Authentication Added</h2>
+            <div class="post-excerpt">
+                User authentication is now more secure with JWT tokens. 
+                Passwords are hashed using bcrypt. Your customers' data is safe.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
+        
+        <div class="post-divider"></div>
+        
+        <!-- Post 10 -->
+        <article class="blog-post">
+            <div class="category-tag">🎉 Milestone</div>
+            <div class="post-date">July 1, 2025</div>
+            <h2 class="post-title">First Version Released</h2>
+            <div class="post-excerpt">
+                The first version of Sigma Store is complete! Basic e-commerce functionality: 
+                products, cart, checkout, and admin panel. The journey begins.
+            </div>
+            <a href="#" class="read-more" onclick="return false;">Read more →</a>
+        </article>
     </div>
 </main>
 
 <footer>
-    <p>sigma studio — mardan, pk</p>
-    <p>email:sigma@example.com</p>
+    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
-<script src="script.js"></script>
-<script src="navbar</script>
 <script src="config.js"></script>
+<script src="navbar.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        updateCartCount();
+    });
+</script>
+
 </body>
 </html>
-<!--Start of Tawk.to Script-->
-<script type="text/javascript">
-var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-(function(){
-var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-s1.async=true;
-s1.src='https://embed.tawk.to/69e63ae860b8be1d5d9dbc3a/1jmllc82o';
-s1.charset='UTF-8';
-s1.setAttribute('crossorigin','*');
-s0.parentNode.insertBefore(s1,s0);
-})();
-</script>
-<!--End of Tawk.to Script-->
