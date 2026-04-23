@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -181,14 +181,14 @@
         <a href="track.html">track order</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="wishlist-container">
         <div class="wishlist-header">
-            <h1>❤️ My Wishlist</h1>
+            <h1>â¤ï¸ My Wishlist</h1>
             <p>Products you've saved for later</p>
         </div>
         
@@ -199,7 +199,7 @@
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio â€” Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -226,7 +226,7 @@
         wishlist = wishlist.filter(id => id !== productId);
         saveWishlist(wishlist);
         renderWishlist();
-        showToast('♥ Removed from wishlist');
+        showToast('â™¥ Removed from wishlist');
     }
     
     function addToCart(id, name, price) {
@@ -241,7 +241,7 @@
         
         localStorage.setItem('sigma_cart', JSON.stringify(cart));
         updateCartCount();
-        showToast(`✓ ${name} added to cart`);
+        showToast(`âœ“ ${name} added to cart`);
         pulseCart();
     }
     
@@ -284,8 +284,8 @@
             console.error('Error loading products:', error);
             document.getElementById('wishlistContent').innerHTML = `
                 <div class="empty-wishlist">
-                    <p>❌ Cannot load products. Please try again.</p>
-                    <a href="index.html" class="shop-now-btn">Back to Shop →</a>
+                    <p>âŒ Cannot load products. Please try again.</p>
+                    <a href="index.html" class="shop-now-btn">Back to Shop â†’</a>
                 </div>
             `;
         }
@@ -322,9 +322,9 @@
         if (wishlistIds.length === 0) {
             container.innerHTML = `
                 <div class="empty-wishlist">
-                    <p>❤️ Your wishlist is empty</p>
+                    <p>â¤ï¸ Your wishlist is empty</p>
                     <p>Save your favorite items to see them here!</p>
-                    <a href="index.html" class="shop-now-btn">Start Shopping →</a>
+                    <a href="index.html" class="shop-now-btn">Start Shopping â†’</a>
                 </div>
             `;
             return;
@@ -335,8 +335,8 @@
         if (wishlistItems.length === 0) {
             container.innerHTML = `
                 <div class="empty-wishlist">
-                    <p>❤️ Your wishlist is empty</p>
-                    <a href="index.html" class="shop-now-btn">Browse Products →</a>
+                    <p>â¤ï¸ Your wishlist is empty</p>
+                    <a href="index.html" class="shop-now-btn">Browse Products â†’</a>
                 </div>
             `;
             return;
