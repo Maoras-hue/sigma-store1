@@ -1,8 +1,6 @@
 ﻿// ============================================
 // SIGMA STORE - MAIN FRONTEND SCRIPT
 // ============================================
-
-const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
 let products = [];
 let currentFilter = 'all';
 let searchTerm = '';
