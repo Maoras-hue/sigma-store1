@@ -2,6 +2,10 @@
 // SIGMA STORE - NAVIGATION AND AUTH
 // ============================================
 
+// ============================================
+// CART FUNCTIONS
+// ============================================
+
 function updateCartCount() {
     const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
     const total = cart.reduce(function(sum, item) {
@@ -10,53 +14,10 @@ function updateCartCount() {
     const badge = document.getElementById('cartCount');
     if (badge) badge.innerText = total;
 }
-async function updateAuthButton() {
-    const authLink = document.getElementById('authLink');
-    if (!authLink) return;
-    
-    if (!isLoggedIn()) {
-        authLink.innerHTML = 'Login';
-        authLink.href = 'login.html';
-        authLink.onclick = null;
-        return;
-    }
-    
-    const userStr = localStorage.getItem('sigma_user');
-    if (userStr) {
-        try {
-            const user = JSON.parse(userStr);
-            const displayName = user.name || user.email.split('@')[0];
-            authLink.innerHTML = `${displayName} ▼`;
-            authLink.href = '#';
-            authLink.onclick = (e) => {
-                e.preventDefault();
-                // Create dropdown menu
-                const dropdown = document.createElement('div');
-                dropdown.style.position = 'absolute';
-                dropdown.style.right = '20px';
-                dropdown.style.top = '60px';
-                dropdown.style.background = 'white';
-                dropdown.style.borderRadius = '8px';
-                dropdown.style.boxShadow = '0 4px 20px rgba(0,0,0,0.1)';
-                dropdown.style.padding = '10px 0';
-                dropdown.style.zIndex = '1000';
-                dropdown.innerHTML = `
-                    <a href="profile.html" style="display:block; padding:8px 20px; color:#333; text-decoration:none;">My Profile</a>
-                    <a href="#" onclick="clearAuth(); window.location.href='index.html';" style="display:block; padding:8px 20px; color:#e05a2a; text-decoration:none;">Logout</a>
-                `;
-                document.body.appendChild(dropdown);
-                setTimeout(() => dropdown.remove(), 5000);
-                dropdown.onclick = (e) => e.stopPropagation();
-            };
-        } catch(e) {
-            authLink.innerHTML = 'Login';
-            authLink.href = 'login.html';
-        }
-    } else {
-        authLink.innerHTML = 'Login';
-        authLink.href = 'login.html';
-    }
-}
+
+// ============================================
+// AUTH FUNCTIONS
+// ============================================
 
 function isLoggedIn() {
     const token = localStorage.getItem('sigma_token');
@@ -90,6 +51,15 @@ function clearAuth() {
     localStorage.removeItem('sigma_user');
 }
 
+function logoutAndRedirect() {
+    clearAuth();
+    window.location.href = 'index.html';
+}
+
+// ============================================
+// UPDATE AUTH BUTTON WITH DROPDOWN
+// ============================================
+
 function updateAuthButton() {
     var authLink = document.getElementById('authLink');
     if (!authLink) return;
@@ -106,22 +76,67 @@ function updateAuthButton() {
         try {
             var user = JSON.parse(userStr);
             var displayName = user.name || user.email.split('@')[0];
-            authLink.innerHTML = 'Logout (' + displayName + ')';
+            
+            // Change the login link to show username with dropdown indicator
+            authLink.innerHTML = displayName + ' ▼';
             authLink.href = '#';
             authLink.onclick = function(e) {
                 e.preventDefault();
-                clearAuth();
-                window.location.href = 'index.html';
+                e.stopPropagation();
+                
+                // Remove existing dropdown
+                var existing = document.getElementById('userDropdown');
+                if (existing) existing.remove();
+                
+                // Create dropdown menu
+                var dropdown = document.createElement('div');
+                dropdown.id = 'userDropdown';
+                dropdown.style.cssText = 'position:absolute; right:20px; top:60px; background:white; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.15); z-index:1000; min-width:160px; overflow:hidden;';
+                
+                dropdown.innerHTML = `
+                    <a href="profile.html" style="display:block; padding:12px 20px; color:#333; text-decoration:none; border-bottom:1px solid #eee; transition:background 0.2s;">
+                        👤 My Profile
+                    </a>
+                    <a href="#" onclick="logoutAndRedirect()" style="display:block; padding:12px 20px; color:#e05a2a; text-decoration:none; transition:background 0.2s;">
+                        🚪 Logout
+                    </a>
+                `;
+                
+                // Add hover effects
+                var links = dropdown.getElementsByTagName('a');
+                for (var i = 0; i < links.length; i++) {
+                    links[i].onmouseover = function() { this.style.background = '#f5f5f5'; };
+                    links[i].onmouseout = function() { this.style.background = 'transparent'; };
+                }
+                
+                document.body.appendChild(dropdown);
+                
+                // Close dropdown when clicking outside
+                function closeDropdown(e) {
+                    if (!dropdown.contains(e.target) && e.target !== authLink) {
+                        dropdown.remove();
+                        document.removeEventListener('click', closeDropdown);
+                    }
+                }
+                setTimeout(function() {
+                    document.addEventListener('click', closeDropdown);
+                }, 100);
             };
         } catch(e) {
             authLink.innerHTML = 'Login';
             authLink.href = 'login.html';
+            authLink.onclick = null;
         }
     } else {
         authLink.innerHTML = 'Login';
         authLink.href = 'login.html';
+        authLink.onclick = null;
     }
 }
+
+// ============================================
+// DARK MODE
+// ============================================
 
 function initDarkMode() {
     var toggle = document.getElementById('darkToggle');
@@ -139,6 +154,10 @@ function initDarkMode() {
     };
 }
 
+// ============================================
+// SCROLL EFFECT
+// ============================================
+
 function initScrollEffect() {
     var header = document.querySelector('.header');
     if (!header) return;
@@ -152,6 +171,10 @@ function initScrollEffect() {
     });
 }
 
+// ============================================
+// INITIALIZE ALL
+// ============================================
+
 document.addEventListener('DOMContentLoaded', function() {
     updateCartCount();
     updateAuthButton();
@@ -159,8 +182,14 @@ document.addEventListener('DOMContentLoaded', function() {
     initScrollEffect();
 });
 
+// ============================================
+// EXPORT FUNCTIONS FOR GLOBAL USE
+// ============================================
+
 window.updateCartCount = updateCartCount;
 window.isLoggedIn = isLoggedIn;
 window.getAuthToken = getAuthToken;
 window.setAuthToken = setAuthToken;
 window.clearAuth = clearAuth;
+window.logoutAndRedirect = logoutAndRedirect;
+window.updateAuthButton = updateAuthButton;
