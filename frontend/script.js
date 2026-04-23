@@ -7,26 +7,90 @@ let currentFilter = 'all';
 let searchTerm = '';
 let currentSort = 'default';
 
+const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+
 // ============================================
 // LOAD PRODUCTS FROM BACKEND
 // ============================================
 async function loadProducts() {
-    console.log('Loading products from:', window.BACKEND_URL);
+    console.log('Loading products from:', API_URL);
     const grid = document.getElementById('productsGrid');
     if (grid) grid.innerHTML = '<div class="spinner"></div>';
     
     try {
-        const response = await fetch(`${window.BACKEND_URL}/api/products`);
+        const response = await fetch(`${API_URL}/api/products`);
         if (!response.ok) throw new Error('Failed to fetch products');
         products = await response.json();
         console.log('Products loaded:', products.length);
         renderProducts();
         renderRecentlyViewed();
+        updateProductCount();
     } catch (error) {
         console.error('Error loading products:', error);
-        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">❌ Cannot load products. Please try again later.</p>';
+        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">Cannot load products. Please try again later.</p>';
     }
 }
+
+// Update product count in UI
+function updateProductCount() {
+    const countElement = document.getElementById('productCount');
+    if (countElement) countElement.innerText = products.length + ' products';
+}
+
+// ============================================
+// AUTO-REFRESH PRODUCTS
+// ============================================
+
+let lastUpdateCheck = Date.now();
+
+async function refreshProductsFromServer() {
+    console.log('Checking for product updates...');
+    try {
+        const response = await fetch(`${API_URL}/api/products`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const newProducts = await response.json();
+        
+        // Check if products changed
+        if (JSON.stringify(products) !== JSON.stringify(newProducts)) {
+            products = newProducts;
+            console.log('Products updated! New count:', products.length);
+            renderProducts();
+            renderRecentlyViewed();
+            updateProductCount();
+            showToast('Products updated!', 'info');
+        }
+    } catch (error) {
+        console.error('Auto-refresh error:', error);
+    }
+}
+
+async function checkForAdminUpdates() {
+    try {
+        const response = await fetch(`${API_URL}/api/last-product-update`);
+        const data = await response.json();
+        
+        if (data.lastUpdate > lastUpdateCheck) {
+            console.log('Admin made changes, refreshing...');
+            lastUpdateCheck = data.lastUpdate;
+            await refreshProductsFromServer();
+        }
+    } catch(e) {
+        // Silently fail - admin notification endpoint might not exist
+    }
+}
+
+// Auto-refresh every 10 seconds
+setInterval(refreshProductsFromServer, 10000);
+
+// Check for admin updates every 5 seconds
+setInterval(checkForAdminUpdates, 5000);
+
+// Refresh when page becomes visible again
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        refreshProductsFromServer();
+    }
+});
 
 // ============================================
 // SHOW TOAST NOTIFICATION
@@ -37,7 +101,7 @@ function showToast(message, type = 'success') {
     toast.style.cssText = `
         position: fixed;
         bottom: 20px;
-        right: 20px;
+        left: 20px;
         background: ${type === 'success' ? '#111' : '#e05a2a'};
         color: white;
         padding: 12px 24px;
@@ -78,7 +142,7 @@ function addToCart(id, name, price) {
         cart.push({ id, name, price, quantity: 1 });
     }
     saveCart(cart);
-    showToast(`✓ ${name} added to cart`);
+    showToast(`${name} added to cart`);
     pulseCart();
 }
 
@@ -124,10 +188,10 @@ function toggleWishlist(productId) {
     let wishlist = getWishlist();
     if (wishlist.includes(productId)) {
         wishlist = wishlist.filter(id => id !== productId);
-        showToast('♥ Removed from wishlist');
+        showToast('Removed from wishlist');
     } else {
         wishlist.push(productId);
-        showToast('♥ Added to wishlist');
+        showToast('Added to wishlist');
     }
     saveWishlist(wishlist);
     renderProducts();
@@ -189,7 +253,7 @@ function getProductImage(product) {
     if (product.image.startsWith('http')) {
         return product.image;
     }
-    return `${window.BACKEND_URL}/uploads/${product.image}`;
+    return `${API_URL}/uploads/${product.image}`;
 }
 
 function escapeHtml(str) {
@@ -324,6 +388,7 @@ window.addToCart = addToCart;
 window.updateQty = updateQty;
 window.removeItem = removeItem;
 window.toggleWishlist = toggleWishlist;
+window.refreshProductsFromServer = refreshProductsFromServer;
 window.showConfetti = function() {
     console.log('Confetti!');
 };

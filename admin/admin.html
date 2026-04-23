@@ -179,7 +179,7 @@
             font-weight: 600;
         }
         
-        /* Forms */
+        /* Product Form */
         .product-form {
             background: white;
             padding: 20px;
@@ -203,17 +203,7 @@
             cursor: pointer;
         }
         
-        .approve-btn {
-            background: #4caf50;
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-right: 5px;
-        }
-        
-        .reject-btn {
+        .delete-btn {
             background: #e05a2a;
             color: white;
             border: none;
@@ -232,18 +222,19 @@
             font-weight: bold;
         }
         
-        .status-rejected {
-            color: #e05a2a;
-            font-weight: bold;
+        .auto-refresh-status {
+            font-size: 12px;
+            color: #4caf50;
+            margin-left: 10px;
         }
         
-        .delete-btn {
+        .refresh-indicator {
             background: #e05a2a;
             color: white;
-            border: none;
-            padding: 5px 10px;
-            border-radius: 4px;
-            cursor: pointer;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            margin-left: 10px;
         }
         
         @media (max-width: 768px) {
@@ -262,7 +253,7 @@
 <!-- Login Page -->
 <div id="loginPage" class="login-container">
     <div class="login-box">
-        <h2>σ Sigma Admin</h2>
+        <h2>Sigma Admin</h2>
         <input type="password" id="adminPassword" placeholder="Enter Admin Password">
         <button onclick="login()">Login</button>
         <div id="loginError" class="error-msg"></div>
@@ -272,8 +263,11 @@
 <!-- Dashboard -->
 <div id="dashboard" class="dashboard">
     <div class="header">
-        <div class="logo">σ Sigma Admin Panel</div>
-        <button class="logout-btn" onclick="logout()">Logout</button>
+        <div class="logo">Sigma Admin Panel</div>
+        <div>
+            <span id="autoStatus" class="auto-refresh-status">Auto-refresh ON</span>
+            <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
     </div>
     
     <div class="container">
@@ -287,21 +281,12 @@
                 <h3 id="totalOrders">0</h3>
                 <p>Total Orders</p>
             </div>
-            <div class="stat-card">
-                <h3 id="totalSellers">0</h3>
-                <p>Total Sellers</p>
-            </div>
-            <div class="stat-card">
-                <h3 id="pendingSellers">0</h3>
-                <p>Pending Sellers</p>
-            </div>
         </div>
         
         <!-- Tabs -->
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('products')">Products</button>
             <button class="tab-btn" onclick="showTab('orders')">Orders</button>
-            <button class="tab-btn" onclick="showTab('sellers')">Sellers</button>
         </div>
         
         <!-- Products Tab -->
@@ -323,7 +308,7 @@
             </div>
             
             <div class="table-container">
-                <h3>All Products</h3>
+                <h3>All Products <span id="productCount" class="refresh-indicator"></span></h3>
                 <table id="productsTable">
                     <thead>
                         <tr><th>ID</th><th>Name</th><th>Price</th><th>Category</th><th>Image</th><th>Action</th></tr>
@@ -343,31 +328,13 @@
                 </table>
             </div>
         </div>
-        
-        <!-- Sellers Tab -->
-        <div id="sellersTab" style="display: none;">
-            <div class="table-container">
-                <h3>Pending Seller Applications</h3>
-                <table id="pendingSellersTable">
-                    <thead><tr><th>Store Name</th><th>Owner Email</th><th>Category</th><th>Action</th></tr></thead>
-                    <tbody id="pendingSellersList"></tbody>
-                </table>
-            </div>
-            
-            <div class="table-container" style="margin-top: 20px;">
-                <h3>All Sellers</h3>
-                <table id="allSellersTable">
-                    <thead><tr><th>Store Name</th><th>Owner Email</th><th>Status</th><th>Total Sales</th></tr></thead>
-                    <tbody id="allSellersList"></tbody>
-                </table>
-            </div>
-        </div>
     </div>
 </div>
 
 <script>
     const API_URL = 'https://sigma-store-api.onrender.com';
     const ADMIN_PASSWORD = 'sigma123';
+    let autoRefreshInterval = null;
     let isLoggedIn = false;
     
     // ============================================
@@ -382,6 +349,7 @@
             localStorage.setItem('adminLoggedIn', 'true');
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
+            startAutoRefresh();
             loadDashboard();
         } else {
             document.getElementById('loginError').innerText = 'Wrong password';
@@ -389,6 +357,7 @@
     }
     
     function logout() {
+        stopAutoRefresh();
         isLoggedIn = false;
         localStorage.removeItem('adminLoggedIn');
         document.getElementById('loginPage').style.display = 'flex';
@@ -396,11 +365,31 @@
         document.getElementById('adminPassword').value = '';
     }
     
+    function startAutoRefresh() {
+        if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+        autoRefreshInterval = setInterval(function() {
+            if (document.getElementById('productsTab').style.display !== 'none') {
+                loadProducts();
+            } else if (document.getElementById('ordersTab').style.display !== 'none') {
+                loadOrders();
+            }
+        }, 5000);
+        document.getElementById('autoStatus').innerText = 'Auto-refresh ON (every 5 sec)';
+    }
+    
+    function stopAutoRefresh() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+        }
+    }
+    
     function checkLogin() {
         if (localStorage.getItem('adminLoggedIn') === 'true') {
             isLoggedIn = true;
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
+            startAutoRefresh();
             loadDashboard();
         }
     }
@@ -412,7 +401,6 @@
     function showTab(tab) {
         document.getElementById('productsTab').style.display = 'none';
         document.getElementById('ordersTab').style.display = 'none';
-        document.getElementById('sellersTab').style.display = 'none';
         
         document.getElementById(tab + 'Tab').style.display = 'block';
         
@@ -421,7 +409,6 @@
         
         if (tab === 'products') loadProducts();
         if (tab === 'orders') loadOrders();
-        if (tab === 'sellers') loadSellers();
     }
     
     // ============================================
@@ -431,7 +418,6 @@
     async function loadDashboard() {
         await loadProducts();
         await loadOrders();
-        await loadSellers();
     }
     
     // ============================================
@@ -444,6 +430,7 @@
             const products = await response.json();
             
             document.getElementById('totalProducts').innerText = products.length;
+            document.getElementById('productCount').innerText = products.length + ' products';
             
             const tbody = document.getElementById('productsList');
             tbody.innerHTML = products.map(p => `
@@ -452,7 +439,7 @@
                     <td>${p.name}</td>
                     <td>$${p.price}</td>
                     <td>${p.category || 'digital'}</td>
-                    <td>${p.image ? '✓' : 'No image'}</td>
+                    <td>${p.image ? (p.image.startsWith('http') ? 'URL' : 'Uploaded') : 'No image'}</td>
                     <td><button class="delete-btn" onclick="deleteProduct('${p.id}')">Delete</button></td>
                 </tr>
             `).join('');
@@ -479,14 +466,19 @@
                 body: JSON.stringify({ name, price, category, imageUrl: image })
             });
             
+            const data = await response.json();
+            
             if (response.ok) {
-                alert('Product added successfully');
+                alert('Product added successfully!');
                 document.getElementById('productName').value = '';
                 document.getElementById('productPrice').value = '';
                 document.getElementById('productImage').value = '';
                 loadProducts();
+                
+                // Notify shop to refresh
+                fetch(`${API_URL}/api/notify-shop-refresh`, { method: 'POST' }).catch(e => console.log);
             } else {
-                alert('Failed to add product');
+                alert('Failed to add product: ' + (data.error || 'Unknown error'));
             }
         } catch(e) {
             alert('Error: ' + e.message);
@@ -503,6 +495,9 @@
                 if (response.ok) {
                     alert('Product deleted');
                     loadProducts();
+                    
+                    // Notify shop to refresh
+                    fetch(`${API_URL}/api/notify-shop-refresh`, { method: 'POST' }).catch(e => console.log);
                 } else {
                     alert('Delete failed');
                 }
@@ -529,7 +524,7 @@
                 <tr>
                     <td>${o.order_id}</td>
                     <td>${o.user_email || 'N/A'}</td>
-                    <td>${o.items ? (typeof o.items === 'string' ? JSON.parse(o.items).length : o.items.length) : 0} items</td>
+                    <td>${o.items ? (typeof o.items === 'string' ? JSON.parse(o.items).length : o.items.length) : 0} items} items}</td>
                     <td>$${o.total || 0}</td>
                     <td>${o.status || 'pending'}</td>
                     <td>${new Date(o.created_at).toLocaleDateString()}</td>
@@ -537,90 +532,6 @@
             `).join('');
         } catch(e) {
             console.error('Error loading orders:', e);
-        }
-    }
-    
-    // ============================================
-    // SELLER FUNCTIONS
-    // ============================================
-    
-    async function loadSellers() {
-        try {
-            // Load pending sellers
-            const pendingRes = await fetch(`${API_URL}/api/admin/sellers/pending`);
-            const pendingData = await pendingRes.json();
-            const pendingSellers = pendingData.sellers || [];
-            
-            document.getElementById('pendingSellers').innerText = pendingSellers.length;
-            
-            const pendingTbody = document.getElementById('pendingSellersList');
-            pendingTbody.innerHTML = pendingSellers.map(s => `
-                <tr>
-                    <td>${s.store_name}</td>
-                    <td>${s.user_email}</td>
-                    <td>${s.category || 'general'}</td>
-                    <td>
-                        <button class="approve-btn" onclick="approveSeller('${s.id}')">Approve</button>
-                        <button class="reject-btn" onclick="rejectSeller('${s.id}')">Reject</button>
-                    </td>
-                </tr>
-            `).join('');
-            
-            // Load all sellers
-            const allRes = await fetch(`${API_URL}/api/admin/sellers/all`);
-            const allData = await allRes.json();
-            const allSellers = allData.sellers || [];
-            
-            document.getElementById('totalSellers').innerText = allSellers.length;
-            
-            const allTbody = document.getElementById('allSellersList');
-            allTbody.innerHTML = allSellers.map(s => `
-                <tr>
-                    <td>${s.store_name}</td>
-                    <td>${s.user_email}</td>
-                    <td class="status-${s.status}">${s.status || 'pending'}</td>
-                    <td>$${s.total_sales || 0}</td>
-                </tr>
-            `).join('');
-            
-        } catch(e) {
-            console.error('Error loading sellers:', e);
-        }
-    }
-    
-    async function approveSeller(sellerId) {
-        try {
-            const response = await fetch(`${API_URL}/api/admin/sellers/${sellerId}/approve`, {
-                method: 'POST'
-            });
-            
-            if (response.ok) {
-                alert('Seller approved');
-                loadSellers();
-            } else {
-                alert('Failed to approve');
-            }
-        } catch(e) {
-            alert('Error: ' + e.message);
-        }
-    }
-    
-    async function rejectSeller(sellerId) {
-        if (confirm('Reject this seller application?')) {
-            try {
-                const response = await fetch(`${API_URL}/api/admin/sellers/${sellerId}/reject`, {
-                    method: 'POST'
-                });
-                
-                if (response.ok) {
-                    alert('Seller rejected');
-                    loadSellers();
-                } else {
-                    alert('Failed to reject');
-                }
-            } catch(e) {
-                alert('Error: ' + e.message);
-            }
         }
     }
     

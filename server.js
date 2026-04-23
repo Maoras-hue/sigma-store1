@@ -551,7 +551,18 @@ app.get('/admin/chat.html', (req, res) => {
 // ============================================
 // START SERVER
 // ============================================
+// Notify shop to refresh products
+let lastProductUpdate = Date.now();
 
+app.post('/api/notify-shop-refresh', (req, res) => {
+    lastProductUpdate = Date.now();
+    console.log('Product update notification sent to shop');
+    res.json({ success: true });
+});
+
+app.get('/api/last-product-update', (req, res) => {
+    res.json({ lastUpdate: lastProductUpdate });
+});
 server.listen(PORT, () => {
     console.log('========================================');
     console.log('SIGMA STORE IS RUNNING!');
