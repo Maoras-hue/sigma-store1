@@ -34,6 +34,9 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
+
+// Serve admin files - FIXED
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
 app.use(express.static('admin'));
 
 // Create uploads folder
@@ -435,6 +438,18 @@ if (socketIo) {
 } else {
     console.log('Socket.io not available - chat feature disabled');
 }
+
+// ============================================
+// EXPLICIT ROUTE FOR CHAT.HTML
+// ============================================
+app.get('/admin/chat.html', (req, res) => {
+    const filePath = path.join(__dirname, 'admin', 'chat.html');
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Chat page not found. Make sure admin/chat.html exists.');
+    }
+});
 
 // ============================================
 // START SERVER
