@@ -7,11 +7,12 @@
 // ============================================
 
 function updateCartCount() {
-    const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
-    const total = cart.reduce(function(sum, item) {
-        return sum + (item.quantity || 1);
-    }, 0);
-    const badge = document.getElementById('cartCount');
+    var cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+    var total = 0;
+    for (var i = 0; i < cart.length; i++) {
+        total = total + (cart[i].quantity || 1);
+    }
+    var badge = document.getElementById('cartCount');
     if (badge) badge.innerText = total;
 }
 
@@ -20,8 +21,8 @@ function updateCartCount() {
 // ============================================
 
 function isLoggedIn() {
-    const token = localStorage.getItem('sigma_token');
-    const expiry = localStorage.getItem('sigma_token_expiry');
+    var token = localStorage.getItem('sigma_token');
+    var expiry = localStorage.getItem('sigma_token_expiry');
     
     if (!token || !expiry) return false;
     if (Date.now() > parseInt(expiry)) {
@@ -38,13 +39,6 @@ function getAuthToken() {
     return localStorage.getItem('sigma_token');
 }
 
-function setAuthToken(token, remember) {
-    var expiryDays = remember ? 30 : 7;
-    var expiry = Date.now() + (expiryDays * 24 * 60 * 60 * 1000);
-    localStorage.setItem('sigma_token', token);
-    localStorage.setItem('sigma_token_expiry', expiry.toString());
-}
-
 function clearAuth() {
     localStorage.removeItem('sigma_token');
     localStorage.removeItem('sigma_token_expiry');
@@ -57,34 +51,41 @@ function logoutAndRedirect() {
 }
 
 // ============================================
-// UPDATE AUTH BUTTON WITH DROPDOWN
+// UPDATE AUTH BUTTON - FIXED VERSION
 // ============================================
-dropdown.innerHTML = `
-    <div style="display:flex; align-items:center; padding:12px 20px; border-bottom:1px solid #eee;">
-        <img id="dropdownProfilePic" src="${profilePicUrl}" style="width:40px; height:40px; border-radius:50%; object-fit:cover; margin-right:10px;">
-        <span>${displayName}</span>
-    </div>
-    <a href="profile.html" style="display:block; padding:12px 20px; color:#333; text-decoration:none;">👤 My Profile</a>
-    <a href="#" onclick="logoutAndRedirect()" style="display:block; padding:12px 20px; color:#e05a2a; text-decoration:none;">🚪 Logout</a>
-`;
+
 function updateAuthButton() {
     var authLink = document.getElementById('authLink');
-    if (!authLink) return;
-    
-    if (!isLoggedIn()) {
-        authLink.innerHTML = 'Login';
-        authLink.href = 'login.html';
-        authLink.onclick = null;
+    if (!authLink) {
+        console.log('Auth link element not found');
         return;
     }
     
+    // Check if user is logged in
+    var token = localStorage.getItem('sigma_token');
+    var expiry = localStorage.getItem('sigma_token_expiry');
+    var isValid = false;
+    
+    if (token && expiry && Date.now() < parseInt(expiry)) {
+        isValid = true;
+    }
+    
+    if (!isValid) {
+        // Not logged in - show Login button
+        authLink.innerHTML = 'Login';
+        authLink.href = 'login.html';
+        authLink.onclick = null;
+        console.log('Auth: Showing Login button');
+        return;
+    }
+    
+    // Logged in - show username with dropdown
     var userStr = localStorage.getItem('sigma_user');
     if (userStr) {
         try {
             var user = JSON.parse(userStr);
             var displayName = user.name || user.email.split('@')[0];
             
-            // Change the login link to show username with dropdown indicator
             authLink.innerHTML = displayName + ' ▼';
             authLink.href = '#';
             authLink.onclick = function(e) {
@@ -101,20 +102,9 @@ function updateAuthButton() {
                 dropdown.style.cssText = 'position:absolute; right:20px; top:60px; background:white; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.15); z-index:1000; min-width:160px; overflow:hidden;';
                 
                 dropdown.innerHTML = `
-                    <a href="profile.html" style="display:block; padding:12px 20px; color:#333; text-decoration:none; border-bottom:1px solid #eee; transition:background 0.2s;">
-                         My Profile
-                    </a>
-                    <a href="#" onclick="logoutAndRedirect()" style="display:block; padding:12px 20px; color:#e05a2a; text-decoration:none; transition:background 0.2s;">
-                         Logout
-                    </a>
+                    <a href="profile.html" style="display:block; padding:12px 20px; color:#333; text-decoration:none; border-bottom:1px solid #eee;">👤 My Profile</a>
+                    <a href="#" onclick="logoutAndRedirect()" style="display:block; padding:12px 20px; color:#e05a2a; text-decoration:none;">🚪 Logout</a>
                 `;
-                
-                // Add hover effects
-                var links = dropdown.getElementsByTagName('a');
-                for (var i = 0; i < links.length; i++) {
-                    links[i].onmouseover = function() { this.style.background = '#f5f5f5'; };
-                    links[i].onmouseout = function() { this.style.background = 'transparent'; };
-                }
                 
                 document.body.appendChild(dropdown);
                 
@@ -129,15 +119,16 @@ function updateAuthButton() {
                     document.addEventListener('click', closeDropdown);
                 }, 100);
             };
+            console.log('Auth: Showing logged in as', displayName);
         } catch(e) {
             authLink.innerHTML = 'Login';
             authLink.href = 'login.html';
-            authLink.onclick = null;
+            console.log('Auth: Error parsing user, showing Login');
         }
     } else {
         authLink.innerHTML = 'Login';
         authLink.href = 'login.html';
-        authLink.onclick = null;
+        console.log('Auth: No user data, showing Login');
     }
 }
 
@@ -183,10 +174,12 @@ function initScrollEffect() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('Navbar initializing...');
     updateCartCount();
     updateAuthButton();
     initDarkMode();
     initScrollEffect();
+    console.log('Navbar initialized');
 });
 
 // ============================================
@@ -196,7 +189,6 @@ document.addEventListener('DOMContentLoaded', function() {
 window.updateCartCount = updateCartCount;
 window.isLoggedIn = isLoggedIn;
 window.getAuthToken = getAuthToken;
-window.setAuthToken = setAuthToken;
 window.clearAuth = clearAuth;
 window.logoutAndRedirect = logoutAndRedirect;
 window.updateAuthButton = updateAuthButton;
