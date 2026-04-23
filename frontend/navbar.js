@@ -14,7 +14,6 @@ function isTokenValid() {
     
     if (!token || !expiry) return false;
     
-    // Check if token has expired
     if (Date.now() > parseInt(expiry)) {
         localStorage.removeItem('authToken');
         localStorage.removeItem('authTokenExpiry');
@@ -81,42 +80,59 @@ function getStoredUser() {
 }
 
 // ============================================
-// AUTH UI UPDATES
+// AUTH UI UPDATES - FIXED VERSION
 // ============================================
 
 async function updateAuthLink() {
     const authLink = document.getElementById('authLink');
-    if (!authLink) return;
+    if (!authLink) {
+        console.log('Auth link element not found');
+        return;
+    }
     
     const token = getAuthToken();
     
     if (!token) {
-        authLink.innerHTML = '🔐 Login';
+        // User is not logged in - show Login
+        authLink.innerHTML = 'Login';
         authLink.href = 'login.html';
         authLink.onclick = null;
+        console.log('Auth: Not logged in, showing Login');
         return;
     }
     
+    // User has token - verify with server
     try {
-        const user = await getCurrentUser();
+        const response = await fetch(`${API_URL}/api/me`, {
+            headers: { 'Authorization': token }
+        });
         
-        if (user) {
-            authLink.innerHTML = `👤 ${user.name || user.email.split('@')[0]} (logout)`;
+        if (response.ok) {
+            const data = await response.json();
+            const userName = data.user.name || data.user.email.split('@')[0];
+            
+            // Show Logout button with user name
+            authLink.innerHTML = `Logout (${userName})`;
             authLink.href = '#';
             authLink.onclick = (e) => {
                 e.preventDefault();
                 clearAuthToken();
+                // Also clear cart if you want
+                // localStorage.removeItem('sigma_cart');
                 window.location.href = 'index.html';
             };
+            console.log('Auth: Logged in as', userName);
         } else {
-            authLink.innerHTML = '🔐 Login';
+            // Token invalid
+            clearAuthToken();
+            authLink.innerHTML = 'Login';
             authLink.href = 'login.html';
             authLink.onclick = null;
+            console.log('Auth: Token invalid, showing Login');
         }
     } catch (error) {
-        console.error('Auth update error:', error);
-        authLink.innerHTML = '🔐 Login';
-        authLink.href = 'login.html';
+        console.error('Auth check error:', error);
+        // Keep current state, don't change UI on network error
     }
 }
 
@@ -144,12 +160,6 @@ function updateCartCount() {
     
     if (cartCountElement) {
         cartCountElement.textContent = totalItems;
-        
-        // Add animation
-        cartCountElement.style.transform = 'scale(1.2)';
-        setTimeout(() => {
-            cartCountElement.style.transform = 'scale(1)';
-        }, 200);
     }
 }
 
@@ -164,106 +174,30 @@ function addToCart(id, name, price, quantity = 1) {
     }
     
     saveCart(cart);
-    showToast(`✓ ${name} added to cart`, 'success');
+    showToast(`${name} added to cart`);
     return cart;
-}
-
-function removeFromCart(id) {
-    let cart = getCart();
-    cart = cart.filter(item => item.id !== id);
-    saveCart(cart);
-    showToast('Item removed from cart', 'info');
-    return cart;
-}
-
-function clearCart() {
-    localStorage.removeItem('sigma_cart');
-    updateCartCount();
 }
 
 // ============================================
 // TOAST NOTIFICATION
 // ============================================
 
-function showToast(message, type = 'success') {
-    // Remove existing toast
-    const existingToast = document.querySelector('.sigma-toast');
-    if (existingToast) existingToast.remove();
-    
+function showToast(message) {
     const toast = document.createElement('div');
-    toast.className = 'sigma-toast';
-    toast.innerHTML = `
-        <div class="sigma-toast-content ${type}">
-            <span>${message}</span>
-        </div>
+    toast.innerText = message;
+    toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #111;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        z-index: 9999;
+        animation: fadeInUp 0.3s ease;
     `;
-    
-    // Add styles if not already present
-    if (!document.querySelector('#toast-styles')) {
-        const style = document.createElement('style');
-        style.id = 'toast-styles';
-        style.textContent = `
-            .sigma-toast {
-                position: fixed;
-                bottom: 30px;
-                right: 30px;
-                z-index: 10000;
-                animation: slideInRight 0.3s ease;
-            }
-            .sigma-toast-content {
-                background: #1a1a2e;
-                color: white;
-                padding: 12px 24px;
-                border-radius: 50px;
-                font-size: 14px;
-                font-weight: 500;
-                box-shadow: 0 4px 20px rgba(0,0,0,0.15);
-                display: flex;
-                align-items: center;
-                gap: 8px;
-            }
-            .sigma-toast-content.success {
-                background: linear-gradient(135deg, #4caf50, #45a049);
-            }
-            .sigma-toast-content.error {
-                background: linear-gradient(135deg, #e05a2a, #c44a1f);
-            }
-            .sigma-toast-content.info {
-                background: linear-gradient(135deg, #2196f3, #1976d2);
-            }
-            @keyframes slideInRight {
-                from {
-                    opacity: 0;
-                    transform: translateX(100px);
-                }
-                to {
-                    opacity: 1;
-                    transform: translateX(0);
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-    
     document.body.appendChild(toast);
-    
-    setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
-
-// Add fadeOut animation
-if (!document.querySelector('#fadeout-styles')) {
-    const style = document.createElement('style');
-    style.id = 'fadeout-styles';
-    style.textContent = `
-        @keyframes fadeOut {
-            from { opacity: 1; transform: translateX(0); }
-            to { opacity: 0; transform: translateX(100px); }
-        }
-    `;
-    document.head.appendChild(style);
+    setTimeout(() => toast.remove(), 3000);
 }
 
 // ============================================
@@ -274,7 +208,6 @@ function initDarkMode() {
     const toggle = document.getElementById('darkToggle');
     if (!toggle) return;
     
-    // Load saved preference
     const isDark = localStorage.getItem('sigma_dark') === 'true';
     
     if (isDark) {
@@ -285,78 +218,12 @@ function initDarkMode() {
         toggle.textContent = '🌙';
     }
     
-    // Toggle handler
-    toggle.addEventListener('click', () => {
+    toggle.onclick = () => {
         document.body.classList.toggle('dark');
-        const darkMode = document.body.classList.contains('dark');
-        localStorage.setItem('sigma_dark', darkMode);
-        toggle.textContent = darkMode ? '☀️' : '🌙';
-        
-        // Show feedback
-        showToast(darkMode ? 'Dark mode enabled' : 'Light mode enabled', 'info');
-    });
-}
-
-// ============================================
-// WISHLIST MANAGEMENT
-// ============================================
-
-function getWishlist() {
-    try {
-        return JSON.parse(localStorage.getItem('sigma_wishlist') || '[]');
-    } catch {
-        return [];
-    }
-}
-
-function saveWishlist(wishlist) {
-    localStorage.setItem('sigma_wishlist', JSON.stringify(wishlist));
-}
-
-function toggleWishlist(productId) {
-    let wishlist = getWishlist();
-    
-    if (wishlist.includes(productId)) {
-        wishlist = wishlist.filter(id => id !== productId);
-        showToast('♥ Removed from wishlist', 'info');
-    } else {
-        wishlist.push(productId);
-        showToast('♥ Added to wishlist', 'success');
-    }
-    
-    saveWishlist(wishlist);
-    return wishlist;
-}
-
-function isInWishlist(productId) {
-    return getWishlist().includes(productId);
-}
-
-// ============================================
-// RECENTLY VIEWED
-// ============================================
-
-function getRecentlyViewed() {
-    try {
-        return JSON.parse(localStorage.getItem('sigma_recently_viewed') || '[]');
-    } catch {
-        return [];
-    }
-}
-
-function addToRecentlyViewed(productId) {
-    let recent = getRecentlyViewed();
-    
-    // Remove if already exists
-    recent = recent.filter(id => id !== productId);
-    
-    // Add to front
-    recent.unshift(productId);
-    
-    // Keep only last 10
-    if (recent.length > 10) recent.pop();
-    
-    localStorage.setItem('sigma_recently_viewed', JSON.stringify(recent));
+        const dark = document.body.classList.contains('dark');
+        localStorage.setItem('sigma_dark', dark);
+        toggle.textContent = dark ? '☀️' : '🌙';
+    };
 }
 
 // ============================================
@@ -381,7 +248,9 @@ function initScrollHandler() {
 // ============================================
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // Update auth link
+    console.log('Navbar initializing...');
+    
+    // Update auth link (login/logout button)
     await updateAuthLink();
     
     // Update cart count
@@ -393,11 +262,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Initialize scroll handler
     initScrollHandler();
     
-    // Update user display in seller dashboard if present
-    const user = getStoredUser();
-    if (user && document.querySelector('.user-name')) {
-        document.querySelector('.user-name').textContent = user.name || user.email;
-    }
+    console.log('Navbar initialized');
 });
 
 // ============================================
@@ -415,11 +280,4 @@ window.getCart = getCart;
 window.saveCart = saveCart;
 window.updateCartCount = updateCartCount;
 window.addToCart = addToCart;
-window.removeFromCart = removeFromCart;
-window.clearCart = clearCart;
 window.showToast = showToast;
-window.getWishlist = getWishlist;
-window.toggleWishlist = toggleWishlist;
-window.isInWishlist = isInWishlist;
-window.getRecentlyViewed = getRecentlyViewed;
-window.addToRecentlyViewed = addToRecentlyViewed;
