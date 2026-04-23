@@ -167,6 +167,278 @@ function declineCookies() {
 <script src="config.js"></script>
 <script src="navbar.js"></script>
 <script src="script.js"></script>
+<!-- Chat Widget -->
+<div id="chatWidget" style="position:fixed; bottom:20px; right:20px; z-index:999;">
+    <div id="chatButton" style="width:60px; height:60px; background:linear-gradient(135deg,#e05a2a,#ff8c42); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(224,90,42,0.3);">
+        <span style="font-size:28px; color:white;">💬</span>
+    </div>
+    
+    <div id="chatBox" style="display:none; position:absolute; bottom:80px; right:0; width:350px; height:450px; background:white; border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,0.2); flex-direction:column; overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:16px;">Support Team</h3>
+            <button id="closeChat" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">×</button>
+        </div>
+        <div id="chatMessages" style="flex:1; padding:15px; overflow-y:auto; background:#f8f9fa;"></div>
+        <div style="display:flex; padding:10px; border-top:1px solid #dee2e6; background:white;">
+            <input type="text" id="chatInput" placeholder="Type your message..." style="flex:1; padding:10px; border:1px solid #dee2e6; border-radius:25px; outline:none;">
+            <button id="sendChat" style="margin-left:10px; padding:10px 20px; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; border-radius:25px; cursor:pointer;">Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CHAT_API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+    let chatSocket = null;
+    
+    function getUserId() {
+        let userId = localStorage.getItem('chat_user_id');
+        if (!userId) {
+            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chat_user_id', userId);
+        }
+        return userId;
+    }
+    
+    function getUserName() {
+        const user = localStorage.getItem('sigma_user');
+        if (user) {
+            try {
+                const userData = JSON.parse(user);
+                return userData.name || userData.email.split('@')[0];
+            } catch(e) {}
+        }
+        return 'Guest';
+    }
+    
+    function connectChatSocket() {
+        chatSocket = io(CHAT_API_URL);
+        chatSocket.on('connect', function() {
+            console.log('Chat socket connected');
+            chatSocket.emit('user-join', getUserId());
+        });
+        chatSocket.on('new-message', function(data) {
+            if (!data.isAdmin) {
+                addChatMessage(data.message, false);
+            }
+        });
+    }
+    
+    function addChatMessage(message, isAdmin) {
+        const container = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.style.marginBottom = '10px';
+        msgDiv.style.padding = '10px 12px';
+        msgDiv.style.borderRadius = '15px';
+        msgDiv.style.maxWidth = '85%';
+        msgDiv.style.wordWrap = 'break-word';
+        if (isAdmin) {
+            msgDiv.style.background = '#e9ecef';
+            msgDiv.style.color = '#333';
+        } else {
+            msgDiv.style.background = 'linear-gradient(135deg,#e05a2a,#ff8c42)';
+            msgDiv.style.color = 'white';
+            msgDiv.style.marginLeft = 'auto';
+            msgDiv.style.textAlign = 'right';
+        }
+        msgDiv.textContent = message;
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    async function saveChatMessage(message) {
+        try {
+            await fetch(CHAT_API_URL + '/api/chat/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: getUserId(),
+                    userName: getUserName(),
+                    message: message,
+                    isAdmin: false
+                })
+            });
+        } catch(e) {
+            console.error('Save error:', e);
+        }
+    }
+    
+    async function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (!message) return;
+        
+        addChatMessage(message, false);
+        await saveChatMessage(message);
+        
+        if (chatSocket && chatSocket.connected) {
+            chatSocket.emit('customer-message', {
+                userId: getUserId(),
+                userName: getUserName(),
+                message: message
+            });
+        }
+        
+        input.value = '';
+    }
+    
+    document.getElementById('chatButton').onclick = function() {
+        document.getElementById('chatBox').style.display = 'flex';
+        document.getElementById('chatButton').style.display = 'none';
+        if (!chatSocket) {
+            connectChatSocket();
+        }
+    };
+    
+    document.getElementById('closeChat').onclick = function() {
+        document.getElementById('chatBox').style.display = 'none';
+        document.getElementById('chatButton').style.display = 'flex';
+    };
+    
+    document.getElementById('sendChat').onclick = sendChatMessage;
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendChatMessage();
+    });
+    
+    connectChatSocket();
+</script>
+
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<!-- Chat Widget -->
+<div id="chatWidget" style="position:fixed; bottom:20px; right:20px; z-index:999;">
+    <div id="chatButton" style="width:60px; height:60px; background:linear-gradient(135deg,#e05a2a,#ff8c42); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(224,90,42,0.3);">
+        <span style="font-size:28px; color:white;">💬</span>
+    </div>
+    
+    <div id="chatBox" style="display:none; position:absolute; bottom:80px; right:0; width:350px; height:450px; background:white; border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,0.2); flex-direction:column; overflow:hidden;">
+        <div style="background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
+            <h3 style="margin:0; font-size:16px;">Support Team</h3>
+            <button id="closeChat" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">×</button>
+        </div>
+        <div id="chatMessages" style="flex:1; padding:15px; overflow-y:auto; background:#f8f9fa;"></div>
+        <div style="display:flex; padding:10px; border-top:1px solid #dee2e6; background:white;">
+            <input type="text" id="chatInput" placeholder="Type your message..." style="flex:1; padding:10px; border:1px solid #dee2e6; border-radius:25px; outline:none;">
+            <button id="sendChat" style="margin-left:10px; padding:10px 20px; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; border-radius:25px; cursor:pointer;">Send</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const CHAT_API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+    let chatSocket = null;
+    
+    function getUserId() {
+        let userId = localStorage.getItem('chat_user_id');
+        if (!userId) {
+            userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chat_user_id', userId);
+        }
+        return userId;
+    }
+    
+    function getUserName() {
+        const user = localStorage.getItem('sigma_user');
+        if (user) {
+            try {
+                const userData = JSON.parse(user);
+                return userData.name || userData.email.split('@')[0];
+            } catch(e) {}
+        }
+        return 'Guest';
+    }
+    
+    function connectChatSocket() {
+        chatSocket = io(CHAT_API_URL);
+        chatSocket.on('connect', function() {
+            console.log('Chat socket connected');
+            chatSocket.emit('user-join', getUserId());
+        });
+        chatSocket.on('new-message', function(data) {
+            if (!data.isAdmin) {
+                addChatMessage(data.message, false);
+            }
+        });
+    }
+    
+    function addChatMessage(message, isAdmin) {
+        const container = document.getElementById('chatMessages');
+        const msgDiv = document.createElement('div');
+        msgDiv.style.marginBottom = '10px';
+        msgDiv.style.padding = '10px 12px';
+        msgDiv.style.borderRadius = '15px';
+        msgDiv.style.maxWidth = '85%';
+        msgDiv.style.wordWrap = 'break-word';
+        if (isAdmin) {
+            msgDiv.style.background = '#e9ecef';
+            msgDiv.style.color = '#333';
+        } else {
+            msgDiv.style.background = 'linear-gradient(135deg,#e05a2a,#ff8c42)';
+            msgDiv.style.color = 'white';
+            msgDiv.style.marginLeft = 'auto';
+            msgDiv.style.textAlign = 'right';
+        }
+        msgDiv.textContent = message;
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+    }
+    
+    async function saveChatMessage(message) {
+        try {
+            await fetch(CHAT_API_URL + '/api/chat/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    userId: getUserId(),
+                    userName: getUserName(),
+                    message: message,
+                    isAdmin: false
+                })
+            });
+        } catch(e) {
+            console.error('Save error:', e);
+        }
+    }
+    
+    async function sendChatMessage() {
+        const input = document.getElementById('chatInput');
+        const message = input.value.trim();
+        if (!message) return;
+        
+        addChatMessage(message, false);
+        await saveChatMessage(message);
+        
+        if (chatSocket && chatSocket.connected) {
+            chatSocket.emit('customer-message', {
+                userId: getUserId(),
+                userName: getUserName(),
+                message: message
+            });
+        }
+        
+        input.value = '';
+    }
+    
+    document.getElementById('chatButton').onclick = function() {
+        document.getElementById('chatBox').style.display = 'flex';
+        document.getElementById('chatButton').style.display = 'none';
+        if (!chatSocket) {
+            connectChatSocket();
+        }
+    };
+    
+    document.getElementById('closeChat').onclick = function() {
+        document.getElementById('chatBox').style.display = 'none';
+        document.getElementById('chatButton').style.display = 'flex';
+    };
+    
+    document.getElementById('sendChat').onclick = sendChatMessage;
+    document.getElementById('chatInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendChatMessage();
+    });
+    
+    connectChatSocket();
+</script>
+
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 </body>
 </html>
 <script type="text/javascript">
