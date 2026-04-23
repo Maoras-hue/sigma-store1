@@ -7,14 +7,16 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const http = require('http');
+const { connectDB, executeQuery, insertOne, findOne, findAll, updateOne, deleteOne, DB_TYPE } = require('./config/db');
+
+// Try to load socket.io (optional)
 let socketIo;
 try {
     socketIo = require('socket.io');
 } catch(e) {
-    console.log('Socket.io not available, chat disabled');
+    console.log('Socket.io not available, chat feature disabled');
     socketIo = null;
 }
-const { connectDB, executeQuery, insertOne, findOne, findAll, updateOne, deleteOne, DB_TYPE } = require('./config/db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -23,7 +25,12 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'sigma123';
 // ============================================
 // MIDDLEWARE
 // ============================================
-app.use(cors({ origin: '*', credentials: true, methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], allowedHeaders: ['Content-Type', 'Authorization'] }));
+app.use(cors({
+    origin: '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
@@ -58,7 +65,7 @@ connectDB();
 // ============================================
 app.get('/api/test', (req, res) => {
     res.json({ 
-        message: `Backend is working with ${DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite'}!`,
+        message: 'Backend is working with ' + (DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite') + '!',
         database: DB_TYPE,
         status: 'online'
     });
@@ -102,7 +109,7 @@ app.post('/api/signup', async (req, res) => {
         
         res.json({
             success: true,
-            user: { id: userId, email, name: userName },
+            user: { id: userId, email: email, name: userName },
             token: token
         });
     } catch (error) {
@@ -188,10 +195,10 @@ app.get('/api/products', async (req, res) => {
 });
 
 const storage = multer.diskStorage({
-    destination: (req, file, cb) => cb(null, 'uploads/'),
-    filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
+    destination: function(req, file, cb) { cb(null, 'uploads/'); },
+    filename: function(req, file, cb) { cb(null, Date.now() + '-' + file.originalname); }
 });
-const upload = multer({ storage, limits: { fileSize: 5 * 1024 * 1024 } });
+const upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } });
 
 app.post('/api/products', upload.single('image'), async (req, res) => {
     try {
@@ -214,7 +221,7 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
             created_at: new Date().toISOString()
         });
         
-        res.json({ success: true, product: { id: productId, name, price } });
+        res.json({ success: true, product: { id: productId, name: name, price: price } });
     } catch (error) {
         console.error('Error adding product:', error);
         res.status(500).json({ error: 'Server error' });
@@ -269,7 +276,7 @@ app.post('/api/orders', async (req, res) => {
             created_at: new Date().toISOString()
         });
         
-        res.json({ success: true, order: { orderId, total } });
+        res.json({ success: true, order: { orderId: orderId, total: total } });
     } catch (error) {
         console.error('Error creating order:', error);
         res.status(500).json({ error: 'Server error' });
@@ -280,8 +287,10 @@ app.get('/api/orders/:orderId', async (req, res) => {
     try {
         const order = await findOne('orders', 'order_id', req.params.orderId);
         if (!order) return res.status(404).json({ error: 'Order not found' });
-        if (order.items && typeof order.items === 'string') order.items = JSON.parse(order.items);
-        res.json({ order });
+        if (order.items && typeof order.items === 'string') {
+            order.items = JSON.parse(order.items);
+        }
+        res.json({ order: order });
     } catch (error) {
         console.error('Error fetching order:', error);
         res.status(500).json({ error: 'Server error' });
@@ -305,9 +314,11 @@ app.get('/api/admin/orders', async (req, res) => {
     try {
         const orders = await findAll('orders');
         for (let order of orders) {
-            if (order.items && typeof order.items === 'string') order.items = JSON.parse(order.items);
+            if (order.items && typeof order.items === 'string') {
+                order.items = JSON.parse(order.items);
+            }
         }
-        res.json({ orders });
+        res.json({ orders: orders });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
@@ -337,7 +348,7 @@ app.get('/api/chat/history/:userId', async (req, res) => {
             'SELECT * FROM chat_messages WHERE user_id = ? ORDER BY created_at ASC LIMIT 50',
             [req.params.userId]
         );
-        res.json({ messages });
+        res.json({ messages: messages });
     } catch (error) {
         console.error('History error:', error);
         res.status(500).json({ error: 'Failed to get history' });
@@ -349,7 +360,7 @@ app.get('/api/admin/chats', async (req, res) => {
         const chats = await executeQuery(
             'SELECT user_id, user_name, COUNT(*) as count, MAX(created_at) as last_message FROM chat_messages GROUP BY user_id ORDER BY last_message DESC'
         );
-        res.json({ chats });
+        res.json({ chats: chats });
     } catch (error) {
         console.error('Admin chats error:', error);
         res.status(500).json({ error: 'Failed to get chats' });
@@ -371,7 +382,6 @@ if (socketIo) {
         }
     });
     
-    // Socket.io events here...
     const connectedUsers = {};
     
     io.on('connection', (socket) => {
@@ -420,79 +430,25 @@ if (socketIo) {
             }
         });
     });
+    
+    console.log('Socket.io enabled');
 } else {
     console.log('Socket.io not available - chat feature disabled');
-}{
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
-    }
-});
-
-const connectedUsers = {};
-
-io.on('connection', (socket) => {
-    console.log('Client connected:', socket.id);
-    
-    socket.on('user-join', (userId) => {
-        connectedUsers[userId] = socket.id;
-        console.log('User joined:', userId);
-    });
-    
-    socket.on('admin-join', () => {
-        socket.isAdmin = true;
-        console.log('Admin connected');
-    });
-    
-    socket.on('customer-message', (data) => {
-        console.log('Customer message from:', data.userId);
-        io.emit('new-message', {
-            userId: data.userId,
-            userName: data.userName,
-            message: data.message,
-            timestamp: new Date().toISOString(),
-            isAdmin: false
-        });
-    });
-    
-    socket.on('admin-message', (data) => {
-        console.log('Admin message to:', data.userId);
-        const customerSocketId = connectedUsers[data.userId];
-        if (customerSocketId) {
-            io.to(customerSocketId).emit('new-message', {
-                message: data.message,
-                timestamp: new Date().toISOString(),
-                isAdmin: true
-            });
-        }
-    });
-    
-    socket.on('disconnect', () => {
-        console.log('Client disconnected:', socket.id);
-        for (let userId in connectedUsers) {
-            if (connectedUsers[userId] === socket.id) {
-                delete connectedUsers[userId];
-                break;
-            }
-        }
-    });
-});
+}
 
 // ============================================
 // START SERVER
 // ============================================
 
 server.listen(PORT, () => {
-    console.log(`
-╔══════════════════════════════════════════════════════════════╗
-║                    SIGMA STORE IS RUNNING!                    ║
-╠══════════════════════════════════════════════════════════════╣
-║   Server: http://localhost:${PORT}                            ║
-║   Test:   http://localhost:${PORT}/api/test                   ║
-║   Admin:  http://localhost:${PORT}/admin.html                 ║
-║   Chat:   http://localhost:${PORT}/admin/chat.html            ║
-║   Database: ${DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite'}               ║
-║   Socket.io: Enabled                                         ║
-╚══════════════════════════════════════════════════════════════╝
-    `);
+    console.log('========================================');
+    console.log('SIGMA STORE IS RUNNING!');
+    console.log('========================================');
+    console.log('Server: http://localhost:' + PORT);
+    console.log('Test: http://localhost:' + PORT + '/api/test');
+    console.log('Admin: http://localhost:' + PORT + '/admin.html');
+    console.log('Chat: http://localhost:' + PORT + '/admin/chat.html');
+    console.log('Database: ' + (DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite'));
+    console.log('Socket.io: ' + (socketIo ? 'Enabled' : 'Disabled'));
+    console.log('========================================');
 });
