@@ -1,8 +1,10 @@
-// COMPLETE CHAT WIDGET - WORKING WITH ADMIN PANEL
+// COMPLETE CHAT WIDGET - WITH AUTO-RECEIVE MESSAGES
 (function() {
     console.log('Chat widget loading...');
     
     const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+    let socket = null;
+    let isConnected = false;
     
     // Get or create user ID
     function getUserId() {
@@ -29,7 +31,7 @@
     // Save message to server
     async function saveMessage(message) {
         try {
-            const response = await fetch(API_URL + '/api/chat/save', {
+            await fetch(API_URL + '/api/chat/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -39,12 +41,134 @@
                     isAdmin: false
                 })
             });
-            if (response.ok) {
-                console.log('Message saved');
-            }
         } catch(e) {
             console.error('Save error:', e);
         }
+    }
+    
+    // Load chat history
+    async function loadChatHistory() {
+        try {
+            const response = await fetch(API_URL + '/api/chat/history/' + getUserId());
+            const data = await response.json();
+            const container = document.getElementById('chat_messages_container');
+            
+            if (container) {
+                container.innerHTML = '';
+                if (data.messages && data.messages.length > 0) {
+                    for (let i = 0; i < data.messages.length; i++) {
+                        const msg = data.messages[i];
+                        addMessageToContainer(msg.message, msg.is_admin ? true : false, false);
+                    }
+                } else {
+                    container.innerHTML = '<div style="text-align:center; color:#888;">Send a message to support</div>';
+                }
+            }
+        } catch(e) {
+            console.error('Load history error:', e);
+        }
+    }
+    
+    // Add message to container
+    function addMessageToContainer(message, isAdmin, isNew = true) {
+        const container = document.getElementById('chat_messages_container');
+        if (!container) return;
+        
+        // Remove empty placeholder if exists
+        if (container.children.length === 1 && container.children[0].innerText === 'Send a message to support') {
+            container.innerHTML = '';
+        }
+        
+        const msgDiv = document.createElement('div');
+        msgDiv.style.marginBottom = '10px';
+        msgDiv.style.padding = '10px 12px';
+        msgDiv.style.borderRadius = '15px';
+        msgDiv.style.maxWidth = '85%';
+        msgDiv.style.wordWrap = 'break-word';
+        
+        if (isAdmin) {
+            msgDiv.style.background = '#e9ecef';
+            msgDiv.style.color = '#333';
+            msgDiv.style.marginRight = 'auto';
+            msgDiv.textContent = 'Support: ' + message;
+        } else {
+            msgDiv.style.background = 'linear-gradient(135deg,#e05a2a,#ff8c42)';
+            msgDiv.style.color = 'white';
+            msgDiv.style.marginLeft = 'auto';
+            msgDiv.style.textAlign = 'right';
+            msgDiv.textContent = message;
+        }
+        
+        container.appendChild(msgDiv);
+        container.scrollTop = container.scrollHeight;
+        
+        // Play sound for new message (optional)
+        if (isNew && isAdmin) {
+            // Just log for now
+            console.log('New message from admin:', message);
+        }
+    }
+    
+    // Connect to socket.io for real-time messages
+    function connectSocket() {
+        if (socket && socket.connected) return;
+        
+        socket = io(API_URL, {
+            transports: ['websocket', 'polling']
+        });
+        
+        socket.on('connect', function() {
+            console.log('Chat socket connected');
+            isConnected = true;
+            socket.emit('user-join', getUserId());
+        });
+        
+        socket.on('disconnect', function() {
+            console.log('Chat socket disconnected');
+            isConnected = false;
+            setTimeout(connectSocket, 5000);
+        });
+        
+        socket.on('new-message', function(data) {
+            console.log('New message received:', data);
+            if (data.isAdmin) {
+                addMessageToContainer(data.message, true, true);
+                // Also save to localStorage for chat history
+                saveMessageToLocal(data.message, true);
+            }
+        });
+    }
+    
+    // Save message to localStorage for quick access
+    function saveMessageToLocal(message, isAdmin) {
+        let messages = JSON.parse(localStorage.getItem('chat_messages_' + getUserId()) || '[]');
+        messages.push({ message: message, isAdmin: isAdmin, time: Date.now() });
+        if (messages.length > 50) messages.shift();
+        localStorage.setItem('chat_messages_' + getUserId(), JSON.stringify(messages));
+    }
+    
+    // Send message function
+    async function sendMessage() {
+        const input = document.getElementById('chat_input');
+        const message = input.value.trim();
+        if (!message) return;
+        
+        // Add to chat window
+        addMessageToContainer(message, false, true);
+        
+        // Save to server
+        await saveMessage(message);
+        
+        // Send via socket if connected
+        if (socket && isConnected) {
+            socket.emit('customer-message', {
+                userId: getUserId(),
+                userName: getUserName(),
+                message: message
+            });
+        }
+        
+        input.value = '';
     }
     
     // Check if widget already exists
@@ -81,66 +205,14 @@
             <input type="text" id="chat_input" placeholder="Type your message..." style="flex:1; padding:10px; border:1px solid #dee2e6; border-radius:25px; outline:none;">
             <button id="chat_send_btn" style="margin-left:10px; padding:10px 20px; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; border-radius:25px; cursor:pointer;">Send</button>
         </div>
+        <div style="padding:5px; text-align:center; font-size:10px; color:#888; border-top:1px solid #eee;">
+            Online
+        </div>
     `;
     
     widget.appendChild(button);
     widget.appendChild(chatWindow);
     document.body.appendChild(widget);
-    
-    // Add message to chat window
-    function addMessage(message, isOwn) {
-        var container = document.getElementById('chat_messages_container');
-        if (container.children.length === 1 && container.children[0].innerText === 'Send a message to support') {
-            container.innerHTML = '';
-        }
-        
-        var msgDiv = document.createElement('div');
-        msgDiv.style.marginBottom = '10px';
-        msgDiv.style.padding = '10px 12px';
-        msgDiv.style.borderRadius = '15px';
-        msgDiv.style.maxWidth = '85%';
-        msgDiv.style.wordWrap = 'break-word';
-        
-        if (isOwn) {
-            msgDiv.style.background = 'linear-gradient(135deg,#e05a2a,#ff8c42)';
-            msgDiv.style.color = 'white';
-            msgDiv.style.marginLeft = 'auto';
-            msgDiv.style.textAlign = 'right';
-        } else {
-            msgDiv.style.background = '#e9ecef';
-            msgDiv.style.color = '#333';
-            msgDiv.style.marginRight = 'auto';
-        }
-        
-        msgDiv.textContent = message;
-        container.appendChild(msgDiv);
-        container.scrollTop = container.scrollHeight;
-    }
-    
-    // Send message function
-    async function sendMessage() {
-        var input = document.getElementById('chat_input');
-        var message = input.value.trim();
-        if (!message) return;
-        
-        // Add to chat window
-        addMessage(message, true);
-        
-        // Save to server
-        await saveMessage(message);
-        
-        // Show confirmation
-        var statusDiv = document.createElement('div');
-        statusDiv.style.textAlign = 'center';
-        statusDiv.style.fontSize = '12px';
-        statusDiv.style.color = '#4caf50';
-        statusDiv.style.marginTop = '5px';
-        statusDiv.textContent = '✓ Message sent to admin';
-        document.getElementById('chat_messages_container').appendChild(statusDiv);
-        setTimeout(function() { statusDiv.remove(); }, 2000);
-        
-        input.value = '';
-    }
     
     // Dark mode styles
     var style = document.createElement('style');
@@ -167,6 +239,8 @@
     document.getElementById('chat_toggle_btn').onclick = function() {
         document.getElementById('chat_window').style.display = 'flex';
         document.getElementById('chat_toggle_btn').style.display = 'none';
+        connectSocket();
+        loadChatHistory();
     };
     
     document.getElementById('chat_close_btn').onclick = function() {
