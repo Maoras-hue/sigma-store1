@@ -687,3 +687,32 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
 </script> 
 <script src="visitor-track.js"></script> 
 <script src="visitor-track.js"></script> 
+ 
+<div style="margin-top: 1rem;"> 
+    <input type="text" id="couponCode" placeholder="Coupon code" style="padding:8px; border:1px solid #ddd; border-radius:8px;"> 
+    <button id="applyCouponBtn" style="background:#e05a2a; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">Apply Coupon</button> 
+    <div id="couponMessage" style="margin-top: 0.5rem; font-size:0.9rem;"></div> 
+</div> 
+ 
+// Coupon logic 
+document.getElementById('applyCouponBtn').onclick = async function() { 
+    const code = document.getElementById('couponCode').value; 
+    const res = await fetch(`${API_URL}/api/coupons/validate/${code}`); 
+    const data = await res.json(); 
+    if (!data.valid) { 
+        return; 
+    } 
+    // Calculate discount based on subtotal 
+    const subtotal = calculateSubtotal(); // you need a function that returns current subtotal 
+    const applyRes = await fetch(`${API_URL}/api/coupons/apply`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ code, subtotal }) 
+    }); 
+    const discountData = await applyRes.json(); 
+    if (applyRes.ok) { 
+        localStorage.setItem('appliedCoupon', JSON.stringify({ code, discount: discountData.discount })); 
+        renderCart(); // refresh cart display 
+    } else { 
+    } 
+}; 

@@ -791,4 +791,33 @@ server.listen(PORT, () => {
     console.log(`Admin: http://localhost:${PORT}/admin.html`);
     console.log(`Admin Password: ${ADMIN_PASSWORD}`);
     console.log('========================================');
-});
+}); 
+// ============================================ 
+// COUPON ROUTES 
+// ============================================ 
+app.post('/api/admin/coupons', async (req, res) =
+    const { code, type, value, minOrder, expiresAt, usageLimit } = req.body; 
+    const id = uuidv4(); 
+    await executeQuery( 
+        'INSERT INTO coupons (id, code, type, value, min_order, expires_at, usage_limit, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
+    ); 
+    res.json({ success: true }); 
+}); 
+ 
+app.get('/api/coupons/validate/:code', async (req, res) =
+    const code = req.params.code.toUpperCase(); 
+    const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code]); 
+    if (!coupon) return res.json({ valid: false, error: 'Invalid coupon code' }); 
+    res.json({ valid: true, coupon }); 
+}); 
+ 
+app.post('/api/coupons/apply', async (req, res) =
+    const { code, subtotal } = req.body; 
+    const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()]); 
+    if (!coupon) return res.status(400).json({ error: 'Invalid coupon' }); 
+    let discount = 0; 
+    if (coupon.type === 'percentage') discount = (subtotal * coupon.value) / 100; 
+    else discount = coupon.value; 
+    if (discount  discount = subtotal; 
+    res.json({ discount, finalTotal: subtotal - discount }); 
+}); 
