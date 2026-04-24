@@ -82,7 +82,6 @@ function executeAll(sql, params = []) {
 // Create all tables and insert default data
 (async function initDatabase() {
     try {
-        // Users table
         await executeQuery(`CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             email TEXT UNIQUE,
@@ -93,13 +92,11 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Users table ready');
         
-        // Add profile_picture column if missing (for older databases)
         try {
             await executeQuery(`ALTER TABLE users ADD COLUMN profile_picture TEXT`);
             console.log('Added profile_picture column');
         } catch(e) {}
         
-        // Sessions table
         await executeQuery(`CREATE TABLE IF NOT EXISTS sessions (
             token TEXT PRIMARY KEY,
             user_id TEXT,
@@ -108,7 +105,6 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Sessions table ready');
         
-        // Products table
         await executeQuery(`CREATE TABLE IF NOT EXISTS products (
             id TEXT PRIMARY KEY,
             name TEXT,
@@ -121,7 +117,6 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Products table ready');
         
-        // Orders table
         await executeQuery(`CREATE TABLE IF NOT EXISTS orders (
             order_id TEXT PRIMARY KEY,
             user_id TEXT,
@@ -139,7 +134,6 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Orders table ready');
         
-        // Reviews table
         await executeQuery(`CREATE TABLE IF NOT EXISTS reviews (
             id TEXT PRIMARY KEY,
             product_id TEXT,
@@ -151,7 +145,6 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Reviews table ready');
         
-        // Chat messages table
         await executeQuery(`CREATE TABLE IF NOT EXISTS chat_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
@@ -162,7 +155,6 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Chat table ready');
         
-        // Sellers table (multi-vendor)
         await executeQuery(`CREATE TABLE IF NOT EXISTS sellers (
             id TEXT PRIMARY KEY,
             user_id TEXT,
@@ -177,7 +169,6 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Sellers table ready');
         
-        // Visitors table
         await executeQuery(`CREATE TABLE IF NOT EXISTS visitors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
@@ -192,7 +183,19 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Visitors table ready');
         
-        // Insert default products if table is empty
+        await executeQuery(`CREATE TABLE IF NOT EXISTS coupons (
+            id TEXT PRIMARY KEY,
+            code TEXT UNIQUE,
+            type TEXT,
+            value REAL,
+            min_order REAL,
+            expires_at TEXT,
+            usage_limit INTEGER,
+            used_count INTEGER DEFAULT 0,
+            created_at TEXT
+        )`);
+        console.log('Coupons table ready');
+        
         const productCount = await executeGet('SELECT COUNT(*) as count FROM products');
         if (productCount.count === 0) {
             console.log('Adding default products...');
@@ -219,9 +222,6 @@ function executeAll(sql, params = []) {
     }
 })();
 
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
 function getUserIdFromToken(token) {
     if (!token) return null;
     const cleanToken = token.replace('Bearer ', '');
@@ -300,7 +300,7 @@ app.post('/api/signup', async (req, res) => {
             [userId, email, userName, hashedPassword, createdAt]
         );
         const token = uuidv4();
-        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000); // 10 years
+        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000);
         await executeQuery('INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)', [token, userId, expires]);
         res.json({ success: true, token, user: { id: userId, email, name: userName } });
     } catch (error) {
@@ -458,7 +458,7 @@ app.delete('/api/profile-picture', async (req, res) => {
 });
 
 // ============================================
-// PRODUCT ROUTES (CRUD)
+// PRODUCT ROUTES
 // ============================================
 app.get('/api/products', async (req, res) => {
     try {
@@ -606,7 +606,7 @@ app.get('/api/products/:productId/rating', async (req, res) => {
 });
 
 // ============================================
-// SELLER ROUTES (Multi-Vendor)
+// SELLER ROUTES
 // ============================================
 app.post('/api/seller/apply', async (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -635,7 +635,7 @@ app.get('/api/seller/dashboard', async (req, res) => {
 });
 
 // ============================================
-// CHAT ROUTES (WebSocket + HTTP fallback)
+// CHAT ROUTES
 // ============================================
 app.post('/api/chat/save', async (req, res) => {
     try {
@@ -736,6 +736,67 @@ app.get('/api/last-product-update', (req, res) => {
 });
 
 // ============================================
+// COUPON ROUTES
+// ============================================
+app.get('/api/admin/coupons/list', async (req, res) => {
+    try {
+        const coupons = await executeAll('SELECT * FROM coupons ORDER BY created_at DESC');
+        res.json(coupons);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/admin/coupons', async (req, res) => {
+    try {
+        const { code, type, value, minOrder, expiresAt, usageLimit } = req.body;
+        const id = uuidv4();
+        await executeQuery(
+            'INSERT INTO coupons (id, code, type, value, min_order, expires_at, usage_limit, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, code.toUpperCase(), type, value, minOrder || 0, expiresAt || null, usageLimit || null, new Date().toISOString()]
+        );
+        res.json({ success: true, id });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/coupons/validate/:code', async (req, res) => {
+    try {
+        const code = req.params.code.toUpperCase();
+        const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code]);
+        if (!coupon) return res.json({ valid: false, error: 'Invalid coupon code' });
+        if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.json({ valid: false, error: 'Coupon expired' });
+        if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) return res.json({ valid: false, error: 'Usage limit reached' });
+        res.json({ valid: true, coupon });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/coupons/apply', async (req, res) => {
+    try {
+        const { code, subtotal } = req.body;
+        const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()]);
+        if (!coupon) return res.status(400).json({ error: 'Invalid coupon code' });
+        if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.status(400).json({ error: 'Coupon expired' });
+        if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) return res.status(400).json({ error: 'Usage limit reached' });
+        if (coupon.min_order && subtotal < coupon.min_order) return res.status(400).json({ error: `Minimum order $${coupon.min_order} required` });
+        
+        let discount = 0;
+        if (coupon.type === 'percentage') discount = (subtotal * coupon.value) / 100;
+        else discount = coupon.value;
+        if (discount > subtotal) discount = subtotal;
+        
+        await executeQuery('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?', [coupon.id]);
+        
+        res.json({ success: true, discount, finalTotal: subtotal - discount, couponCode: coupon.code });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================
 // SOCKET.IO (REAL-TIME CHAT)
 // ============================================
 const server = http.createServer(app);
@@ -778,72 +839,7 @@ io.on('connection', (socket) => {
 app.get('*', (req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
-// ============================================
-// COUPON ROUTES
-// ============================================
 
-// Get all coupons (admin)
-app.get('/api/admin/coupons/list', async (req, res) => {
-    try {
-        const coupons = await executeAll('SELECT * FROM coupons ORDER BY created_at DESC');
-        res.json(coupons);
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Create coupon (admin)
-app.post('/api/admin/coupons', async (req, res) => {
-    try {
-        const { code, type, value, minOrder, expiresAt, usageLimit } = req.body;
-        const id = uuidv4();
-        await executeQuery(
-            'INSERT INTO coupons (id, code, type, value, min_order, expires_at, usage_limit, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-            [id, code.toUpperCase(), type, value, minOrder || 0, expiresAt || null, usageLimit || null, new Date().toISOString()]
-        );
-        res.json({ success: true, id });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Validate coupon
-app.get('/api/coupons/validate/:code', async (req, res) => {
-    try {
-        const code = req.params.code.toUpperCase();
-        const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code]);
-        if (!coupon) return res.json({ valid: false, error: 'Invalid coupon code' });
-        if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.json({ valid: false, error: 'Coupon expired' });
-        if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) return res.json({ valid: false, error: 'Usage limit reached' });
-        res.json({ valid: true, coupon });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Apply coupon
-app.post('/api/coupons/apply', async (req, res) => {
-    try {
-        const { code, subtotal } = req.body;
-        const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()]);
-        if (!coupon) return res.status(400).json({ error: 'Invalid coupon code' });
-        if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.status(400).json({ error: 'Coupon expired' });
-        if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) return res.status(400).json({ error: 'Usage limit reached' });
-        if (coupon.min_order && subtotal < coupon.min_order) return res.status(400).json({ error: `Minimum order $${coupon.min_order} required` });
-        
-        let discount = 0;
-        if (coupon.type === 'percentage') discount = (subtotal * coupon.value) / 100;
-        else discount = coupon.value;
-        if (discount > subtotal) discount = subtotal;
-        
-        // Increment usage count
-        await executeQuery('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?', [coupon.id]);
-        
-        res.json({ success: true, discount, finalTotal: subtotal - discount, couponCode: coupon.code });
-    } catch (error) {
-        res.status(500).json({ error: error.message });
-    }
-});
 // ============================================
 // START SERVER
 // ============================================
@@ -856,38 +852,4 @@ server.listen(PORT, () => {
     console.log(`Admin: http://localhost:${PORT}/admin.html`);
     console.log(`Admin Password: ${ADMIN_PASSWORD}`);
     console.log('========================================');
-});
-// ============================================
-// COUPON ROUTES - PURE JAVASCRIPT
-// ============================================
-
-app.post('/api/admin/coupons', async (req, res) => {
-    const { code, type, value, minOrder, expiresAt, usageLimit } = req.body;
-    const id = uuidv4();
-    await executeQuery(
-        'INSERT INTO coupons (id, code, type, value, min_order, expires_at, usage_limit, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [id, code.toUpperCase(), type, value, minOrder || 0, expiresAt || null, usageLimit || null, new Date().toISOString()]
-    );
-    res.json({ success: true });
-});
-
-app.get('/api/coupons/validate/:code', async (req, res) => {
-    const code = req.params.code.toUpperCase();
-    const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code]);
-    if (!coupon) return res.json({ valid: false, error: 'Invalid coupon code' });
-    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.json({ valid: false, error: 'Coupon expired' });
-    if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) return res.json({ valid: false, error: 'Coupon usage limit reached' });
-    res.json({ valid: true, coupon });
-});
-
-app.post('/api/coupons/apply', async (req, res) => {
-    const { code, subtotal } = req.body;
-    const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()]);
-    if (!coupon) return res.status(400).json({ error: 'Invalid coupon' });
-    if (coupon.min_order && subtotal < coupon.min_order) return res.status(400).json({ error: `Minimum order $${coupon.min_order} required` });
-    let discount = 0;
-    if (coupon.type === 'percentage') discount = (subtotal * coupon.value) / 100;
-    else discount = coupon.value;
-    if (discount > subtotal) discount = subtotal;
-    res.json({ discount, finalTotal: subtotal - discount });
 });
