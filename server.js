@@ -262,6 +262,7 @@ const profileUpload = multer({
 });
 
 // Upload profile picture
+// Upload profile picture
 app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
     console.log('Upload request received');
     
@@ -272,18 +273,25 @@ app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), 
         }
         
         const userId = token.split('_')[0];
+        console.log('User ID:', userId);
         
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
         
+        console.log('File saved:', req.file.filename);
+        
         const profilePictureUrl = '/uploads/profiles/' + req.file.filename;
         
+        // Update the database
         db.run(`UPDATE users SET profile_picture = ? WHERE id = ?`, [profilePictureUrl, userId], function(err) {
             if (err) {
                 console.error('DB update error:', err);
-                return res.status(500).json({ error: 'Database error' });
+                return res.status(500).json({ error: 'Database error: ' + err.message });
             }
+            
+            console.log('Database updated for user:', userId);
+            console.log('Rows affected:', this.changes);
             
             res.json({ 
                 success: true, 
@@ -296,7 +304,6 @@ app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), 
         res.status(500).json({ error: error.message });
     }
 });
-
 // Get profile picture
 app.get('/api/profile-picture', (req, res) => {
     const token = req.headers.authorization;
