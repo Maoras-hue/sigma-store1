@@ -741,3 +741,47 @@ body.dark .skeleton {
         transform: translateY(0);
     }
 }
+/* Autocomplete styles */
+.autocomplete-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.autocomplete-item:hover {
+    background: #f5f5f5;
+}
+
+.autocomplete-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.autocomplete-item .info {
+    flex: 1;
+}
+
+.autocomplete-item .name {
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.autocomplete-item .price {
+    color: #e05a2a;
+    font-weight: 700;
+    font-size: 13px;
+}
+
+body.dark .autocomplete-item {
+    border-bottom-color: #334155;
+}
+
+body.dark .autocomplete-item:hover {
+    background: #334155;
+}

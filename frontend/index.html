@@ -130,11 +130,11 @@
 
     <div class="container">
         <div class="search-bar">
-            <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="searchInput" placeholder="Search products..." class="search-input" style="flex:1;">
-                <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">✕</button>
-            </div>
-        </div>
+   <div style="display: flex; gap: 0.5rem; position: relative;">
+    <input type="text" id="searchInput" placeholder="Search products..." class="search-input" style="flex:1;" autocomplete="off">
+    <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">✕</button>
+    <div id="autocomplete-list"></div>
+</div>
 
         <!-- Filters Section -->
         <div class="filters">

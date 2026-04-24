@@ -315,14 +315,83 @@ function escapeHtml(str) {
     });
 }
 
-function setupEventListeners() {
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) {
-        searchInput.addEventListener('input', (e) => {
-            searchTerm = e.target.value;
-            applyFiltersAndSort();
-        });
+// ============================================
+// SEARCH AUTOCOMPLETE
+// ============================================
+
+let searchTimeout = null;
+const autocompleteList = document.getElementById('autocomplete-list');
+
+async function showAutocomplete(query) {
+    if (!query || query.length < 2) {
+        if (autocompleteList) autocompleteList.style.display = 'none';
+        return;
     }
+    
+    const filtered = products.filter(p => 
+        p.name.toLowerCase().includes(query.toLowerCase())
+    ).slice(0, 8);
+    
+    if (filtered.length === 0) {
+        autocompleteList.style.display = 'none';
+        return;
+    }
+    
+    autocompleteList.innerHTML = filtered.map(p => {
+        const imgSrc = getProductImage(p);
+        return `
+            <div class="autocomplete-item" onclick="selectProduct('${p.id}', '${escapeHtml(p.name)}')">
+                <img src="${imgSrc}" onerror="this.src='https://placehold.co/40x40/ccc/white?text=?'">
+                <div class="info">
+                    <div class="name">${escapeHtml(p.name)}</div>
+                    <div class="price">$${p.price}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    autocompleteList.style.display = 'block';
+}
+
+function selectProduct(id, name) {
+    const searchInput = document.getElementById('searchInput');
+    searchInput.value = name;
+    searchTerm = name;
+    autocompleteList.style.display = 'none';
+    applyFiltersAndSort();
+    
+    // Also scroll to the product
+    const productElement = document.querySelector(`.product-card[data-id="${id}"]`);
+    if (productElement) {
+        productElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+}
+
+// Hide autocomplete when clicking outside
+document.addEventListener('click', function(e) {
+    if (autocompleteList && !autocompleteList.contains(e.target) && e.target.id !== 'searchInput') {
+        autocompleteList.style.display = 'none';
+    }
+});
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        const value = e.target.value;
+        searchTerm = value;
+        
+        if (searchTimeout) clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            showAutocomplete(value);
+            applyFiltersAndSort();
+        }, 300);
+    });
+    
+    searchInput.addEventListener('focus', () => {
+        if (searchInput.value.length >= 2) {
+            showAutocomplete(searchInput.value);
+        }
+    });
+}
     
     const clearBtn = document.getElementById('clearSearch');
     if (clearBtn) {
@@ -421,3 +490,4 @@ window.addToCart = addToCart;
 window.toggleWishlist = toggleWishlist;
 window.goToPage = goToPage;
 window.addToRecentlyViewed = addToRecentlyViewed;
+window.selectProduct = selectProduct;
