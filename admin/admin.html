@@ -532,6 +532,9 @@
             }
             loadLowStockCount();
         }, 5000);
+} else if (document.getElementById('subscribersTab').style.display !== 'none') {
+    loadSubscribers();
+}
     }
     
     function stopAutoRefresh() {
@@ -572,7 +575,24 @@
         if (tab === 'coupons') loadCoupons();
         if (tab === 'subscribers') loadSubscribers();
     }
+    function showTab(tab) {
+    document.getElementById('productsTab').style.display = 'none';
+    document.getElementById('ordersTab').style.display = 'none';
+    document.getElementById('visitorsTab').style.display = 'none';
+    document.getElementById('couponsTab').style.display = 'none';
+    document.getElementById('subscribersTab').style.display = 'none';
+    document.getElementById(tab + 'Tab').style.display = 'block';
     
+    const btns = document.querySelectorAll('.tab-btn');
+    btns.forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    if (tab === 'products') loadProducts();
+    if (tab === 'orders') loadOrders();
+    if (tab === 'visitors') loadVisitors();
+    if (tab === 'coupons') loadCoupons();
+    if (tab === 'subscribers') loadSubscribers();
+}
     // ============================================
     // IMAGE PREVIEW
     // ============================================
