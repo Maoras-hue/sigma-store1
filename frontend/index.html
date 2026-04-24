@@ -24,8 +24,8 @@
     </a>
 
     <!-- Header -->
-    <div class="header" style="background-color: lightseagreen;">
-        <a href="index.html" class="logo">s SIGMA</a>
+    <div class="header">
+        <a href="index.html" class="logo">σ SIGMA</a>
         <div class="nav">
             <a href="index.html">shop</a>
             <a href="reviews.html">reviews</a>
@@ -122,9 +122,8 @@
     <script src="navbar.js"></script>
     <script src="script.js"></script>
 
-    <!-- Auth & UI -->
+    <!-- Cookie Functions -->
     <script>
-        // Cookie functions
         function acceptCookies() { 
             localStorage.setItem('cookiesAccepted', 'true'); 
             document.getElementById('cookieBanner').style.display = 'none'; 
@@ -133,10 +132,12 @@
             localStorage.setItem('cookiesAccepted', 'false'); 
             document.getElementById('cookieBanner').style.display = 'none'; 
         } 
+    </script>
 
-        // Auth check
+    <!-- Auth Check (Compatible with navbar.js) -->
+    <script>
         async function checkAuth() {
-            const token = localStorage.getItem('authToken');
+            const token = localStorage.getItem('sigma_token') || localStorage.getItem('authToken');
             const authLink = document.getElementById('authLink');
             if (!authLink) return;
             if (!token) {
@@ -154,10 +155,12 @@
                     authLink.href = '#';
                     authLink.onclick = (e) => {
                         e.preventDefault();
+                        localStorage.removeItem('sigma_token');
                         localStorage.removeItem('authToken');
                         window.location.href = 'index.html';
                     };
                 } else {
+                    localStorage.removeItem('sigma_token');
                     localStorage.removeItem('authToken');
                     authLink.innerHTML = 'login';
                     authLink.href = 'login.html';
@@ -167,18 +170,13 @@
                 console.log('Auth check failed', e);
             }
         }
-        checkAuth();
-
-        // Dark mode toggle stub (if script.js doesn't handle)
-        const darkToggle = document.getElementById('darkToggle');
-        if (darkToggle) {
-            darkToggle.addEventListener('click', () => {
-                document.body.classList.toggle('dark-mode');
-            });
+        // Only run if navbar.js didn't already handle it
+        if (typeof window.updateAuthButton === 'undefined') {
+            checkAuth();
         }
     </script>
 
-    <!-- CHAT WIDGET - FIXED (Removed duplicate, merged logic, no double load) -->
+    <!-- Chat Widget -->
     <div id="chatWidget" style="position:fixed; bottom:20px; right:20px; z-index:999;">
         <div id="chatButton" style="width:60px; height:60px; background:linear-gradient(135deg,#e05a2a,#ff8c42); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(224,90,42,0.3);">
             <span style="font-size:28px; color:white;">💬</span>
@@ -197,13 +195,12 @@
         </div>
     </div>
 
-    <!-- Socket.io Library (single instance) -->
+    <!-- Socket.io Library -->
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     
-    <!-- Integrated Chat Script (No duplicate, no extra external chat-widget.js) -->
+    <!-- Chat Script -->
     <script>
         (function() {
-            // Wait for DOM elements to be ready
             const CHAT_API_URL = (typeof window.BACKEND_URL !== 'undefined' && window.BACKEND_URL) ? window.BACKEND_URL : 'https://sigma-store-api.onrender.com';
             let chatSocket = null;
             let isChatConnected = false;
@@ -224,10 +221,9 @@
                         const userData = JSON.parse(user);
                         if (userData.name) return userData.name;
                         if (userData.email) return userData.email.split('@')[0];
-                    } catch(e) { console.warn(e); }
+                    } catch(e) {}
                 }
-                const guestId = getUserId();
-                return 'Guest_' + guestId.slice(-5);
+                return 'Guest';
             }
             
             function addChatMessage(message, isAdmin = false) {
@@ -243,7 +239,6 @@
                     msgDiv.style.background = '#e9ecef';
                     msgDiv.style.color = '#333';
                     msgDiv.style.marginRight = 'auto';
-                    msgDiv.style.textAlign = 'left';
                 } else {
                     msgDiv.style.background = 'linear-gradient(135deg,#e05a2a,#ff8c42)';
                     msgDiv.style.color = 'white';
@@ -274,7 +269,6 @@
             
             function connectChatSocket() {
                 if (chatSocket && chatSocket.connected) return;
-                console.log('Connecting chat socket...');
                 chatSocket = io(CHAT_API_URL, { transports: ['websocket', 'polling'] });
                 
                 chatSocket.on('connect', function() {
@@ -289,18 +283,7 @@
                 });
                 
                 chatSocket.on('new-message', function(data) {
-                    // Only show messages that are from admin (other customers not shown)
                     if (data && data.isAdmin === true && data.message) {
-                        addChatMessage(data.message, true);
-                    } else if (data && data.isAdmin === true && data.text) {
-                        addChatMessage(data.text, true);
-                    } else if (data && data.text && data.isAdmin) {
-                        addChatMessage(data.text, true);
-                    }
-                });
-                
-                chatSocket.on('admin-message', function(data) {
-                    if (data && data.message) {
                         addChatMessage(data.message, true);
                     }
                 });
@@ -322,8 +305,6 @@
                         message: message
                     });
                 } else {
-                    console.warn('Socket not connected, message saved locally');
-                    // Optionally reconnect
                     connectChatSocket();
                     setTimeout(() => {
                         if (chatSocket && chatSocket.connected) {
@@ -335,11 +316,9 @@
                         }
                     }, 1000);
                 }
-                
                 input.value = '';
             }
             
-            // Setup event listeners after DOM ready
             function initChat() {
                 const chatButton = document.getElementById('chatButton');
                 const closeChatBtn = document.getElementById('closeChat');
@@ -347,7 +326,6 @@
                 const chatInput = document.getElementById('chatInput');
                 
                 if (!chatButton || !closeChatBtn || !sendBtn) {
-                    console.warn('Chat elements missing, retrying in 500ms');
                     setTimeout(initChat, 500);
                     return;
                 }
@@ -377,8 +355,6 @@
                         if (e.key === 'Enter') sendChatMessage();
                     });
                 }
-                
-                // Light pre-connection
                 connectChatSocket();
             }
             
@@ -389,16 +365,13 @@
             }
         })();
     </script>
-    <!-- End of Chat Widget (fixed duplication) -->
 
-    <!-- Additional fallback for product grid if script.js doesn't load mock data -->
+    <!-- Fallback for products grid -->
     <script>
-        // Fallback: Ensure that productsGrid exists and display sample if empty (in case config/script missing)
         window.addEventListener('DOMContentLoaded', function() {
-            // If after 2 seconds productsGrid still empty, show demo content
             setTimeout(function() {
                 const grid = document.getElementById('productsGrid');
-                if (grid && grid.children.length === 0 && typeof window.displayProducts === 'undefined') {
+                if (grid && grid.children.length === 0) {
                     grid.innerHTML = `
                         <div class="product-card" style="border:1px solid #ddd; border-radius:12px; padding:1rem; text-align:center;">
                             <h3>Sigma Pro Template</h3>
@@ -414,7 +387,6 @@
                         </div>
                     `;
                 }
-                // Recently viewed fallback
                 const recentDiv = document.getElementById('recentlyViewed');
                 if (recentDiv && recentDiv.innerHTML.trim() === '') {
                     recentDiv.innerHTML = '<p style="font-size:0.8rem; color:#666;">No recent items</p>';
@@ -422,27 +394,5 @@
             }, 1500);
         });
     </script>
-    <!-- Ensure cart count element is updated if no external script -->
-    <script>
-        // Basic cart count sync from localStorage
-        function updateCartCount() {
-            const cartCountSpan = document.getElementById('cartCount');
-            if (cartCountSpan) {
-                let cart = localStorage.getItem('cart');
-                if (cart) {
-                    try {
-                        let items = JSON.parse(cart);
-                        let total = items.reduce((sum, item) => sum + (item.quantity || 1), 0);
-                        cartCountSpan.innerText = total;
-                    } catch(e) { cartCountSpan.innerText = '0'; }
-                } else {
-                    cartCountSpan.innerText = '0';
-                }
-            }
-        }
-        document.addEventListener('DOMContentLoaded', updateCartCount);
-        window.addEventListener('storage', updateCartCount);
-    </script>
-    <!-- remove any duplicate references (clean) -->
 </body>
 </html>
