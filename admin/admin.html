@@ -343,11 +343,12 @@
         
         <!-- Tabs -->
         <div class="tabs">
-            <button class="tab-btn active" onclick="showTab('products')">Products</button>
-            <button class="tab-btn" onclick="showTab('orders')">Orders</button>
-            <button class="tab-btn" onclick="showTab('visitors')">Visitors</button>
-            <button class="tab-btn" onclick="showTab('coupons')">Coupons</button>
-            <button class="tab-btn" onclick="showTab('subscribers')">Subscribers</button>
+            <button class="tab-btn active" onclick="showTab('products', this)">Products</button>
+            <button class="tab-btn" onclick="showTab('orders', this)">Orders</button>
+            <button class="tab-btn" onclick="showTab('visitors', this)">Visitors</button>
+            <button class="tab-btn" onclick="showTab('coupons', this)">Coupons</button>
+            <button class="tab-btn" onclick="showTab('subscribers', this)">Subscribers</button>
+            <button class="tab-btn" onclick="showTab('pricealerts', this)">Price Alerts</button>
         </div>
         
         <!-- Products Tab -->
@@ -482,6 +483,19 @@
                 </table>
             </div>
         </div>
+
+        <!-- Price Alerts Tab -->
+        <div id="pricealertsTab" style="display: none;">
+            <div class="table-container">
+                <h3>Customer Price Drop Alerts</h3>
+                <table>
+                    <thead>
+                        <tr><th>Product</th><th>Target Price</th><th>Customer Email</th><th>Status</th><th>Date Created</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="priceAlertsList"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -519,22 +533,15 @@
     function startAutoRefresh() {
         if (autoRefreshInterval) clearInterval(autoRefreshInterval);
         autoRefreshInterval = setInterval(function() {
-            if (document.getElementById('productsTab').style.display !== 'none') {
-                loadProducts();
-            } else if (document.getElementById('ordersTab').style.display !== 'none') {
-                loadOrders();
-            } else if (document.getElementById('visitorsTab').style.display !== 'none') {
-                loadVisitors();
-            } else if (document.getElementById('couponsTab').style.display !== 'none') {
-                loadCoupons();
-            } else if (document.getElementById('subscribersTab').style.display !== 'none') {
-                loadSubscribers();
-            }
+            const activeTab = document.querySelector('.tab-btn.active')?.innerText.toLowerCase();
+            if (activeTab === 'products') loadProducts();
+            else if (activeTab === 'orders') loadOrders();
+            else if (activeTab === 'visitors') loadVisitors();
+            else if (activeTab === 'coupons') loadCoupons();
+            else if (activeTab === 'subscribers') loadSubscribers();
+            else if (activeTab === 'price alerts') loadPriceAlerts();
             loadLowStockCount();
         }, 5000);
-} else if (document.getElementById('subscribersTab').style.display !== 'none') {
-    loadSubscribers();
-}
     }
     
     function stopAutoRefresh() {
@@ -557,8 +564,8 @@
     // TAB FUNCTIONS
     // ============================================
     
-    function showTab(tab) {
-        const tabs = ['products', 'orders', 'visitors', 'coupons', 'subscribers'];
+    function showTab(tab, btnElement) {
+        const tabs = ['products', 'orders', 'visitors', 'coupons', 'subscribers', 'pricealerts'];
         tabs.forEach(t => {
             const el = document.getElementById(t + 'Tab');
             if (el) el.style.display = 'none';
@@ -567,37 +574,21 @@
         
         const btns = document.querySelectorAll('.tab-btn');
         btns.forEach(btn => btn.classList.remove('active'));
-        event.target.classList.add('active');
+        if (btnElement) btnElement.classList.add('active');
         
         if (tab === 'products') loadProducts();
         if (tab === 'orders') loadOrders();
         if (tab === 'visitors') loadVisitors();
         if (tab === 'coupons') loadCoupons();
         if (tab === 'subscribers') loadSubscribers();
+        if (tab === 'pricealerts') loadPriceAlerts();
     }
-    function showTab(tab) {
-    document.getElementById('productsTab').style.display = 'none';
-    document.getElementById('ordersTab').style.display = 'none';
-    document.getElementById('visitorsTab').style.display = 'none';
-    document.getElementById('couponsTab').style.display = 'none';
-    document.getElementById('subscribersTab').style.display = 'none';
-    document.getElementById(tab + 'Tab').style.display = 'block';
     
-    const btns = document.querySelectorAll('.tab-btn');
-    btns.forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
-    
-    if (tab === 'products') loadProducts();
-    if (tab === 'orders') loadOrders();
-    if (tab === 'visitors') loadVisitors();
-    if (tab === 'coupons') loadCoupons();
-    if (tab === 'subscribers') loadSubscribers();
-}
     // ============================================
     // IMAGE PREVIEW
     // ============================================
     
-    document.getElementById('productImage').addEventListener('input', function() {
+    document.getElementById('productImage')?.addEventListener('input', function() {
         const url = this.value;
         const previewDiv = document.getElementById('imagePreview');
         const previewImg = document.getElementById('previewImg');
@@ -623,6 +614,7 @@
         await loadVisitors();
         await loadCoupons();
         await loadSubscribers();
+        await loadPriceAlerts();
         await loadLowStockCount();
     }
     
@@ -996,7 +988,7 @@
             
             const tbody = document.getElementById('subscribersList');
             if (subscribers.length === 0) {
-                tbody.innerHTML = '<td><td colspan="3">No subscribers yet</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3">No subscribers yet</td></tr>';
                 return;
             }
             
@@ -1039,6 +1031,54 @@
                 URL.revokeObjectURL(url);
             });
     }
+
+    // ============================================
+    // PRICE ALERTS FUNCTIONS
+    // ============================================
+    
+    async function loadPriceAlerts() {
+        try {
+            const res = await fetch(`${API_URL}/api/admin/price-alerts`);
+            const data = await res.json();
+            const alerts = data.alerts || [];
+            
+            const tbody = document.getElementById('priceAlertsList');
+            if (alerts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No price alerts yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = alerts.map(a => `
+                <tr>
+                    <td>${escapeHtml(a.product_name || 'Unknown')}</td>
+                    <td>$${a.target_price}</td>
+                    <td>${escapeHtml(a.email)}</td>
+                    <td>${a.status === 'pending' ? '⏳ Waiting' : '✅ Sent'}</td>
+                    <td>${new Date(a.created_at).toLocaleDateString()}</td>
+                    <td><button class="delete-btn" onclick="deletePriceAlert('${a.id}')">Delete</button></td>
+                </tr>
+            `).join('');
+        } catch(e) {
+            console.error('Load price alerts error:', e);
+            document.getElementById('priceAlertsList').innerHTML = '<tr><td colspan="6">Error loading alerts</td></tr>';
+        }
+    }
+    
+    async function deletePriceAlert(id) {
+        if (confirm('Remove this price alert?')) {
+            try {
+                const res = await fetch(`${API_URL}/api/admin/price-alerts/${id}`, { method: 'DELETE' });
+                if (res.ok) {
+                    alert('Alert removed');
+                    loadPriceAlerts();
+                } else {
+                    alert('Failed to remove');
+                }
+            } catch(e) {
+                alert('Error: ' + e.message);
+            }
+        }
+    }
     
     function escapeHtml(str) {
         if (!str) return '';
@@ -1058,4 +1098,4 @@
 </script>
 
 </body>
-</html><button class="tab-btn" onclick="showTab('pricealerts')">Price Alerts</button> 
+</html>
