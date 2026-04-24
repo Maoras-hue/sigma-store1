@@ -463,3 +463,75 @@ window.addToCart = addToCart;
 window.toggleWishlist = toggleWishlist;
 window.goToPage = goToPage;
 window.addToRecentlyViewed = addToRecentlyViewed;
+// ============================================
+// AUTO-REFRESH PRODUCTS
+// ============================================
+
+let lastUpdateCheck = Date.now();
+let autoRefreshInterval = null;
+
+// Function to refresh products from server
+async function refreshProductsFromServer() {
+    console.log('Auto-refreshing products...');
+    try {
+        const response = await fetch(`${API_URL}/api/products`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const newProducts = await response.json();
+        
+        // Check if products changed (compare length or first product ID)
+        if (products.length !== newProducts.length || JSON.stringify(products) !== JSON.stringify(newProducts)) {
+            console.log('Products updated! Reloading...');
+            products = newProducts;
+            await loadProductRatings();
+            applyFiltersAndSort();
+            showToast('Products updated!', 'info');
+        }
+    } catch (error) {
+        console.error('Auto-refresh error:', error);
+    }
+}
+
+// Check for admin updates
+async function checkForAdminUpdates() {
+    try {
+        const response = await fetch(`${API_URL}/api/last-product-update`);
+        const data = await response.json();
+        
+        if (data.lastUpdate > lastUpdateCheck) {
+            console.log('Admin made changes, refreshing...');
+            lastUpdateCheck = data.lastUpdate;
+            await refreshProductsFromServer();
+        }
+    } catch(e) {
+        // Silently fail if endpoint doesn't exist
+    }
+}
+
+// Start auto-refresh (every 10 seconds)
+function startAutoRefresh() {
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    autoRefreshInterval = setInterval(() => {
+        refreshProductsFromServer();
+    }, 10000);
+}
+
+// Stop auto-refresh
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+// Refresh when page becomes visible again
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        refreshProductsFromServer();
+    }
+});
+
+// Start auto-refresh when page loads
+startAutoRefresh();
+
+// Make refresh function global for manual refresh
+window.refreshProducts = refreshProductsFromServer;
