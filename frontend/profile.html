@@ -836,4 +836,45 @@
     window.updateAuthButton = updateAuthButton;
 </script>
 </body>
-</html>
+</html><div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
+    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
+    <div> 
+        <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+        <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button> 
+    </div> 
+</div> 
+<script> 
+function acceptCookies() { 
+    localStorage.setItem('cookiesAccepted', 'true'); 
+    document.getElementById('cookieBanner').style.display = 'none'; 
+} 
+function declineCookies() { 
+    localStorage.setItem('cookiesAccepted', 'false'); 
+    document.getElementById('cookieBanner').style.display = 'none'; 
+} 
+if (localStorage.getItem('cookiesAccepted') === 'true') { 
+    document.getElementById('cookieBanner').style.display = 'none'; 
+} 
+</script> 
+<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
+    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
+    <div> 
+        <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+        <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button> 
+    </div> 
+</div> 
+<script> 
+function acceptCookies() { 
+    localStorage.setItem('cookiesAccepted', 'true'); 
+    document.getElementById('cookieBanner').style.display = 'none'; 
+} 
+function declineCookies() { 
+    localStorage.setItem('cookiesAccepted', 'false'); 
+    document.getElementById('cookieBanner').style.display = 'none'; 
+} 
+if (localStorage.getItem('cookiesAccepted') === 'true') { 
+    document.getElementById('cookieBanner').style.display = 'none'; 
+} 
+</script> 
+<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
+    <p style="margin:0;">?? We use cookies to improve your experience
