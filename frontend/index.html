@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sigma â€” Shop</title>
+    <title>Sigma - Shop</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .price-range-container {
@@ -149,6 +149,38 @@
             border-color: #334155;
             color: #e2e8f0;
         }
+        /* Additional styles for product cards */
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        body.dark .product-card {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+        .product-card:hover {
+            transform: translateY(-4px);
+        }
+        .product-img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+        }
+        .product-info {
+            padding: 1rem;
+        }
+        .product-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+        .product-price {
+            color: #e05a2a;
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
     </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
     <script>
@@ -161,7 +193,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">Ïƒ SIGMA</a>
+    <a href="index.html" class="logo">SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -176,7 +208,7 @@
         <a href="profile.html">profile</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
@@ -190,7 +222,7 @@
         <div class="search-bar">
             <div style="display: flex; gap: 0.5rem; position: relative;">
                 <input type="text" id="searchInput" placeholder="search products..." class="search-input" style="flex:1;" autocomplete="off">
-                <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">âœ•</button>
+                <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">✕</button>
                 <div id="autocomplete-list" style="position:absolute; top:50px; left:0; right:0; background:white; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); z-index:1000; display:none;"></div>
             </div>
         </div>
@@ -205,7 +237,7 @@
 
         <!-- Price Range Filter -->
         <div class="price-range-container">
-            <label style="font-weight: 600;">ðŸ’° Price Range</label>
+            <label style="font-weight: 600;">💰 Price Range</label>
             <div class="price-range-controls">
                 <div class="price-input"><span>Min:</span><input type="number" id="priceMin" value="0" step="1"></div>
                 <div class="price-input"><span>Max:</span><input type="number" id="priceMax" value="1000" step="1"></div>
@@ -217,13 +249,13 @@
 
         <!-- Rating Filter -->
         <div class="rating-filter">
-            <label style="font-weight: 600;">â­ Minimum Rating</label>
+            <label style="font-weight: 600;">⭐ Minimum Rating</label>
             <div class="rating-stars-filter">
                 <div class="rating-option active" data-rating="0">All</div>
-                <div class="rating-option" data-rating="4">4â˜… & above</div>
-                <div class="rating-option" data-rating="3">3â˜… & above</div>
-                <div class="rating-option" data-rating="2">2â˜… & above</div>
-                <div class="rating-option" data-rating="1">1â˜… & above</div>
+                <div class="rating-option" data-rating="4">4★ & above</div>
+                <div class="rating-option" data-rating="3">3★ & above</div>
+                <div class="rating-option" data-rating="2">2★ & above</div>
+                <div class="rating-option" data-rating="1">1★ & above</div>
             </div>
         </div>
 
@@ -258,15 +290,15 @@
         <div class="about-block">
             <h2>I'm Ibrahim, 17 y.o from Mardan</h2>
             <p>I started Sigma because I was tired of broken templates and overpriced garbage. Now I build things that actually work.</p>
-            <div class="testimonial">"Clean code, fair price. Bought the template and it worked first try."<br>â€” Zulqarnain</div>
-            <div class="testimonial">"Finally a template that doesn't need 3 hours of fixes. Worth it."<br>â€” Ali</div>
+            <div class="testimonial">"Clean code, fair price. Bought the template and it worked first try."<br>— Zulqarnain</div>
+            <div class="testimonial">"Finally a template that doesn't need 3 hours of fixes. Worth it."<br>— Ali</div>
             <p style="margin-top: 1rem;">No team. No investors. Just me and a laptop.</p>
         </div>
     </div>
 </main>
 
 <footer>
-    <p>Sigma Studio â€” Mardan, Pakistan</p>
+    <p>Sigma Studio — Mardan, Pakistan</p>
     <p>email: sigma@example.com</p>
     <p>We accept: Visa, Mastercard & Payoneer</p>
     <address>College chowk par-hoti Mardan.</address>
@@ -274,7 +306,7 @@
 
 <!-- Cookie Banner -->
 <div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;">
-    <p style="margin:0;">ðŸª We use cookies. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p>
+    <p style="margin:0;">🍪 We use cookies. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p>
     <div>
         <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button>
         <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button>
@@ -298,7 +330,6 @@
 <!-- Dark Mode Script - FIXED -->
 <script>
     (function() {
-        // Dark mode initialization
         function initDarkMode() {
             var darkToggle = document.getElementById('darkToggle');
             if (!darkToggle) return;
@@ -306,21 +337,20 @@
             var isDark = localStorage.getItem('sigma_dark') === 'true';
             if (isDark) {
                 document.body.classList.add('dark');
-                darkToggle.innerText = 'â˜€ï¸';
+                darkToggle.innerText = '☀️';
             } else {
                 document.body.classList.remove('dark');
-                darkToggle.innerText = 'ðŸŒ™';
+                darkToggle.innerText = '🌙';
             }
             
             darkToggle.onclick = function() {
                 document.body.classList.toggle('dark');
                 var dark = document.body.classList.contains('dark');
                 localStorage.setItem('sigma_dark', dark);
-                darkToggle.innerText = dark ? 'â˜€ï¸' : 'ðŸŒ™';
+                darkToggle.innerText = dark ? '☀️' : '🌙';
             };
         }
         
-        // Run when DOM is ready
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', initDarkMode);
         } else {
@@ -329,9 +359,282 @@
     })();
 </script>
 
+<!-- Sample Product Data and FULL Ecommerce Functionality -->
+<script>
+// ----- Sample Product Database -----
+const sampleProducts = [
+    { id: 1, name: "Wireless Headphones", category: "electronics", price: 89.99, rating: 4.5, ratingCount: 128, dateAdded: "2024-01-15", image: "https://picsum.photos/id/1/200/150", description: "High quality sound" },
+    { id: 2, name: "Minimalist T-Shirt", category: "clothing", price: 24.99, rating: 4.2, ratingCount: 89, dateAdded: "2024-02-10", image: "https://picsum.photos/id/2/200/150", description: "Cotton comfort" },
+    { id: 3, name: "Smart Watch Pro", category: "electronics", price: 199.99, rating: 4.8, ratingCount: 210, dateAdded: "2023-12-01", image: "https://picsum.photos/id/3/200/150", description: "Fitness tracker" },
+    { id: 4, name: "Ebook: JavaScript Mastery", category: "digital", price: 15.99, rating: 4.9, ratingCount: 345, dateAdded: "2024-03-20", image: "https://picsum.photos/id/4/200/150", description: "Learn JS" },
+    { id: 5, name: "Ceramic Coffee Mug", category: "home", price: 12.50, rating: 4.3, ratingCount: 67, dateAdded: "2024-02-28", image: "https://picsum.photos/id/5/200/150", description: "Handmade" },
+    { id: 6, name: "Gaming Keyboard RGB", category: "electronics", price: 129.99, rating: 4.7, ratingCount: 203, dateAdded: "2024-01-05", image: "https://picsum.photos/id/6/200/150", description: "Mechanical switches" },
+    { id: 7, name: "Yoga Mat Non-slip", category: "home", price: 29.99, rating: 4.4, ratingCount: 112, dateAdded: "2024-02-14", image: "https://picsum.photos/id/7/200/150", description: "Eco friendly" },
+    { id: 8, name: "Denim Jacket", category: "clothing", price: 79.99, rating: 4.1, ratingCount: 88, dateAdded: "2023-11-30", image: "https://picsum.photos/id/8/200/150", description: "Classic style" },
+    { id: 9, name: "Noise Cancelling Earbuds", category: "electronics", price: 149.99, rating: 4.6, ratingCount: 176, dateAdded: "2024-03-01", image: "https://picsum.photos/id/9/200/150", description: "Wireless charging" },
+    { id: 10, name: "Design System Course", category: "digital", price: 49.99, rating: 4.9, ratingCount: 99, dateAdded: "2024-02-05", image: "https://picsum.photos/id/10/200/150", description: "Video lessons" },
+    { id: 11, name: "Throw Pillow Cover", category: "home", price: 18.99, rating: 4.0, ratingCount: 54, dateAdded: "2024-01-22", image: "https://picsum.photos/id/11/200/150", description: "Bohemian pattern" },
+    { id: 12, name: "Slim Fit Chinos", category: "clothing", price: 49.95, rating: 4.3, ratingCount: 127, dateAdded: "2024-02-18", image: "https://picsum.photos/id/12/200/150", description: "Stretch fabric" }
+];
+
+let products = [...sampleProducts];
+
+// Cart, wishlist, recently viewed helpers
+let cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+let recentlyViewed = JSON.parse(localStorage.getItem('sigma_recent') || '[]');
+
+function updateCartCount() {
+    const total = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const cartSpan = document.getElementById('cartCount');
+    if (cartSpan) cartSpan.innerText = total;
+    localStorage.setItem('sigma_cart', JSON.stringify(cart));
+}
+
+function addToCart(productId) {
+    const product = products.find(p => p.id == productId);
+    if (!product) return;
+    const existing = cart.find(item => item.id == productId);
+    if (existing) {
+        existing.quantity++;
+    } else {
+        cart.push({ id: product.id, name: product.name, price: product.price, quantity: 1, image: product.image });
+    }
+    updateCartCount();
+    alert(`${product.name} added to cart!`);
+}
+
+function addToRecentlyViewed(productId) {
+    const product = products.find(p => p.id == productId);
+    if (!product) return;
+    recentlyViewed = recentlyViewed.filter(p => p.id !== productId);
+    recentlyViewed.unshift(product);
+    if (recentlyViewed.length > 5) recentlyViewed.pop();
+    localStorage.setItem('sigma_recent', JSON.stringify(recentlyViewed));
+    renderRecentlyViewed();
+}
+
+function renderRecentlyViewed() {
+    const container = document.getElementById('recentlyViewed');
+    if (!container) return;
+    if (recentlyViewed.length === 0) {
+        container.innerHTML = '<p class="muted" style="font-size:12px;">No recently viewed items.</p>';
+        return;
+    }
+    container.innerHTML = recentlyViewed.map(p => `
+        <div style="display:flex; gap:8px; margin-bottom:12px; align-items:center;">
+            <img src="${p.image}" style="width:40px; height:40px; border-radius:8px; object-fit:cover;">
+            <div style="flex:1;">
+                <div style="font-size:13px; font-weight:500;">${p.name}</div>
+                <div style="font-size:12px; color:#e05a2a;">$${p.price.toFixed(2)}</div>
+            </div>
+            <button onclick="addToCart(${p.id})" style="background:#e05a2a; border:none; color:white; border-radius:20px; padding:4px 8px; font-size:10px; cursor:pointer;">Buy</button>
+        </div>
+    `).join('');
+}
+
+// State for filters
+let currentFilter = "all";
+let currentMinPrice = 0;
+let currentMaxPrice = 1000;
+let currentRatingMin = 0;
+let currentSearch = "";
+let currentSort = "default";
+let currentPage = 1;
+const itemsPerPage = 6;
+
+function filterProducts() {
+    let filtered = products.filter(p => {
+        if (currentFilter !== "all" && p.category !== currentFilter) return false;
+        if (p.price < currentMinPrice || p.price > currentMaxPrice) return false;
+        if (p.rating < currentRatingMin) return false;
+        if (currentSearch && !p.name.toLowerCase().includes(currentSearch.toLowerCase())) return false;
+        return true;
+    });
+    
+    // sorting
+    switch(currentSort) {
+        case "priceLow": filtered.sort((a,b) => a.price - b.price); break;
+        case "priceHigh": filtered.sort((a,b) => b.price - a.price); break;
+        case "newest": filtered.sort((a,b) => new Date(b.dateAdded) - new Date(a.dateAdded)); break;
+        case "oldest": filtered.sort((a,b) => new Date(a.dateAdded) - new Date(b.dateAdded)); break;
+        case "ratingHigh": filtered.sort((a,b) => b.rating - a.rating); break;
+        case "nameAZ": filtered.sort((a,b) => a.name.localeCompare(b.name)); break;
+        case "nameZA": filtered.sort((a,b) => b.name.localeCompare(a.name)); break;
+        default: filtered.sort((a,b) => a.id - b.id);
+    }
+    return filtered;
+}
+
+function renderProducts() {
+    const filtered = filterProducts();
+    const totalPages = Math.ceil(filtered.length / itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    const paginated = filtered.slice(start, start + itemsPerPage);
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    
+    if (paginated.length === 0) {
+        grid.innerHTML = '<p style="text-align:center; padding:2rem;">No products found.</p>';
+        document.getElementById('pagination').innerHTML = '';
+        return;
+    }
+    
+    grid.innerHTML = paginated.map(p => `
+        <div class="product-card" onclick="addToRecentlyViewed(${p.id})" style="cursor:pointer;">
+            <img class="product-img" src="${p.image}" alt="${p.name}">
+            <div class="product-info">
+                <div class="product-title">${p.name}</div>
+                <div class="product-rating">
+                    <span class="stars">${'★'.repeat(Math.floor(p.rating))}${p.rating % 1 >= 0.5 ? '½' : ''}${'☆'.repeat(5-Math.ceil(p.rating))}</span>
+                    <span class="rating-count">(${p.ratingCount})</span>
+                </div>
+                <div class="product-price">$${p.price.toFixed(2)}</div>
+                <button onclick="event.stopPropagation(); addToCart(${p.id})" style="background:#e05a2a; border:none; color:white; padding:8px 16px; border-radius:30px; margin-top:8px; cursor:pointer; width:100%;">Add to Cart</button>
+            </div>
+        </div>
+    `).join('');
+    
+    // Pagination
+    let paginationHtml = '';
+    for (let i = 1; i <= totalPages; i++) {
+        paginationHtml += `<button class="${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+    }
+    const paginationDiv = document.getElementById('pagination');
+    paginationDiv.innerHTML = paginationHtml;
+    document.querySelectorAll('#pagination button').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            currentPage = parseInt(btn.dataset.page);
+            renderProducts();
+            window.scrollTo({ top: 400, behavior: 'smooth' });
+        });
+    });
+}
+
+function applyAllFiltersAndRender() {
+    currentPage = 1;
+    renderProducts();
+}
+
+// Event Listeners
+document.addEventListener('DOMContentLoaded', () => {
+    renderProducts();
+    renderRecentlyViewed();
+    updateCartCount();
+    
+    // Category filters
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentFilter = btn.dataset.filter;
+            applyAllFiltersAndRender();
+        });
+    });
+    
+    // Price apply
+    document.getElementById('applyPriceFilter')?.addEventListener('click', () => {
+        let min = parseFloat(document.getElementById('priceMin').value);
+        let max = parseFloat(document.getElementById('priceMax').value);
+        if (isNaN(min)) min = 0;
+        if (isNaN(max)) max = 1000;
+        currentMinPrice = min;
+        currentMaxPrice = max;
+        document.getElementById('priceSlider').value = max;
+        applyAllFiltersAndRender();
+    });
+    document.getElementById('clearPriceFilter')?.addEventListener('click', () => {
+        currentMinPrice = 0;
+        currentMaxPrice = 1000;
+        document.getElementById('priceMin').value = 0;
+        document.getElementById('priceMax').value = 1000;
+        document.getElementById('priceSlider').value = 1000;
+        applyAllFiltersAndRender();
+    });
+    document.getElementById('priceSlider')?.addEventListener('input', (e) => {
+        currentMaxPrice = parseFloat(e.target.value);
+        document.getElementById('priceMax').value = currentMaxPrice;
+        applyAllFiltersAndRender();
+    });
+    
+    // Rating filter
+    document.querySelectorAll('.rating-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            document.querySelectorAll('.rating-option').forEach(o => o.classList.remove('active'));
+            opt.classList.add('active');
+            currentRatingMin = parseInt(opt.dataset.rating);
+            applyAllFiltersAndRender();
+        });
+    });
+    
+    // Sort
+    document.getElementById('sortBy')?.addEventListener('change', (e) => {
+        currentSort = e.target.value;
+        applyAllFiltersAndRender();
+    });
+    
+    // Search + autocomplete
+    const searchInput = document.getElementById('searchInput');
+    const autocompleteDiv = document.getElementById('autocomplete-list');
+    const clearSearchBtn = document.getElementById('clearSearch');
+    
+    searchInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        currentSearch = val;
+        applyAllFiltersAndRender();
+        if (val.length > 1) {
+            const matches = products.filter(p => p.name.toLowerCase().includes(val.toLowerCase())).slice(0,5);
+            if (matches.length) {
+                autocompleteDiv.style.display = 'block';
+                autocompleteDiv.innerHTML = matches.map(m => `
+                    <div class="autocomplete-item" data-id="${m.id}">
+                        <img src="${m.image}" alt="">
+                        <div class="info">
+                            <div class="name">${m.name}</div>
+                            <div class="price">$${m.price.toFixed(2)}</div>
+                        </div>
+                    </div>
+                `).join('');
+                document.querySelectorAll('.autocomplete-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const id = parseInt(item.dataset.id);
+                        const product = products.find(p => p.id === id);
+                        if (product) {
+                            searchInput.value = product.name;
+                            currentSearch = product.name;
+                            applyAllFiltersAndRender();
+                            autocompleteDiv.style.display = 'none';
+                        }
+                    });
+                });
+            } else {
+                autocompleteDiv.style.display = 'none';
+            }
+        } else {
+            autocompleteDiv.style.display = 'none';
+        }
+    });
+    clearSearchBtn?.addEventListener('click', () => {
+        searchInput.value = '';
+        currentSearch = '';
+        applyAllFiltersAndRender();
+        autocompleteDiv.style.display = 'none';
+    });
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target) && !autocompleteDiv.contains(e.target)) {
+            autocompleteDiv.style.display = 'none';
+        }
+    });
+    
+    // Initial recently viewed sync
+    renderRecentlyViewed();
+});
+// Ensure global addToCart for inline buttons in recently viewed
+window.addToCart = addToCart;
+window.addToRecentlyViewed = addToRecentlyViewed;
+</script>
+
 <script src="config.js"></script>
 <script src="navbar.js"></script>
-<script src="script.js"></script>
 <script src="visitor-track.js"></script>
 
 </body>
