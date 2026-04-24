@@ -1018,4 +1018,40 @@ server.listen(PORT, () => {
     console.log(`Admin: http://localhost:${PORT}/admin.html`);
     console.log(`Admin Password: ${ADMIN_PASSWORD}`);
     console.log('========================================');
-});
+}); 
+// ============================================ 
+// PRODUCT BUNDLES (FREQUENTLY BOUGHT TOGETHER) 
+// ============================================ 
+app.get('/api/bundles/:productId', async (req, res) => { 
+    try { 
+        const bundle = await executeGet('SELECT * FROM bundles WHERE main_product_id = ?', [req.params.productId]); 
+        if (!bundle) { 
+            const product = await executeGet('SELECT category FROM products WHERE id = ?', [req.params.productId]); 
+            const related = await executeAll('SELECT * FROM products WHERE category = ? AND id != ? LIMIT 3', [product.category, req.params.productId]); 
+            return res.json({ bundle: null, related: related || [] }); 
+        } 
+        const bundledProductIds = bundle.bundled_product_ids.split(','); 
+        const bundledProducts = []; 
+        for (const id of bundledProductIds) { 
+            const prod = await executeGet('SELECT * FROM products WHERE id = ?', [id]); 
+            if (prod) bundledProducts.push(prod); 
+        } 
+        res.json({ bundle: { ...bundle, bundledProducts: bundledProducts }, related: [] }); 
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    } 
+}); 
+ 
+app.post('/api/admin/bundles', async (req, res) => { 
+    try { 
+        const { mainProductId, bundledProductIds, discountPercent, title } = req.body; 
+        const id = uuidv4(); 
+        await executeQuery( 
+            'INSERT INTO bundles (id, main_product_id, bundled_product_ids, discount_percent, title, created_at) VALUES (?, ?, ?, ?, ?, ?)', 
+            [id, mainProductId, bundledProductIds.join(','), discountPercent, title || 'Frequently Bought Together', new Date().toISOString()] 
+        ); 
+        res.json({ success: true, id: id }); 
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    } 
+}); 

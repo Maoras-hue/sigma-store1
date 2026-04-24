@@ -180,4 +180,37 @@
     updateCartCount();
 </script>
 </body>
-</html>
+</html><div id="bundleSection" style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 16px; display: none;"> 
+    <h3>?? Frequently Bought Together</h3> 
+    <div id="bundleProducts" style="display: flex; flex-wrap: wrap; gap: 20px; margin: 20px 0;"></div> 
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 15px;"> 
+        <div> 
+            <span>Bundle Price: </span> 
+            <span id="bundleOriginalPrice" style="text-decoration: line-through; color: #888;"></span> 
+            <span id="bundleDiscountedPrice" style="font-size: 1.5rem; color: #e05a2a; font-weight: 800;"></span> 
+        </div> 
+        <button id="addBundleBtn" style="background: #e05a2a; color: white; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer;">Add Bundle to Cart </button> 
+    </div> 
+</div> 
+ 
+// Load frequently bought together 
+async function loadBundle(productId) { 
+    try { 
+        const response = await fetch(`${API_URL}/api/bundles/${productId}`); 
+        const data = await response.json(); 
+        if (data.related && data.related.length  { 
+            const bundleSection = document.getElementById('bundleSection'); 
+            bundleSection.style.display = 'block'; 
+            const bundleProductsDiv = document.getElementById('bundleProducts'); 
+            let totalPrice = currentProduct.price; 
+            for (const p of data.related) { 
+                totalPrice += p.price; 
+            } 
+            bundleProductsDiv.innerHTML = productsHtml; 
+            document.getElementById('bundleOriginalPrice').innerText = `$${totalPrice}`; 
+            const discountPercent = data.bundle?.discount_percent || 10; 
+            const discountedPrice = totalPrice * (1 - discountPercent / 100); 
+            document.getElementById('bundleDiscountedPrice').innerText = `$${discountedPrice.toFixed(2)} (Save ${discountPercent}%)`; 
+        } 
+    } catch(e) { console.error('Bundle error:', e); } 
+} 
