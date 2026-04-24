@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sigma � Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .price-range-container {
+            margin: 1rem 0;
+            padding: 0.5rem 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+        .price-range-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .price-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .price-input input {
+            width: 80px;
+            padding: 5px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .price-slider {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .filter-btn-sm {
+            background: #e05a2a;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .filter-btn-sm.clear {
+            background: #666;
+        }
+        .rating-filter {
+            margin: 1rem 0;
+            padding: 0.5rem 0;
+        }
+        .rating-stars-filter {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        .rating-option {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: #f0f0f0;
+            font-size: 12px;
+        }
+        .rating-option.active {
+            background: #e05a2a;
+            color: white;
+        }
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin: 0.25rem 0;
+        }
+        .stars {
+            font-size: 12px;
+            color: #ffc107;
+        }
+        .rating-count {
+            font-size: 10px;
+            color: #888;
+        }
+        body.dark .rating-option {
+            background: #334155;
+            color: #e2e8f0;
+        }
+        body.dark .price-input input {
+            background: #334155;
+            border-color: #475569;
+            color: white;
+        }
+        .autocomplete-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .autocomplete-item:hover {
+            background: #f5f5f5;
+        }
+        .autocomplete-item img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .autocomplete-item .info {
+            flex: 1;
+        }
+        .autocomplete-item .name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .autocomplete-item .price {
+            color: #e05a2a;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        body.dark .autocomplete-item {
+            border-bottom-color: #334155;
+        }
+        body.dark .autocomplete-item:hover {
+            background: #334155;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+        }
+        .pagination button.active {
+            background: #e05a2a;
+            color: white;
+            border: none;
+        }
+        body.dark .pagination button {
+            background: #1e293b;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+    </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-699CL509Z4');
+    </script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">s SIGMA</a>
+    <div class="nav">
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="compare.html">compare</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="track.html">track order</a>
+        <a href="seller-dashboard.html">sell</a>
+        <a href="profile.html">profile</a>
+        <a href="login.html" id="authLink">login</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">??</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+<!-- Discount Banner -->
+<div style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; text-align: center; padding: 20px; margin: 20px 0; border-radius: 16px;">
+    <p style="font-size: 1.2rem; margin-bottom: 10px;"> LIMITED TIME OFFER </p>
+    <p style="margin-bottom: 15px;">Get the complete Sigma Store template at <strong>20% OFF</strong>! Use code: <strong style="font-size: 1.3rem;">SIGMA20</strong></p>
+    <a href="buy.html" style="background: white; color: #e05a2a; padding: 10px 25px; border-radius: 50px; text-decoration: none; font-weight: 600;">Claim Discount ?</a>
+</div>
+    <div class="hero">
+    <h1>The ecommerce web template, ready to run store.</h1>
+    <p>A full stack ecommerce web with full functionality.</p>
+    <div style="margin-top: 2rem;">
+        <a href="#products" class="cta-btn-primary" style="background: #e05a2a; color: white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: 600; margin-right: 15px; display: inline-block;"> Shop Now</a>
+        <a href="buy.html" class="cta-btn-secondary" style="background: transparent; color: white; border: 2px solid white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: 600; display: inline-block;"> Buy Template</a>
+    </div>
+</div>
+    <div class="container">
+        <div class="search-bar">
+            <div style="display: flex; gap: 0.5rem; position: relative;">
+                <input type="text" id="searchInput" placeholder="search products..." class="search-input" style="flex:1;" autocomplete="off">
+                <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">?</button>
+                <div id="autocomplete-list" style="position:absolute; top:50px; left:0; right:0; background:white; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); z-index:1000; display:none;"></div>
+            </div>
+        </div>
+
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">all</button>
+            <button class="filter-btn" data-filter="digital">digital</button>
+            <button class="filter-btn" data-filter="electronics">electronics</button>
+            <button class="filter-btn" data-filter="clothing">clothing</button>
+            <button class="filter-btn" data-filter="home">home</button>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="price-range-container">
+            <label style="font-weight: 600;">?? Price Range</label>
+            <div class="price-range-controls">
+                <div class="price-input"><span>Min:</span><input type="number" id="priceMin" value="0" step="1"></div>
+                <div class="price-input"><span>Max:</span><input type="number" id="priceMax" value="1000" step="1"></div>
+                <button id="applyPriceFilter" class="filter-btn-sm">Apply</button>
+                <button id="clearPriceFilter" class="filter-btn-sm clear">Clear</button>
+            </div>
+            <input type="range" id="priceSlider" min="0" max="1000" step="10" value="1000" class="price-slider">
+        </div>
+
+        <!-- Rating Filter -->
+        <div class="rating-filter">
+            <label style="font-weight: 600;">? Minimum Rating</label>
+            <div class="rating-stars-filter">
+                <div class="rating-option active" data-rating="0">All</div>
+                <div class="rating-option" data-rating="4">4? & above</div>
+                <div class="rating-option" data-rating="3">3? & above</div>
+                <div class="rating-option" data-rating="2">2? & above</div>
+                <div class="rating-option" data-rating="1">1? & above</div>
+            </div>
+        </div>
+
+        <!-- Sort Options -->
+        <div style="margin-top: 1rem;">
+            <select id="sortBy" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="default">sort by</option>
+                <option value="priceLow">price: low to high</option>
+                <option value="priceHigh">price: high to low</option>
+                <option value="newest">newest first</option>
+                <option value="oldest">oldest first</option>
+                <option value="ratingHigh">highest rated</option>
+                <option value="nameAZ">name: a to z</option>
+                <option value="nameZA">name: z to a</option>
+            </select>
+        </div>
+
+        <!-- Products Grid & Recently Viewed -->
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <div style="flex: 3;">
+                <div class="products" id="productsGrid"></div>
+                <div id="pagination" class="pagination"></div>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <div style="background: #f5f5f5; padding: 1rem; border-radius: 12px; position: sticky; top: 100px;">
+                    <h3 style="font-size: 1rem; margin-bottom: 1rem;">recently viewed</h3>
+                    <div id="recentlyViewed"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-block">
+            <h2>I'm Ibrahim, 17 y.o from Mardan</h2>
+            <p>I started Sigma because I was tired of broken templates and overpriced garbage. Now I build things that actually work.</p>
+            <div class="testimonial">"Clean code, fair price. Bought the template and it worked first try."<br>� Zulqarnain</div>
+            <div class="testimonial">"Finally a template that doesn't need 3 hours of fixes. Worth it."<br>� Ali</div>
+            <p style="margin-top: 1rem;">No team. No investors. Just me and a laptop.</p>
+        </div>
+    </div>
+</main>
+<!-- Newsletter Section -->
+<div style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 40px 20px; margin: 40px 0; border-radius: 20px; text-align: center;">
+    <h3 style="margin-bottom: 10px;">?? Subscribe to Our Newsletter</h3>
+    <p style="margin-bottom: 20px;">Get latest updates, new products and exclusive discounts directly to your inbox.</p>
+    <div style="display: flex; gap: 10px; max-width: 500px; margin: 0 auto; flex-wrap: wrap; justify-content: center;">
+        <input type="email" id="newsletterEmail" placeholder="Your email address" style="flex: 1; padding: 12px 20px; border: none; border-radius: 50px; min-width: 250px;">
+        <button id="subscribeBtn" style="background: #e05a2a; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: 600;">Subscribe ?</button>
+    </div>
+    <div id="newsletterMessage" style="margin-top: 15px; font-size: 14px;"></div>
+</div>
+<footer>
+    <p>Sigma Studio � Mardan, Pakistan</p>
+    <p>email: sigma@example.com</p>
+    <p>We accept: Visa, Mastercard & Payoneer</p>
+    <address>College chowk par-hoti Mardan.</address>
+</footer>
+
+<!-- Cookie Banner -->
+<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;">
+    <p style="margin:0;">?? We use cookies. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p>
+    <div>
+        <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button>
+    </div>
+</div>
+
+<script>
+        localStorage.setItem('cookiesAccepted', 'true');
+    }
+    function declineCookies() {
+        localStorage.setItem('cookiesAccepted', 'false');
+    }
+    if (localStorage.getItem('cookiesAccepted') === 'true') {
+    }
+</script>
+
+<!-- Dark Mode Script -->
+<script>
+    (function() {
+        function initDarkMode() {
+            var darkToggle = document.getElementById('darkToggle');
+            if (!darkToggle) return;
+            
+            var isDark = localStorage.getItem('sigma_dark') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark');
+                darkToggle.innerText = '??';
+            } else {
+                document.body.classList.remove('dark');
+                darkToggle.innerText = '??';
+            }
+            
+            darkToggle.onclick = function() {
+                document.body.classList.toggle('dark');
+                var dark = document.body.classList.contains('dark');
+                localStorage.setItem('sigma_dark', dark);
+                darkToggle.innerText = dark ? '??' : '??';
+            };
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDarkMode);
+        } else {
+            initDarkMode();
+        }
+    })();
+</script>
+
+<script src="config.js"></script>
+<script src="navbar.js"></script>
+<script src="script.js"></script>
+<script src="visitor-track.js"></script>
+<!-- Quick View Modal -->
+<div id="quickViewModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:10000; align-items:center; justify-content:center;">
+    <div style="background:white; border-radius:20px; max-width:600px; width:90%; max-height:85vh; overflow-y:auto; position:relative; animation:modalFadeIn 0.3s ease;">
+        <button id="closeModalBtn" style="position:absolute; top:15px; right:20px; background:#e05a2a; color:white; border:none; width:35px; height:35px; border-radius:50%; font-size:20px; cursor:pointer; z-index:10;">&times;</button>
+        <div id="quickViewContent" style="padding:25px;"></div>
+    </div>
+</div>
+
+<style>
+    @keyframes modalFadeIn {
+        from { opacity:0; transform:scale(0.9); }
+        to { opacity:1; transform:scale(1); }
+    }
+    body.dark #quickViewModal > div {
+        background: #1e293b;
+        color: #e2e8f0;
+    }
+</style>
+
+<script>
+    // Quick View Modal Functions
+    function showQuickView(productId) {
+        fetch(`${API_URL}/api/products/${productId}`)
+            .then(res => res.json())
+            .then(product => {
+                const modal = document.getElementById('quickViewModal');
+                const content = document.getElementById('quickViewContent');
+                const rating = productRatings[productId] || 0;
+                const stars = '?'.repeat(Math.round(rating)) + '?'.repeat(5 - Math.round(rating));
+                const imageSrc = getProductImage(product);
+                
+                content.innerHTML = `
+                    <div style="display:flex; flex-direction:column; gap:20px;">
+                        <img src="${imageSrc}" style="width:100%; max-height:300px; object-fit:cover; border-radius:16px;">
+                        <h2 style="font-size:1.8rem;">${escapeHtml(product.name)}</h2>
+                        <div class="product-rating" style="display:flex; align-items:center; gap:0.5rem;">
+                            <span style="color:#ffc107;">${stars}</span>
+                            <span style="color:#888;">(${rating.toFixed(1)})</span>
+                        </div>
+                        <div class="product-price" style="font-size:2rem; color:#e05a2a; font-weight:800;">$${product.price}</div>
+                        <p style="color:#666; line-height:1.6;">${product.description || 'No description available. This is a high-quality product.'}</p>
+                        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+                            <button onclick="addToCart('${product.id}', '${escapeHtml(product.name)}', ${product.price}); closeQuickView();" style="flex:1; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; padding:12px; border-radius:50px; cursor:pointer; font-weight:600;">Add to Cart</button>
+                            <button onclick="closeQuickView()" style="background:#f0f0f0; border:none; padding:12px 25px; border-radius:50px; cursor:pointer;">Continue Shopping</button>
+                        </div>
+                    </div>
+                `;
+                modal.style.display = 'flex';
+            })
+            .catch(err => console.error('Quick view error:', err));
+    }
+    
+    function closeQuickView() {
+        document.getElementById('quickViewModal').style.display = 'none';
+    }
+    
+    // Close modal on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeQuickView();
+    });
+    
+    // Close modal when clicking outside
+    document.getElementById('quickViewModal').addEventListener('click', function(e) {
+        if (e.target === this) closeQuickView();
+    });
+    
+    window.showQuickView = showQuickView;
+    window.closeQuickView = closeQuickView;
+</script>
+<!-- Floating CTA Button -->
+<div id="floatingCTA" style="position: fixed; bottom: 100px; right: 20px; z-index: 1000; display: none;">
+    <a href="buy.html" style="display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; box-shadow: 0 4px 15px rgba(224,90,42,0.4); animation: pulse 2s infinite;">
+        <span style="font-size: 20px;">??</span>
+        <span>Get Sigma Store - $179</span>
+    </a>
+</div>
+
+<style>
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    #floatingCTA.show {
+        display: block;
+        animation: slideIn 0.5s ease;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+</style>
+
+<script>
+    // Show floating CTA after scrolling
+    window.addEventListener('scroll', function() {
+        const cta = document.getElementById('floatingCTA');
+        if (window.scrollY > 300) {
+            cta.classList.add('show');
+        } else {
+            cta.classList.remove('show');
+        }
+    });
+</script>
+<!-- Exit Intent Popup -->
+<div id="exitPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 20px; padding: 30px; max-width: 400px; text-align: center; position: relative;">
+        <button onclick="closeExitPopup()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+        <h2 style="color: #e05a2a;">Wait! Don't Leave!</h2>
+        <p style="margin: 20px 0;">Get your own e-commerce website today. Starting at just $179!</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <a href="buy.html" style="background: #e05a2a; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none;">View Pricing ?</a>
+            <a href="index.html" onclick="closeExitPopup()" style="background: #ccc; color: #333; padding: 10px 20px; border-radius: 50px; text-decoration: none;">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let mouseLeaveCount = 0;
+    document.addEventListener('mouseleave', function(e) {
+        if (e.clientY < 0 && mouseLeaveCount === 0) {
+            mouseLeaveCount++;
+            setTimeout(function() {
+                document.getElementById('exitPopup').style.display = 'flex';
+            }, 100);
+        }
+    });
+    
+    function closeExitPopup() {
+        document.getElementById('exitPopup').style.display = 'none';
+    }
+</script>
+<script>
+    document.getElementById('subscribeBtn').onclick = async function() {
+        const email = document.getElementById('newsletterEmail').value;
+        const messageDiv = document.getElementById('newsletterMessage');
+        
+        if (!email) {
+            messageDiv.innerHTML = '<span style="color: #ff9800;">Please enter email</span>';
+            return;
+        }
+        
+        try {
+            const response = await fetch(API_URL + '/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                messageDiv.innerHTML = '<span style="color: #4caf50;">? ' + data.message + '</span>';
+                document.getElementById('newsletterEmail').value = '';
+            } else {
+                messageDiv.innerHTML = '<span style="color: #e05a2a;">? ' + (data.error || 'Subscription failed') + '</span>';
+            }
+        } catch(e) {
+            messageDiv.innerHTML = '<span style="color: #e05a2a;">? Error connecting to server</span>';
+        }
+    };
+</script>
+</body>
+</html>
