@@ -116,18 +116,9 @@ console.log('Subscribers table ready');
         )`);
         console.log('Sessions table ready');
         
-        // Products table with stock
-        await executeQuery(`CREATE TABLE IF NOT EXISTS products (
-            id TEXT PRIMARY KEY,
-            name TEXT,
-            price REAL,
-            category TEXT,
-            image TEXT,
-            stock INTEGER DEFAULT 999,
-            description TEXT,
-            created_at TEXT
-        )`);
-        console.log('Products table ready');
+       // Products table with badges
+await executeQuery(`CREATE TABLE IF NOT EXISTS products (id TEXT PRIMARY KEY, name TEXT, price REAL, category TEXT, image TEXT, stock INTEGER DEFAULT 999, description TEXT, is_new INTEGER DEFAULT 0, is_sale INTEGER DEFAULT 0, sale_price REAL, is_bestseller INTEGER DEFAULT 0, label_text TEXT, created_at TEXT)`);
+console.log('Products table ready with badge columns');
         
         // Orders table
         await executeQuery(`CREATE TABLE IF NOT EXISTS orders (
@@ -218,19 +209,10 @@ console.log('Subscribers table ready');
         const productCount = await executeGet('SELECT COUNT(*) as count FROM products');
         if (productCount.count === 0) {
             console.log('Adding default products...');
-            const defaultProducts = [
-                { id: 'p1', name: 'Wireless Headphones', price: 49.99, category: 'electronics', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', stock: 50, description: 'High-quality wireless headphones with noise cancellation.' },
-                { id: 'p2', name: 'Smart Watch', price: 89.99, category: 'electronics', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', stock: 30, description: 'Fitness tracker with heart rate monitor and GPS.' },
-                { id: 'p3', name: 'Premium Backpack', price: 79.99, category: 'accessories', image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400', stock: 25, description: 'Water-resistant laptop backpack with USB charging port.' },
-                { id: 'p4', name: 'Coffee Maker', price: 129.99, category: 'home', image: 'https://images.unsplash.com/photo-1517668808822-9bba02b6f420?w=400', stock: 15, description: 'Programmable coffee maker with thermal carafe.' },
-                { id: 'p5', name: 'Yoga Mat', price: 29.99, category: 'sports', image: 'https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=400', stock: 45, description: 'Non-slip eco-friendly yoga mat with carrying strap.' },
-                { id: 'p6', name: 'Bluetooth Speaker', price: 59.99, category: 'electronics', image: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400', stock: 40, description: 'Portable waterproof speaker with 20-hour battery.' },
-                { id: 'p7', name: 'Leather Wallet', price: 24.99, category: 'accessories', image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=400', stock: 100, description: 'Genuine leather wallet with RFID blocking.' },
-                { id: 'p8', name: 'Desk Lamp', price: 34.99, category: 'home', image: 'https://images.unsplash.com/photo-1507473885765-e6b057f7a2b2?w=400', stock: 60, description: 'LED desk lamp with wireless charging pad.' }
-            ];
+            const defaultProducts = [ { id: 'p1', name: 'Wireless Headphones', price: 49.99, category: 'electronics', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', stock: 50, description: 'High-quality wireless headphones.', is_new: 1 }, { id: 'p2', name: 'Smart Watch', price: 89.99, category: 'electronics', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', stock: 30, description: 'Fitness tracker.', is_bestseller: 1 }, { id: 'p3', name: 'Premium Backpack', price: 79.99, category: 'accessories', image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400', stock: 25, description: 'Laptop backpack.' }, { id: 'p4', name: 'Coffee Maker', price: 129.99, category: 'home', image: 'https://images.unsplash.com/photo-1517668808822-9bba02b6f420?w=400', stock: 15, description: 'Programmable coffee maker.', is_sale: 1, sale_price: 99.99 }, { id: 'p5', name: 'Yoga Mat', price: 29.99, category: 'sports', image: 'https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=400', stock: 45, description: 'Non-slip yoga mat.' }, { id: 'p6', name: 'Bluetooth Speaker', price: 59.99, category: 'electronics', image: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400', stock: 40, description: 'Portable speaker.' }, { id: 'p7', name: 'Leather Wallet', price: 24.99, category: 'accessories', image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=400', stock: 100, description: 'RFID wallet.' }, { id: 'p8', name: 'Desk Lamp', price: 34.99, category: 'home', image: 'https://images.unsplash.com/photo-1507473885765-e6b057f7a2b2?w=400', stock: 60, description: 'LED desk lamp.', label_text: 'LIMITED' } ];
             for (const p of defaultProducts) {
                 await executeQuery(
-                    'INSERT INTO products (id, name, price, category, image, stock, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    'INSERT INTO products (id, name, price, category, image, stock, description, is_new, is_sale, sale_price, is_bestseller, label_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                     [p.id, p.name, p.price, p.category, p.image, p.stock, p.description, new Date().toISOString()]
                 );
             }
@@ -516,7 +498,7 @@ app.post('/api/products', async (req, res) => {
             productImage = `https://placehold.co/400x300/1a1a2e/white?text=${encodeURIComponent(name)}`;
         }
         await executeQuery(
-            'INSERT INTO products (id, name, price, category, image, stock, description, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            'INSERT INTO products (id, name, price, category, image, stock, description, is_new, is_sale, sale_price, is_bestseller, label_text, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
             [id, name, parseFloat(price), category || 'digital', productImage, stock || 999, description || '', createdAt]
         );
         console.log('Product saved to database:', name);
