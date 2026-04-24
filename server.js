@@ -92,6 +92,13 @@ function executeAll(sql, params = []) {
             created_at TEXT
         )`);
         console.log('Users table ready');
+// Subscribers table (NEWSLETTER)
+await executeQuery(`CREATE TABLE IF NOT EXISTS subscribers (
+    id TEXT PRIMARY KEY,
+    email TEXT UNIQUE,
+    subscribed_at TEXT
+)`);
+console.log('Subscribers table ready');
         
         // Add profile_picture column if missing
         try {
