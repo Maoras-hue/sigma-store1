@@ -295,10 +295,44 @@
     }
 </script>
 
+<!-- Dark Mode Script - FIXED -->
+<script>
+    (function() {
+        // Dark mode initialization
+        function initDarkMode() {
+            var darkToggle = document.getElementById('darkToggle');
+            if (!darkToggle) return;
+            
+            var isDark = localStorage.getItem('sigma_dark') === 'true';
+            if (isDark) {
+                document.body.classList.add('dark');
+                darkToggle.innerText = '☀️';
+            } else {
+                document.body.classList.remove('dark');
+                darkToggle.innerText = '🌙';
+            }
+            
+            darkToggle.onclick = function() {
+                document.body.classList.toggle('dark');
+                var dark = document.body.classList.contains('dark');
+                localStorage.setItem('sigma_dark', dark);
+                darkToggle.innerText = dark ? '☀️' : '🌙';
+            };
+        }
+        
+        // Run when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initDarkMode);
+        } else {
+            initDarkMode();
+        }
+    })();
+</script>
+
 <script src="config.js"></script>
 <script src="navbar.js"></script>
 <script src="script.js"></script>
+<script src="visitor-track.js"></script>
 
 </body>
-</html><script src="visitor-track.js"></script> 
-<script src="visitor-track.js"></script> 
+</html>
