@@ -1,11 +1,43 @@
-// ============================================
-// SIGMA STORE - NAVIGATION AND AUTH
-// ============================================
+function getAuthToken() {
+    // Try all possible token locations
+    var token = localStorage.getItem('sigma_token');
+    if (token) return token;
+    token = localStorage.getItem('authToken');
+    if (token) return token;
+    return null;
+}
 
-// ============================================
-// CART FUNCTIONS
-// ============================================
+function isLoggedIn() {
+    var token = getAuthToken();
+    var expiry = localStorage.getItem('sigma_token_expiry');
+    
+    if (!token) return false;
+    if (expiry && Date.now() > parseInt(expiry)) {
+        clearAuth();
+        return false;
+    }
+    return true;
+}
 
+function clearAuth() {
+    localStorage.removeItem('sigma_token');
+    localStorage.removeItem('sigma_token_expiry');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authTokenExpiry');
+    localStorage.removeItem('sigma_user');
+}
+
+function logoutAndRedirect() {
+    var token = getAuthToken();
+    if (token) {
+        fetch(API_URL + '/api/logout', {
+            method: 'POST',
+            headers: { 'Authorization': token }
+        }).catch(function() {});
+    }
+    clearAuth();
+    window.location.href = 'index.html';
+}
 function updateCartCount() {
     var cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
     var total = 0;

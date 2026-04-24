@@ -298,17 +298,56 @@
         localStorage.setItem('sigma_token_expiry', expiry.toString());
     }
     
-    async function handleLogin() {
-        var email = document.getElementById('loginEmail').value.trim();
-        var password = document.getElementById('loginPassword').value;
-        var remember = document.getElementById('rememberMe').checked;
-        var messageDiv = document.getElementById('loginMessage');
+  async function handleLogin() {
+    const email = document.getElementById('loginEmail').value.trim();
+    const password = document.getElementById('loginPassword').value;
+    const remember = document.getElementById('rememberMe').checked;
+    const messageDiv = document.getElementById('loginMessage');
+    
+    if (!email || !password) {
+        messageDiv.textContent = 'Please enter email and password';
+        messageDiv.className = 'message error';
+        return;
+    }
+    
+    messageDiv.textContent = 'Logging in...';
+    messageDiv.className = 'message';
+    messageDiv.style.display = 'block';
+    
+    try {
+        const response = await fetch(API_URL + '/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
         
-        if (!email || !password) {
-            messageDiv.textContent = 'Please enter email and password';
+        const data = await response.json();
+        
+        if (response.ok && data.token) {
+            // Save token with correct key
+            localStorage.setItem('sigma_token', data.token);
+            localStorage.setItem('sigma_user', JSON.stringify(data.user));
+            
+            // Set expiry (7 days)
+            const expiry = Date.now() + (7 * 24 * 60 * 60 * 1000);
+            localStorage.setItem('sigma_token_expiry', expiry);
+            
+            messageDiv.textContent = 'Login successful! Redirecting...';
+            messageDiv.className = 'message success';
+            
+            setTimeout(function() {
+                window.location.href = 'index.html';
+            }, 1000);
+        } else {
+            messageDiv.textContent = data.error || 'Login failed';
             messageDiv.className = 'message error';
-            return;
         }
+    } catch (error) {
+        console.error('Login error:', error);
+        messageDiv.textContent = 'Cannot connect to server';
+        messageDiv.className = 'message error';
+    }
+}
         
         messageDiv.textContent = 'Logging in...';
         messageDiv.className = 'message';
