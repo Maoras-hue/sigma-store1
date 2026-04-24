@@ -1,61 +1,88 @@
-require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const cookieParser = require('cookie-parser');
-const bcrypt = require('bcrypt');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const http = require('http');
-const { connectDB, executeQuery, insertOne, findOne, findAll, updateOne, deleteOne, DB_TYPE } = require('./config/db');
-
-// Try to load socket.io (optional)
-let socketIo;
-try {
-    socketIo = require('socket.io');
-} catch(e) {
-    console.log('Socket.io not available, chat feature disabled');
-    socketIo = null;
-}
+const sqlite3 = require('sqlite3').verbose();
+const { v4: uuidv4 } = require('uuid');
+const bcrypt = require('bcryptjs');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'sigma123';
+const PORT = process.env.PORT || 5000;
 
-// ============================================
-// MIDDLEWARE
-// ============================================
-app.use(cors({
-    origin: '*',
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// Middleware
+app.use(cors());
 app.use(express.json());
-app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
-app.use('/admin', express.static(path.join(__dirname, 'admin')));
-app.use(express.static('admin'));
-app.use(express.static('frontend'));
 
-// Create necessary directories
-const dirs = ['./uploads', './uploads/profiles', './admin'];
-for (const dir of dirs) {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-        console.log('Created directory:', dir);
-    }
+// Ensure uploads directory exists
+const uploadDir = './uploads';
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// ============================================
-// DATABASE CONNECTION & TABLE CREATION
-// ============================================
-connectDB();
+// Configure multer for profile picture uploads
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/');
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    fileFilter: (req, file, cb) => {
+        const filetypes = /jpeg|jpg|png|gif/;
+        const mimetype = filetypes.test(file.mimetype);
+        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+        
+        if (mimetype && extname) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed'));
+        }
+    }
+});
+
+// Database setup
+const db = new sqlite3.Database('./ecommerce.db');
+
+// Promisify db.run and db.get
+function executeQuery(sql, params = []) {
+    return new Promise((resolve, reject) => {
+        db.run(sql, params, function(err) {
+            if (err) reject(err);
+            else resolve(this);
+        });
+    });
+}
+
+function executeGet(sql, params = []) {
+    return new Promise((resolve, reject) => {
+        db.get(sql, params, (err, row) => {
+            if (err) reject(err);
+            else resolve(row);
+        });
+    });
+}
+
+function executeAll(sql, params = []) {
+    return new Promise((resolve, reject) => {
+        db.all(sql, params, (err, rows) => {
+            if (err) reject(err);
+            else resolve(rows);
+        });
+    });
+}
 
 // Create all tables
 (async function initDatabase() {
     try {
-        // Users table
+        // Users table with profile_picture column
         await executeQuery(`CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             email TEXT UNIQUE,
@@ -65,6 +92,15 @@ connectDB();
             created_at TEXT
         )`);
         console.log('Users table ready');
+        
+        // Add profile_picture column if missing (for existing databases)
+        try {
+            await executeQuery(`ALTER TABLE users ADD COLUMN profile_picture TEXT`);
+            console.log('Added profile_picture column');
+        } catch(e) {
+            // Column already exists - ignore
+            console.log('Profile picture column already exists');
+        }
         
         // Sessions table
         await executeQuery(`CREATE TABLE IF NOT EXISTS sessions (
@@ -121,821 +157,439 @@ connectDB();
     }
 })();
 
-// ============================================
-// SESSION FUNCTIONS - DATABASE BASED
-// ============================================
+// ============= USER ROUTES =============
 
-async function saveSession(token, userId, expires) {
+// Register user
+app.post('/api/register', async (req, res) => {
     try {
-        await executeQuery(
-            'INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
-            [token, userId, expires]
-        );
-        console.log('Session saved for user:', userId);
-    } catch (error) {
-        console.error('Save session error:', error);
-    }
-}
-
-async function getUserFromToken(token) {
-    if (!token) return null;
-    
-    try {
-        const sessions = await executeQuery(
-            'SELECT * FROM sessions WHERE token = ? AND expires > ?',
-            [token, Date.now()]
-        );
+        const { email, name, password } = req.body;
         
-        if (sessions.length === 0) return null;
-        
-        return { userId: sessions[0].user_id };
-    } catch (error) {
-        console.error('Get user from token error:', error);
-        return null;
-    }
-}
-
-async function deleteSession(token) {
-    try {
-        await executeQuery('DELETE FROM sessions WHERE token = ?', [token]);
-    } catch (error) {
-        console.error('Delete session error:', error);
-    }
-}
-
-async function cleanExpiredSessions() {
-    try {
-        const result = await executeQuery('DELETE FROM sessions WHERE expires < ?', [Date.now()]);
-        console.log('Cleaned expired sessions');
-    } catch (error) {
-        console.error('Clean sessions error:', error);
-    }
-}
-
-// Run cleanup every hour
-setInterval(cleanExpiredSessions, 60 * 60 * 1000);
-
-// ============================================
-// HELPER FUNCTION - Extract User ID from Token
-// ============================================
-
-function getUserIdFromToken(token) {
-    if (!token) return null;
-    const parts = token.split('_');
-    if (parts.length >= 1) {
-        return parts[0];
-    }
-    return null;
-}
-
-// ============================================
-// TEST ROUTE
-// ============================================
-app.get('/api/test', (req, res) => {
-    res.json({ 
-        message: 'Backend is working with ' + (DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite') + '!',
-        database: DB_TYPE,
-        status: 'online'
-    });
-});
-
-// ============================================
-// AUTH ROUTES
-// ============================================
-
-app.post('/api/signup', async (req, res) => {
-    try {
-        const { email, password, name, remember } = req.body;
-        
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password required' });
+        // Check if user exists
+        const existingUser = await executeGet('SELECT id FROM users WHERE email = ?', [email]);
+        if (existingUser) {
+            return res.status(400).json({ error: 'User already exists' });
         }
         
-        const existing = await findOne('users', 'email', email);
-        if (existing) {
-            return res.status(400).json({ error: 'Email already exists' });
-        }
-        
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
-        const userId = Date.now().toString();
-        const userName = name || email.split('@')[0];
+        const userId = uuidv4();
+        const createdAt = new Date().toISOString();
         
-        await insertOne('users', {
-            id: userId,
-            email: email,
-            name: userName,
-            password: hashedPassword,
-            profile_picture: null,
-            created_at: new Date().toISOString()
-        });
+        await executeQuery(
+            'INSERT INTO users (id, email, name, password, created_at) VALUES (?, ?, ?, ?, ?)',
+            [userId, email, name, hashedPassword, createdAt]
+        );
         
-        const token = userId + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        const expiryDays = remember ? 30 : 7;
-        const expires = Date.now() + (expiryDays * 24 * 60 * 60 * 1000);
-        
-        await saveSession(token, userId, expires);
-        
-        res.json({
-            success: true,
-            user: { id: userId, email: email, name: userName },
-            token: token
-        });
+        res.status(201).json({ message: 'User registered successfully', userId });
     } catch (error) {
-        console.error('Signup error:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Registration error:', error);
+        res.status(500).json({ error: 'Registration failed' });
     }
 });
 
+// Login user
 app.post('/api/login', async (req, res) => {
     try {
-        const { email, password, remember } = req.body;
+        const { email, password } = req.body;
         
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password required' });
-        }
-        
-        const user = await findOne('users', 'email', email);
-        
+        const user = await executeGet('SELECT * FROM users WHERE email = ?', [email]);
         if (!user) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
         
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+            return res.status(401).json({ error: 'Invalid credentials' });
         }
         
-        const token = user.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-        const expiryDays = remember ? 30 : 7;
-        const expires = Date.now() + (expiryDays * 24 * 60 * 60 * 1000);
+        // Create session token
+        const token = uuidv4();
+        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
         
-        await saveSession(token, user.id, expires);
+        await executeQuery(
+            'INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
+            [token, user.id, expires]
+        );
         
         res.json({
-            success: true,
-            user: { id: user.id, email: user.email, name: user.name },
-            token: token
+            token,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                profile_picture: user.profile_picture
+            }
         });
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Login failed' });
     }
 });
 
-app.post('/api/logout', async (req, res) => {
-    const token = req.headers.authorization;
-    if (token) {
-        await deleteSession(token);
-    }
-    res.json({ success: true });
-});
-
-app.get('/api/me', async (req, res) => {
-    const token = req.headers.authorization;
-    
-    if (!token) {
-        return res.status(401).json({ error: 'Not logged in' });
-    }
-    
-    const userId = getUserIdFromToken(token);
-    
-    if (!userId) {
-        return res.status(401).json({ error: 'Invalid token' });
-    }
-    
-    const user = await findOne('users', 'id', userId);
-    
-    if (!user) {
-        return res.status(401).json({ error: 'User not found' });
-    }
-    
-    res.json({ user: { id: user.id, email: user.email, name: user.name, profile_picture: user.profile_picture } });
-});
-
-// ============================================
-// PROFILE ROUTES
-// ============================================
-
-app.get('/api/profile', async (req, res) => {
+// Get user profile
+app.get('/api/user/profile', async (req, res) => {
     try {
-        const token = req.headers.authorization;
-        
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const userId = getUserIdFromToken(token);
-        
-        if (!userId) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const user = await findOne('users', 'id', userId);
-        
-        if (!user) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-        
-        res.json({
-            success: true,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                profile_picture: user.profile_picture,
-                created_at: user.created_at
-            }
-        });
-    } catch (error) {
-        console.error('Profile error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-app.put('/api/profile', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const userId = getUserIdFromToken(token);
-        
-        if (!userId) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const { name, email } = req.body;
-        const updates = {};
-        if (name) updates.name = name;
-        if (email) updates.email = email;
-        
-        if (Object.keys(updates).length === 0) {
-            return res.status(400).json({ error: 'Nothing to update' });
-        }
-        
-        await updateOne('users', userId, 'id', updates);
-        
-        const updatedUser = await findOne('users', 'id', userId);
-        
-        res.json({
-            success: true,
-            user: {
-                id: updatedUser.id,
-                name: updatedUser.name,
-                email: updatedUser.email
-            }
-        });
-    } catch (error) {
-        console.error('Update profile error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-app.put('/api/change-password', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const userId = getUserIdFromToken(token);
-        
-        if (!userId) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const { currentPassword, newPassword } = req.body;
-        
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ error: 'Current password and new password required' });
-        }
-        
-        if (newPassword.length < 6) {
-            return res.status(400).json({ error: 'New password must be at least 6 characters' });
-        }
-        
-        const user = await findOne('users', 'id', userId);
-        
-        const validPassword = await bcrypt.compare(currentPassword, user.password);
-        if (!validPassword) {
-            return res.status(401).json({ error: 'Current password is incorrect' });
-        }
-        
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await updateOne('users', userId, 'id', { password: hashedPassword });
-        
-        res.json({ success: true, message: 'Password changed successfully' });
-    } catch (error) {
-        console.error('Change password error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// ============================================
-// PROFILE PICTURE UPLOAD ROUTES
-// ============================================
-
-// Configure multer for profile pictures
-const profileStorage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        const profileDir = path.join(__dirname, 'uploads', 'profiles');
-        if (!fs.existsSync(profileDir)) {
-            fs.mkdirSync(profileDir, { recursive: true });
-        }
-        cb(null, profileDir);
-    },
-    filename: function(req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, 'profile-' + uniqueSuffix + ext);
-    }
-});
-
-const profileUpload = multer({ 
-    storage: profileStorage,
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: function(req, file, cb) {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only images allowed'));
-        }
-    }
-});
-
-// Upload profile picture
-app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
-    console.log('Upload request received');
-    
-    try {
-        const token = req.headers.authorization;
-        
+        const token = req.headers.authorization?.split(' ')[1];
         if (!token) {
             return res.status(401).json({ error: 'No token provided' });
         }
         
-        const userId = getUserIdFromToken(token);
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
         
-        if (!userId) {
-            return res.status(401).json({ error: 'Invalid token' });
+        const user = await executeGet('SELECT id, email, name, profile_picture, created_at FROM users WHERE id = ?', [session.user_id]);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.json(user);
+    } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({ error: 'Failed to get profile' });
+    }
+});
+
+// Update user profile
+app.put('/api/user/profile', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+        
+        const { name, email } = req.body;
+        const updates = [];
+        const params = [];
+        
+        if (name) {
+            updates.push('name = ?');
+            params.push(name);
+        }
+        
+        if (email) {
+            updates.push('email = ?');
+            params.push(email);
+        }
+        
+        if (updates.length > 0) {
+            params.push(session.user_id);
+            await executeQuery(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+        }
+        
+        const updatedUser = await executeGet('SELECT id, email, name, profile_picture FROM users WHERE id = ?', [session.user_id]);
+        res.json(updatedUser);
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: 'Failed to update profile' });
+    }
+});
+
+// Upload profile picture
+app.post('/api/user/profile-picture', upload.single('profile_picture'), async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
         }
         
         if (!req.file) {
             return res.status(400).json({ error: 'No file uploaded' });
         }
         
-        console.log('File saved:', req.file.filename);
-        
-        const profilePictureUrl = '/uploads/profiles/' + req.file.filename;
-        
-        await updateOne('users', userId, 'id', { profile_picture: profilePictureUrl });
+        const profilePicturePath = `/uploads/${req.file.filename}`;
+        await executeQuery('UPDATE users SET profile_picture = ? WHERE id = ?', [profilePicturePath, session.user_id]);
         
         res.json({ 
-            success: true, 
-            profilePicture: profilePictureUrl,
-            message: 'Profile picture updated successfully'
+            message: 'Profile picture uploaded successfully',
+            profile_picture: profilePicturePath
         });
     } catch (error) {
-        console.error('Upload error:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Upload profile picture error:', error);
+        res.status(500).json({ error: 'Failed to upload profile picture' });
     }
 });
 
-// Get profile picture
-app.get('/api/profile-picture', async (req, res) => {
+// Logout
+app.post('/api/logout', async (req, res) => {
     try {
-        const token = req.headers.authorization;
-        
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
+        const token = req.headers.authorization?.split(' ')[1];
+        if (token) {
+            await executeQuery('DELETE FROM sessions WHERE token = ?', [token]);
         }
-        
-        const userId = getUserIdFromToken(token);
-        
-        if (!userId) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const user = await findOne('users', 'id', userId);
-        
-        res.json({ 
-            profilePicture: user?.profile_picture || null,
-            hasPicture: !!(user?.profile_picture)
-        });
+        res.json({ message: 'Logged out successfully' });
     } catch (error) {
-        console.error('Get profile picture error:', error);
-        res.status(500).json({ error: 'Failed to get profile picture' });
+        console.error('Logout error:', error);
+        res.status(500).json({ error: 'Logout failed' });
     }
 });
 
-// Delete profile picture
-app.delete('/api/profile-picture', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const userId = getUserIdFromToken(token);
-        
-        if (!userId) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const user = await findOne('users', 'id', userId);
-        
-        if (user?.profile_picture) {
-            const filePath = path.join(__dirname, user.profile_picture);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
-        }
-        
-        await updateOne('users', userId, 'id', { profile_picture: null });
-        
-        res.json({ success: true, message: 'Profile picture removed' });
-    } catch (error) {
-        console.error('Delete error:', error);
-        res.status(500).json({ error: 'Failed to delete profile picture' });
-    }
-});
+// ============= PRODUCT ROUTES =============
 
-// ============================================
-// ORDER ROUTES
-// ============================================
-
-app.get('/api/my-orders', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const userId = getUserIdFromToken(token);
-        
-        if (!userId) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const orders = await executeQuery(
-            'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
-            [userId]
-        );
-        
-        for (let order of orders) {
-            if (order.items && typeof order.items === 'string') {
-                try {
-                    order.items = JSON.parse(order.items);
-                } catch(e) {
-                    order.items = [];
-                }
-            }
-        }
-        
-        res.json({ success: true, orders: orders || [] });
-    } catch (error) {
-        console.error('My orders error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-app.post('/api/orders', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        
-        if (!token) {
-            return res.status(401).json({ error: 'Please login to place order' });
-        }
-        
-        const userId = getUserIdFromToken(token);
-        
-        if (!userId) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const { items, subtotal, shipping, total, notes, paymentMethod, paymentId } = req.body;
-        
-        if (!items || items.length === 0) {
-            return res.status(400).json({ error: 'Cart is empty' });
-        }
-        
-        const user = await findOne('users', 'id', userId);
-        const orderId = 'ORD' + Date.now();
-        
-        await insertOne('orders', {
-            order_id: orderId,
-            user_id: userId,
-            user_email: user.email,
-            items: JSON.stringify(items),
-            subtotal: subtotal || 0,
-            shipping: shipping || 0,
-            total: total || 0,
-            notes: notes || '',
-            status: 'pending',
-            payment_method: paymentMethod || 'whatsapp',
-            payment_id: paymentId || null,
-            payment_status: paymentId ? 'paid' : 'pending',
-            created_at: new Date().toISOString()
-        });
-        
-        res.json({ success: true, order: { orderId: orderId, total: total } });
-    } catch (error) {
-        console.error('Error creating order:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-app.get('/api/orders/:orderId', async (req, res) => {
-    try {
-        const order = await findOne('orders', 'order_id', req.params.orderId);
-        if (!order) return res.status(404).json({ error: 'Order not found' });
-        if (order.items && typeof order.items === 'string') {
-            try {
-                order.items = JSON.parse(order.items);
-            } catch(e) {
-                order.items = [];
-            }
-        }
-        res.json({ order: order });
-    } catch (error) {
-        console.error('Error fetching order:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// ============================================
-// PRODUCT ROUTES
-// ============================================
-
+// Get all products
 app.get('/api/products', async (req, res) => {
     try {
-        const products = await findAll('products');
+        const products = await executeAll('SELECT * FROM products ORDER BY created_at DESC');
         res.json(products);
     } catch (error) {
-        console.error('Error fetching products:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Get products error:', error);
+        res.status(500).json({ error: 'Failed to get products' });
     }
 });
 
-const productStorage = multer.diskStorage({
-    destination: function(req, file, cb) { 
-        const productDir = path.join(__dirname, 'uploads');
-        if (!fs.existsSync(productDir)) {
-            fs.mkdirSync(productDir, { recursive: true });
-        }
-        cb(null, productDir); 
-    },
-    filename: function(req, file, cb) { 
-        cb(null, Date.now() + '-' + file.originalname); 
-    }
-});
-
-const productUpload = multer({ 
-    storage: productStorage, 
-    limits: { fileSize: 5 * 1024 * 1024 },
-    fileFilter: function(req, file, cb) {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only images allowed'));
-        }
-    }
-});
-
-app.post('/api/products', productUpload.single('image'), async (req, res) => {
+// Get single product
+app.get('/api/products/:id', async (req, res) => {
     try {
-        const { name, price, category, stock, imageUrl } = req.body;
-        
-        if (!name || !price) {
-            return res.status(400).json({ error: 'Name and price required' });
+        const product = await executeGet('SELECT * FROM products WHERE id = ?', [req.params.id]);
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
         }
-        
-        const productId = 'p' + Date.now();
-        let image = req.file ? req.file.filename : (imageUrl || null);
-        
-        await insertOne('products', {
-            id: productId,
-            name: name,
-            price: parseFloat(price),
-            category: category || 'digital',
-            image: image,
-            stock: stock || 999,
-            created_at: new Date().toISOString()
-        });
-        
-        res.json({ success: true, product: { id: productId, name: name, price: price } });
+        res.json(product);
     } catch (error) {
-        console.error('Error adding product:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Get product error:', error);
+        res.status(500).json({ error: 'Failed to get product' });
     }
 });
 
+// Create product (admin only - simplified for demo)
+app.post('/api/products', async (req, res) => {
+    try {
+        const { name, price, category, image, stock } = req.body;
+        const id = uuidv4();
+        const createdAt = new Date().toISOString();
+        
+        await executeQuery(
+            'INSERT INTO products (id, name, price, category, image, stock, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [id, name, price, category, image, stock, createdAt]
+        );
+        
+        res.status(201).json({ message: 'Product created successfully', id });
+    } catch (error) {
+        console.error('Create product error:', error);
+        res.status(500).json({ error: 'Failed to create product' });
+    }
+});
+
+// Update product
+app.put('/api/products/:id', async (req, res) => {
+    try {
+        const { name, price, category, image, stock } = req.body;
+        const updates = [];
+        const params = [];
+        
+        if (name) {
+            updates.push('name = ?');
+            params.push(name);
+        }
+        if (price) {
+            updates.push('price = ?');
+            params.push(price);
+        }
+        if (category) {
+            updates.push('category = ?');
+            params.push(category);
+        }
+        if (image) {
+            updates.push('image = ?');
+            params.push(image);
+        }
+        if (stock !== undefined) {
+            updates.push('stock = ?');
+            params.push(stock);
+        }
+        
+        if (updates.length === 0) {
+            return res.status(400).json({ error: 'No fields to update' });
+        }
+        
+        params.push(req.params.id);
+        await executeQuery(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`, params);
+        
+        res.json({ message: 'Product updated successfully' });
+    } catch (error) {
+        console.error('Update product error:', error);
+        res.status(500).json({ error: 'Failed to update product' });
+    }
+});
+
+// Delete product
 app.delete('/api/products/:id', async (req, res) => {
     try {
-        await deleteOne('products', 'id', req.params.id);
-        res.json({ success: true });
+        await executeQuery('DELETE FROM products WHERE id = ?', [req.params.id]);
+        res.json({ message: 'Product deleted successfully' });
     } catch (error) {
-        console.error('Error deleting product:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Delete product error:', error);
+        res.status(500).json({ error: 'Failed to delete product' });
     }
 });
 
-// ============================================
-// ADMIN ROUTES
-// ============================================
+// ============= ORDER ROUTES =============
 
-app.post('/api/admin/login', (req, res) => {
-    const { password } = req.body;
-    if (password === ADMIN_PASSWORD) {
-        res.json({ success: true });
-    } else {
-        res.status(401).json({ error: 'Wrong password' });
-    }
-});
-
-app.get('/api/admin/orders', async (req, res) => {
+// Create order
+app.post('/api/orders', async (req, res) => {
     try {
-        const orders = await findAll('orders');
-        for (let order of orders) {
-            if (order.items && typeof order.items === 'string') {
-                try {
-                    order.items = JSON.parse(order.items);
-                } catch(e) {
-                    order.items = [];
-                }
-            }
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
         }
-        res.json({ orders: orders });
-    } catch (error) {
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// ============================================
-// CHAT ROUTES
-// ============================================
-
-app.post('/api/chat/save', async (req, res) => {
-    try {
-        const { userId, userName, message, isAdmin } = req.body;
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+        
+        const user = await executeGet('SELECT email, name FROM users WHERE id = ?', [session.user_id]);
+        
+        const { items, subtotal, shipping, total, notes, payment_method, payment_id } = req.body;
+        const orderId = uuidv4();
+        const createdAt = new Date().toISOString();
+        
         await executeQuery(
-            'INSERT INTO chat_messages (user_id, user_name, message, is_admin) VALUES (?, ?, ?, ?)',
-            [userId, userName, message, isAdmin ? 1 : 0]
+            `INSERT INTO orders (order_id, user_id, user_email, items, subtotal, shipping, total, notes, status, payment_method, payment_id, payment_status, created_at) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [orderId, session.user_id, user.email, JSON.stringify(items), subtotal, shipping, total, notes, 'pending', payment_method, payment_id, 'pending', createdAt]
         );
-        res.json({ success: true });
+        
+        res.status(201).json({ message: 'Order created successfully', orderId });
     } catch (error) {
-        console.error('Save chat error:', error);
-        res.status(500).json({ error: error.message });
+        console.error('Create order error:', error);
+        res.status(500).json({ error: 'Failed to create order' });
     }
 });
 
-app.get('/api/chat/history/:userId', async (req, res) => {
+// Get user orders
+app.get('/api/orders', async (req, res) => {
     try {
-        const messages = await executeQuery(
-            'SELECT * FROM chat_messages WHERE user_id = ? ORDER BY created_at ASC LIMIT 50',
-            [req.params.userId]
-        );
-        res.json({ messages: messages || [] });
-    } catch (error) {
-        console.error('History error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-app.get('/api/admin/chats', async (req, res) => {
-    try {
-        const chats = await executeQuery(
-            `SELECT user_id, user_name, COUNT(*) as count, MAX(created_at) as last_message 
-             FROM chat_messages 
-             GROUP BY user_id 
-             ORDER BY last_message DESC`
-        );
-        res.json({ chats: chats || [] });
-    } catch (error) {
-        console.error('Admin chats error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// ============================================
-// NOTIFICATION FOR PRODUCT UPDATE
-// ============================================
-
-let lastProductUpdate = Date.now();
-
-app.post('/api/notify-shop-refresh', (req, res) => {
-    lastProductUpdate = Date.now();
-    res.json({ success: true });
-});
-
-app.get('/api/last-product-update', (req, res) => {
-    res.json({ lastUpdate: lastProductUpdate });
-});
-
-// ============================================
-// CREATE HTTP SERVER FOR SOCKET.IO
-// ============================================
-
-const server = http.createServer(app);
-let io = null;
-
-if (socketIo) {
-    io = socketIo(server, {
-        cors: {
-            origin: '*',
-            methods: ['GET', 'POST']
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
         }
-    });
-    
-    const connectedUsers = {};
-    
-    io.on('connection', (socket) => {
-        console.log('Client connected:', socket.id);
         
-        socket.on('user-join', (userId) => {
-            connectedUsers[userId] = socket.id;
-            console.log('User joined:', userId);
-        });
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
         
-        socket.on('admin-join', () => {
-            socket.isAdmin = true;
-            console.log('Admin connected');
-        });
-        
-        socket.on('customer-message', (data) => {
-            console.log('Customer message from:', data.userId);
-            io.emit('new-message', {
-                userId: data.userId,
-                userName: data.userName,
-                message: data.message,
-                timestamp: new Date().toISOString(),
-                isAdmin: false
-            });
-        });
-        
-        socket.on('admin-message', (data) => {
-            console.log('Admin message to:', data.userId);
-            const customerSocketId = connectedUsers[data.userId];
-            if (customerSocketId) {
-                io.to(customerSocketId).emit('new-message', {
-                    message: data.message,
-                    timestamp: new Date().toISOString(),
-                    isAdmin: true
-                });
+        const orders = await executeAll('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [session.user_id]);
+        // Parse items JSON for each order
+        orders.forEach(order => {
+            if (order.items) {
+                order.items = JSON.parse(order.items);
             }
         });
         
-        socket.on('disconnect', () => {
-            console.log('Client disconnected:', socket.id);
-            for (let userId in connectedUsers) {
-                if (connectedUsers[userId] === socket.id) {
-                    delete connectedUsers[userId];
-                    break;
-                }
-            }
-        });
-    });
-    
-    console.log('Socket.io enabled');
-} else {
-    console.log('Socket.io not available - chat feature disabled');
-}
-
-// ============================================
-// EXPLICIT ROUTES FOR STATIC FILES
-// ============================================
-
-app.get('/admin/chat.html', (req, res) => {
-    const filePath = path.join(__dirname, 'admin', 'chat.html');
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
-    } else {
-        res.status(404).send('Chat page not found');
+        res.json(orders);
+    } catch (error) {
+        console.error('Get orders error:', error);
+        res.status(500).json({ error: 'Failed to get orders' });
     }
 });
 
-// ============================================
-// START SERVER
-// ============================================
-
-server.listen(PORT, () => {
-    console.log('========================================');
-    console.log('SIGMA STORE IS RUNNING!');
-    console.log('========================================');
-    console.log('Server: http://localhost:' + PORT);
-    console.log('Test: http://localhost:' + PORT + '/api/test');
-    console.log('Admin: http://localhost:' + PORT + '/admin.html');
-    console.log('Chat: http://localhost:' + PORT + '/admin/chat.html');
-    console.log('Database: ' + (DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite'));
-    console.log('Socket.io: ' + (socketIo ? 'Enabled' : 'Disabled'));
-    console.log('Sessions: Database based');
-    console.log('Profile Picture Upload: Enabled');
-    console.log('========================================');
+// Get single order
+app.get('/api/orders/:id', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+        
+        const order = await executeGet('SELECT * FROM orders WHERE order_id = ? AND user_id = ?', [req.params.id, session.user_id]);
+        if (!order) {
+            return res.status(404).json({ error: 'Order not found' });
+        }
+        
+        if (order.items) {
+            order.items = JSON.parse(order.items);
+        }
+        
+        res.json(order);
+    } catch (error) {
+        console.error('Get order error:', error);
+        res.status(500).json({ error: 'Failed to get order' });
+    }
 });
+
+// ============= CHAT ROUTES =============
+
+// Get chat messages
+app.get('/api/chat/messages', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+        
+        const messages = await executeAll('SELECT * FROM chat_messages ORDER BY created_at ASC LIMIT 100');
+        res.json(messages);
+    } catch (error) {
+        console.error('Get messages error:', error);
+        res.status(500).json({ error: 'Failed to get messages' });
+    }
+});
+
+// Send chat message
+app.post('/api/chat/messages', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+        
+        const user = await executeGet('SELECT name FROM users WHERE id = ?', [session.user_id]);
+        const { message } = req.body;
+        
+        if (!message || message.trim() === '') {
+            return res.status(400).json({ error: 'Message cannot be empty' });
+        }
+        
+        const result = await executeQuery(
+            'INSERT INTO chat_messages (user_id, user_name, message, is_admin) VALUES (?, ?, ?, ?)',
+            [session.user_id, user.name, message, 0]
+        );
+        
+        res.status(201).json({ 
+            id: result.lastID,
+            user_id: session.user_id,
+            user_name: user.name,
+            message: message,
+            is_admin: 0,
+            created_at: new Date().toISOString()
+        });
+    } catch (error) {
+        console.error('Send message error:', error);
+        res.status(500).json({ error: 'Failed to send message' });
+    }
+});
+
+// Start server
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
+module.exports = app;
