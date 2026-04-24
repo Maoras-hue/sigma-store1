@@ -812,6 +812,60 @@ app.delete('/api/profile-picture', async (req, res) => {
         res.status(500).json({ error: 'Failed to delete profile picture' });
     }
 });
+// Upload profile picture
+app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
+    console.log('=== UPLOAD REQUEST RECEIVED ===');
+    console.log('Headers:', req.headers);
+    console.log('File:', req.file);
+    console.log('Body:', req.body);
+    
+    try {
+        const token = req.headers.authorization;
+        console.log('Token received:', token ? 'Yes' : 'No');
+        
+        if (!token) {
+            console.log('No token provided');
+            return res.status(401).json({ error: 'No token provided' });
+        }
+        
+        const session = getUserFromToken(token);
+        console.log('Session found:', session ? 'Yes' : 'No');
+        
+        if (!session) {
+            console.log('Invalid session');
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        if (!req.file) {
+            console.log('No file uploaded');
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        
+        console.log('File saved:', req.file.filename);
+        
+        const profilePictureUrl = '/uploads/profiles/' + req.file.filename;
+        
+        await updateOne('users', session.userId, 'id', { profile_picture: profilePictureUrl });
+        
+        console.log('Profile picture updated for user:', session.userId);
+        
+        res.json({ 
+            success: true, 
+            profilePicture: profilePictureUrl,
+            message: 'Profile picture updated successfully'
+        });
+    } catch (error) {
+        console.error('Upload error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});// Create necessary directories
+const dirs = ['./uploads', './uploads/profiles', './admin'];
+for (const dir of dirs) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log('Created directory:', dir);
+    }
+}
 server.listen(PORT, () => {
     console.log('========================================');
     console.log('SIGMA STORE IS RUNNING!');

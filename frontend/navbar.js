@@ -34,9 +34,42 @@ function isLoggedIn() {
     return true;
 }
 
+// ============================================
+// AUTH FUNCTIONS - FIXED
+// ============================================
+
 function getAuthToken() {
-    if (!isLoggedIn()) return null;
-    return localStorage.getItem('sigma_token');
+    // Try multiple possible token locations
+    var token = localStorage.getItem('sigma_token');
+    if (token) return token;
+    
+    token = localStorage.getItem('authToken');
+    if (token) return token;
+    
+    token = localStorage.getItem('sigma_auth_token');
+    if (token) return token;
+    
+    return null;
+}
+
+function isLoggedIn() {
+    var token = getAuthToken();
+    var expiry = localStorage.getItem('sigma_token_expiry') || localStorage.getItem('authTokenExpiry');
+    
+    if (!token) return false;
+    if (expiry && Date.now() > parseInt(expiry)) {
+        clearAuth();
+        return false;
+    }
+    return true;
+}
+
+function clearAuth() {
+    localStorage.removeItem('sigma_token');
+    localStorage.removeItem('sigma_token_expiry');
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('authTokenExpiry');
+    localStorage.removeItem('sigma_user');
 }
 
 function clearAuth() {
