@@ -716,3 +716,30 @@ document.getElementById('applyCouponBtn').onclick = async function() {
     } else { 
     } 
 }; 
+ 
+// Coupon logic 
+document.getElementById('applyCouponBtn').onclick = async function() { 
+    const code = document.getElementById('couponCode').value; 
+    const res = await fetch(window.BACKEND_URL + '/api/coupons/validate/' + code); 
+    const data = await res.json(); 
+    if (!data.valid) { 
+        return; 
+    } 
+    let subtotal = 0; 
+    document.querySelectorAll('.cart-item').forEach(function(item) { 
+        const price = parseFloat(item.querySelector('.item-price')?.innerText.replace('$','') || 0); 
+        const qty = parseInt(item.querySelector('.item-qty')?.innerText || 1); 
+        subtotal += price * qty; 
+    }); 
+    const applyRes = await fetch(window.BACKEND_URL + '/api/coupons/apply', { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ code: code, subtotal: subtotal }) 
+    }); 
+    const discountData = await applyRes.json(); 
+    if (applyRes.ok) { 
+        localStorage.setItem('appliedCoupon', JSON.stringify({ code: code, discount: discountData.discount })); 
+        location.reload(); 
+    } else { 
+    } 
+}; 
