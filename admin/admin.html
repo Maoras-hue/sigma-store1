@@ -214,6 +214,23 @@
             flex: 1;
         }
         
+        .badge-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .badge-row label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+        
         .product-form button {
             background: #e05a2a;
             color: white;
@@ -268,19 +285,18 @@
             font-weight: bold;
         }
         
+        .badge-new { background: #4caf50; color: white; padding: 2px 8px; border-radius: 20px; font-size: 10px; display: inline-block; }
+        .badge-sale { background: #e05a2a; color: white; padding: 2px 8px; border-radius: 20px; font-size: 10px; display: inline-block; }
+        .badge-bestseller { background: #ffc107; color: #333; padding: 2px 8px; border-radius: 20px; font-size: 10px; display: inline-block; }
+        
         .status-pending { background: #ff9800; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
         .status-processing { background: #2196f3; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
         .status-shipped { background: #9c27b0; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
         .status-delivered { background: #4caf50; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; }
         
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            th, td {
-                font-size: 12px;
-                padding: 8px;
-            }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            th, td { font-size: 12px; padding: 8px; }
         }
     </style>
 </head>
@@ -331,7 +347,8 @@
             <button class="tab-btn" onclick="showTab('orders')">Orders</button>
             <button class="tab-btn" onclick="showTab('visitors')">Visitors</button>
             <button class="tab-btn" onclick="showTab('coupons')">Coupons</button>
-<button class="tab-btn" onclick="showTab('subscribers')">Subscribers</button>
+            <button class="tab-btn" onclick="showTab('subscribers')">Subscribers</button>
+        </div>
         
         <!-- Products Tab -->
         <div id="productsTab">
@@ -347,22 +364,26 @@
                         <option value="home">Home & Living</option>
                         <option value="accessories">Accessories</option>
                         <option value="sports">Sports</option>
-<div id="subscribersTab" style="display: none;">
-    <div class="table-container">
-        <h3>Newsletter Subscribers <button onclick="exportSubscribers()" style="background: #4caf50; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:10px; cursor:pointer;">📥 Export CSV</button></h3>
-        <table>
-            <thead>
-                <tr><th>Email</th><th>Subscribed Date</th><th>Action</th></tr>
-            </thead>
-            <tbody id="subscribersList"></tbody>
-        </table>
-    </div>
-</div>`cx
                     </select>
                 </div>
                 <div class="form-row">
                     <input type="number" id="productStock" placeholder="Stock Quantity" value="999">
                     <input type="text" id="productImage" placeholder="Image URL (e.g., https://...jpg)">
+                </div>
+                <div class="badge-row">
+                    <label>
+                        <input type="checkbox" id="productIsNew"> 🆕 NEW Badge
+                    </label>
+                    <label>
+                        <input type="checkbox" id="productIsSale"> 🔥 SALE Badge
+                    </label>
+                    <label>
+                        <input type="checkbox" id="productIsBestseller"> ⭐ BESTSELLER Badge
+                    </label>
+                </div>
+                <div class="form-row">
+                    <input type="number" id="productSalePrice" step="0.01" placeholder="Sale Price (if on sale)">
+                    <input type="text" id="productLabelText" placeholder="Custom Label (e.g., LIMITED)">
                     <button onclick="addProduct()">Add Product</button>
                 </div>
                 <div id="imagePreview" class="image-preview" style="display: none;">
@@ -378,7 +399,7 @@
                 <h3>All Products</h3>
                 <table>
                     <thead>
-                        <tr><th>Image</th><th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Category</th><th>Action</th></tr>
+                        <tr><th>Image</th><th>ID</th><th>Name</th><th>Price</th><th>Stock</th><th>Badges</th><th>Category</th><th>Action</th></tr>
                     </thead>
                     <tbody id="productsList"></tbody>
                 </table>
@@ -448,6 +469,19 @@
                 </table>
             </div>
         </div>
+        
+        <!-- Subscribers Tab -->
+        <div id="subscribersTab" style="display: none;">
+            <div class="table-container">
+                <h3>Newsletter Subscribers <button onclick="exportSubscribers()" style="background: #4caf50; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:10px; cursor:pointer;">📥 Export CSV</button></h3>
+                <table>
+                    <thead>
+                        <tr><th>Email</th><th>Subscribed Date</th><th>Action</th></tr>
+                    </thead>
+                    <tbody id="subscribersList"></tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -493,6 +527,8 @@
                 loadVisitors();
             } else if (document.getElementById('couponsTab').style.display !== 'none') {
                 loadCoupons();
+            } else if (document.getElementById('subscribersTab').style.display !== 'none') {
+                loadSubscribers();
             }
             loadLowStockCount();
         }, 5000);
@@ -504,60 +540,7 @@
             autoRefreshInterval = null;
         }
     }
-} else if (document.getElementById('subscribersTab').style.display !== 'none') {
-    loadSubscribers();
-}
-    async function loadSubscribers() {
-    try {
-        const res = await fetch(`${API_URL}/api/admin/subscribers`);
-        const data = await res.json();
-        const subscribers = data.subscribers || [];
-        
-        const tbody = document.getElementById('subscribersList');
-        if (subscribers.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="3">No subscribers yet</td></tr>';
-            return;
-        }
-        
-        tbody.innerHTML = subscribers.map(s => `
-            <tr>
-                <td>${escapeHtml(s.email)}</td>
-                <td>${new Date(s.subscribed_at).toLocaleString()}</td>
-                <td><button class="delete-btn" onclick="deleteSubscriber('${s.id}')">Delete</button></td>
-            </tr>
-        `).join('');
-    } catch(e) {
-        console.error('Load subscribers error:', e);
-    }
-}
-
-async function deleteSubscriber(id) {
-    if (confirm('Delete this subscriber?')) {
-        const res = await fetch(`${API_URL}/api/admin/subscribers/${id}`, { method: 'DELETE' });
-        if (res.ok) {
-            alert('Subscriber deleted');
-            loadSubscribers();
-        }
-    }
-}
-
-function exportSubscribers() {
-    fetch(`${API_URL}/api/admin/subscribers`)
-        .then(res => res.json())
-        .then(data => {
-            let csv = 'Email,Subscribed Date\n';
-            data.subscribers.forEach(s => {
-                csv += `"${s.email}","${new Date(s.subscribed_at).toLocaleString()}"\n`;
-            });
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'subscribers.csv';
-            a.click();
-            URL.revokeObjectURL(url);
-        });
-}
+    
     function checkLogin() {
         if (localStorage.getItem('adminLoggedIn') === 'true') {
             document.getElementById('loginPage').style.display = 'none';
@@ -572,10 +555,11 @@ function exportSubscribers() {
     // ============================================
     
     function showTab(tab) {
-        document.getElementById('productsTab').style.display = 'none';
-        document.getElementById('ordersTab').style.display = 'none';
-        document.getElementById('visitorsTab').style.display = 'none';
-        document.getElementById('couponsTab').style.display = 'none';
+        const tabs = ['products', 'orders', 'visitors', 'coupons', 'subscribers'];
+        tabs.forEach(t => {
+            const el = document.getElementById(t + 'Tab');
+            if (el) el.style.display = 'none';
+        });
         document.getElementById(tab + 'Tab').style.display = 'block';
         
         const btns = document.querySelectorAll('.tab-btn');
@@ -618,6 +602,7 @@ function exportSubscribers() {
         await loadOrders();
         await loadVisitors();
         await loadCoupons();
+        await loadSubscribers();
         await loadLowStockCount();
     }
     
@@ -644,7 +629,7 @@ function exportSubscribers() {
             
             const tbody = document.getElementById('productsList');
             if (products.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;">No products found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;">No products found</td></tr>';
                 return;
             }
             
@@ -666,13 +651,25 @@ function exportSubscribers() {
                     stockText = `⚠️ ${stockText} left`;
                 }
                 
+                let badges = '';
+                if (p.is_new === 1) badges += '<span class="badge-new" style="margin-right:5px;">🆕 NEW</span>';
+                if (p.is_sale === 1 && p.sale_price) badges += '<span class="badge-sale" style="margin-right:5px;">🔥 SALE</span>';
+                if (p.is_bestseller === 1) badges += '<span class="badge-bestseller" style="margin-right:5px;">⭐ BESTSELLER</span>';
+                if (p.label_text) badges += `<span style="background:#ff9800; color:white; padding:2px 8px; border-radius:20px; font-size:10px;">${p.label_text}</span>`;
+                
+                let priceDisplay = `$${p.price}`;
+                if (p.is_sale === 1 && p.sale_price) {
+                    priceDisplay = `<span style="text-decoration:line-through; color:#888;">$${p.price}</span> <strong>$${p.sale_price}</strong>`;
+                }
+                
                 return `
                     <tr>
                         <td><img src="${imgSrc}" class="product-img" onerror="this.src='https://placehold.co/50x50/ff6b6b/white?text=Error'"></td>
                         <td>${p.id.substring(0, 8)}...</td>
                         <td>${escapeHtml(p.name)}</td>
-                        <td>$${p.price}</td>
+                        <td>${priceDisplay}</td>
                         <td class="${stockClass}">${stockText}</td>
+                        <td>${badges || '-'}</td>
                         <td>${p.category || 'digital'}</td>
                         <td>
                             <button class="edit-btn" onclick="editProductStock('${p.id}', ${p.stock || 0})">Edit Stock</button>
@@ -683,7 +680,7 @@ function exportSubscribers() {
             }).join('');
         } catch(e) {
             console.error('Error loading products:', e);
-            document.getElementById('productsList').innerHTML = '<tr><td colspan="7" style="text-align:center;">Error loading products</td></tr>';
+            document.getElementById('productsList').innerHTML = '<tr><td colspan="8" style="text-align:center;">Error loading products</td></tr>';
         }
     }
     
@@ -693,6 +690,11 @@ function exportSubscribers() {
         const category = document.getElementById('productCategory').value;
         const stock = document.getElementById('productStock').value;
         let image = document.getElementById('productImage').value.trim();
+        const isNew = document.getElementById('productIsNew').checked ? 1 : 0;
+        const isSale = document.getElementById('productIsSale').checked ? 1 : 0;
+        const isBestseller = document.getElementById('productIsBestseller').checked ? 1 : 0;
+        const salePrice = document.getElementById('productSalePrice').value || null;
+        const labelText = document.getElementById('productLabelText').value.trim() || null;
         
         if (!name || !price) {
             alert('Please enter product name and price');
@@ -712,7 +714,12 @@ function exportSubscribers() {
                     price: parseFloat(price), 
                     category, 
                     image, 
-                    stock: stock || 999
+                    stock: stock || 999,
+                    is_new: isNew,
+                    is_sale: isSale,
+                    is_bestseller: isBestseller,
+                    sale_price: salePrice,
+                    label_text: labelText
                 })
             });
             
@@ -722,6 +729,11 @@ function exportSubscribers() {
                 document.getElementById('productPrice').value = '';
                 document.getElementById('productStock').value = '999';
                 document.getElementById('productImage').value = '';
+                document.getElementById('productIsNew').checked = false;
+                document.getElementById('productIsSale').checked = false;
+                document.getElementById('productIsBestseller').checked = false;
+                document.getElementById('productSalePrice').value = '';
+                document.getElementById('productLabelText').value = '';
                 document.getElementById('imagePreview').style.display = 'none';
                 loadProducts();
                 fetch(`${API_URL}/api/notify-shop-refresh`, { method: 'POST' }).catch(e => console.log);
@@ -950,6 +962,62 @@ function exportSubscribers() {
                 alert('Error: ' + e.message);
             }
         }
+    }
+    
+    // ============================================
+    // SUBSCRIBER FUNCTIONS
+    // ============================================
+    
+    async function loadSubscribers() {
+        try {
+            const res = await fetch(`${API_URL}/api/admin/subscribers`);
+            const data = await res.json();
+            const subscribers = data.subscribers || [];
+            
+            const tbody = document.getElementById('subscribersList');
+            if (subscribers.length === 0) {
+                tbody.innerHTML = '<td><td colspan="3">No subscribers yet</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = subscribers.map(s => `
+                <tr>
+                    <td>${escapeHtml(s.email)}</td>
+                    <td>${new Date(s.subscribed_at).toLocaleString()}</td>
+                    <td><button class="delete-btn" onclick="deleteSubscriber('${s.id}')">Delete</button></td>
+                </tr>
+            `).join('');
+        } catch(e) {
+            console.error('Load subscribers error:', e);
+        }
+    }
+    
+    async function deleteSubscriber(id) {
+        if (confirm('Delete this subscriber?')) {
+            const res = await fetch(`${API_URL}/api/admin/subscribers/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                alert('Subscriber deleted');
+                loadSubscribers();
+            }
+        }
+    }
+    
+    function exportSubscribers() {
+        fetch(`${API_URL}/api/admin/subscribers`)
+            .then(res => res.json())
+            .then(data => {
+                let csv = 'Email,Subscribed Date\n';
+                data.subscribers.forEach(s => {
+                    csv += `"${s.email}","${new Date(s.subscribed_at).toLocaleString()}"\n`;
+                });
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'subscribers.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            });
     }
     
     function escapeHtml(str) {
