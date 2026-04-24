@@ -778,7 +778,72 @@ io.on('connection', (socket) => {
 app.get('*', (req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
+// ============================================
+// COUPON ROUTES
+// ============================================
 
+// Get all coupons (admin)
+app.get('/api/admin/coupons/list', async (req, res) => {
+    try {
+        const coupons = await executeAll('SELECT * FROM coupons ORDER BY created_at DESC');
+        res.json(coupons);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Create coupon (admin)
+app.post('/api/admin/coupons', async (req, res) => {
+    try {
+        const { code, type, value, minOrder, expiresAt, usageLimit } = req.body;
+        const id = uuidv4();
+        await executeQuery(
+            'INSERT INTO coupons (id, code, type, value, min_order, expires_at, usage_limit, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [id, code.toUpperCase(), type, value, minOrder || 0, expiresAt || null, usageLimit || null, new Date().toISOString()]
+        );
+        res.json({ success: true, id });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Validate coupon
+app.get('/api/coupons/validate/:code', async (req, res) => {
+    try {
+        const code = req.params.code.toUpperCase();
+        const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code]);
+        if (!coupon) return res.json({ valid: false, error: 'Invalid coupon code' });
+        if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.json({ valid: false, error: 'Coupon expired' });
+        if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) return res.json({ valid: false, error: 'Usage limit reached' });
+        res.json({ valid: true, coupon });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Apply coupon
+app.post('/api/coupons/apply', async (req, res) => {
+    try {
+        const { code, subtotal } = req.body;
+        const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code.toUpperCase()]);
+        if (!coupon) return res.status(400).json({ error: 'Invalid coupon code' });
+        if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.status(400).json({ error: 'Coupon expired' });
+        if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) return res.status(400).json({ error: 'Usage limit reached' });
+        if (coupon.min_order && subtotal < coupon.min_order) return res.status(400).json({ error: `Minimum order $${coupon.min_order} required` });
+        
+        let discount = 0;
+        if (coupon.type === 'percentage') discount = (subtotal * coupon.value) / 100;
+        else discount = coupon.value;
+        if (discount > subtotal) discount = subtotal;
+        
+        // Increment usage count
+        await executeQuery('UPDATE coupons SET used_count = used_count + 1 WHERE id = ?', [coupon.id]);
+        
+        res.json({ success: true, discount, finalTotal: subtotal - discount, couponCode: coupon.code });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 // ============================================
 // START SERVER
 // ============================================
