@@ -810,8 +810,8 @@ app.get('/api/coupons/validate/:code', async (req, res) => {
     const code = req.params.code.toUpperCase();
     const coupon = await executeGet('SELECT * FROM coupons WHERE code = ?', [code]);
     if (!coupon) return res.json({ valid: false, error: 'Invalid coupon code' });
-    if (coupon.expires_at && [datetime]::ParseExact(coupon.expires_at,'yyyy-MM-dd', $null) -lt (Get-Date)) return res.json({ valid: false, error: 'Coupon expired' });
-    if (coupon.usage_limit && coupon.used_count -ge coupon.usage_limit) return res.json({ valid: false, error: 'Coupon usage limit reached' });
+    if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) return res.json({ valid: false, error: 'Coupon expired' });
+    if (coupon.usage_limit && coupon.used_count >= coupon.usage_limit) return res.json({ valid: false, error: 'Coupon usage limit reached' });
     res.json({ valid: true, coupon });
 });
 
