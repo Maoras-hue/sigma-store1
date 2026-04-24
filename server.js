@@ -36,24 +36,15 @@ app.use(cookieParser());
 app.use('/uploads', express.static('uploads'));
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
 app.use(express.static('admin'));
+app.use(express.static('frontend'));
 
-// Create uploads folder
-if (!fs.existsSync('uploads')) {
-    fs.mkdirSync('uploads');
-}
-
-// ============================================
-// SESSION STORAGE
-// ============================================
-const sessions = {};
-
-function getUserFromToken(token) {
-    if (!token || !sessions[token]) return null;
-    if (sessions[token].expires < Date.now()) {
-        delete sessions[token];
-        return null;
+// Create necessary directories
+const dirs = ['./uploads', './uploads/profiles', './admin'];
+for (const dir of dirs) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log('Created directory:', dir);
     }
-    return sessions[token];
 }
 
 // ============================================
@@ -61,9 +52,30 @@ function getUserFromToken(token) {
 // ============================================
 connectDB();
 
-// Create products table if not exists
+// Create all tables
 (async function initDatabase() {
     try {
+        // Users table
+        await executeQuery(`CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE,
+            name TEXT,
+            password TEXT,
+            profile_picture TEXT,
+            created_at TEXT
+        )`);
+        console.log('Users table ready');
+        
+        // Sessions table
+        await executeQuery(`CREATE TABLE IF NOT EXISTS sessions (
+            token TEXT PRIMARY KEY,
+            user_id TEXT,
+            expires INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+        console.log('Sessions table ready');
+        
+        // Products table
         await executeQuery(`CREATE TABLE IF NOT EXISTS products (
             id TEXT PRIMARY KEY,
             name TEXT,
@@ -75,15 +87,7 @@ connectDB();
         )`);
         console.log('Products table ready');
         
-        await executeQuery(`CREATE TABLE IF NOT EXISTS users (
-            id TEXT PRIMARY KEY,
-            email TEXT UNIQUE,
-            name TEXT,
-            password TEXT,
-            created_at TEXT
-        )`);
-        console.log('Users table ready');
-        
+        // Orders table
         await executeQuery(`CREATE TABLE IF NOT EXISTS orders (
             order_id TEXT PRIMARY KEY,
             user_id TEXT,
@@ -101,6 +105,7 @@ connectDB();
         )`);
         console.log('Orders table ready');
         
+        // Chat messages table
         await executeQuery(`CREATE TABLE IF NOT EXISTS chat_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
@@ -115,6 +120,60 @@ connectDB();
         console.error('Database init error:', error.message);
     }
 })();
+
+// ============================================
+// SESSION FUNCTIONS - DATABASE BASED
+// ============================================
+
+async function saveSession(token, userId, expires) {
+    try {
+        await executeQuery(
+            'INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
+            [token, userId, expires]
+        );
+        console.log('Session saved for user:', userId);
+    } catch (error) {
+        console.error('Save session error:', error);
+    }
+}
+
+async function getUserFromToken(token) {
+    if (!token) return null;
+    
+    try {
+        const sessions = await executeQuery(
+            'SELECT * FROM sessions WHERE token = ? AND expires > ?',
+            [token, Date.now()]
+        );
+        
+        if (sessions.length === 0) return null;
+        
+        return { userId: sessions[0].user_id };
+    } catch (error) {
+        console.error('Get user from token error:', error);
+        return null;
+    }
+}
+
+async function deleteSession(token) {
+    try {
+        await executeQuery('DELETE FROM sessions WHERE token = ?', [token]);
+    } catch (error) {
+        console.error('Delete session error:', error);
+    }
+}
+
+async function cleanExpiredSessions() {
+    try {
+        const result = await executeQuery('DELETE FROM sessions WHERE expires < ?', [Date.now()]);
+        console.log('Cleaned expired sessions');
+    } catch (error) {
+        console.error('Clean sessions error:', error);
+    }
+}
+
+// Run cleanup every hour
+setInterval(cleanExpiredSessions, 60 * 60 * 1000);
 
 // ============================================
 // TEST ROUTE
@@ -153,15 +212,15 @@ app.post('/api/signup', async (req, res) => {
             email: email,
             name: userName,
             password: hashedPassword,
+            profile_picture: null,
             created_at: new Date().toISOString()
         });
         
         const token = userId + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         const expiryDays = remember ? 30 : 7;
-        sessions[token] = {
-            userId: userId,
-            expires: Date.now() + (expiryDays * 24 * 60 * 60 * 1000)
-        };
+        const expires = Date.now() + (expiryDays * 24 * 60 * 60 * 1000);
+        
+        await saveSession(token, userId, expires);
         
         res.json({
             success: true,
@@ -195,10 +254,9 @@ app.post('/api/login', async (req, res) => {
         
         const token = user.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         const expiryDays = remember ? 30 : 7;
-        sessions[token] = {
-            userId: user.id,
-            expires: Date.now() + (expiryDays * 24 * 60 * 60 * 1000)
-        };
+        const expires = Date.now() + (expiryDays * 24 * 60 * 60 * 1000);
+        
+        await saveSession(token, user.id, expires);
         
         res.json({
             success: true,
@@ -211,17 +269,17 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-app.post('/api/logout', (req, res) => {
+app.post('/api/logout', async (req, res) => {
     const token = req.headers.authorization;
-    if (token && sessions[token]) {
-        delete sessions[token];
+    if (token) {
+        await deleteSession(token);
     }
     res.json({ success: true });
 });
 
 app.get('/api/me', async (req, res) => {
     const token = req.headers.authorization;
-    const session = getUserFromToken(token);
+    const session = await getUserFromToken(token);
     
     if (!session) {
         return res.status(401).json({ error: 'Not logged in' });
@@ -233,102 +291,205 @@ app.get('/api/me', async (req, res) => {
         return res.status(401).json({ error: 'User not found' });
     }
     
-    res.json({ user: { id: user.id, email: user.email, name: user.name } });
+    res.json({ user: { id: user.id, email: user.email, name: user.name, profile_picture: user.profile_picture } });
 });
 
 // ============================================
-// PRODUCT ROUTES - PERSISTENT STORAGE
+// PROFILE ROUTES
 // ============================================
 
-// Get all products from database
-app.get('/api/products', async (req, res) => {
+app.get('/api/profile', async (req, res) => {
     try {
-        const products = await findAll('products');
-        console.log('Products loaded from DB:', products.length);
-        res.json(products);
+        const token = req.headers.authorization;
+        const session = await getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const user = await findOne('users', 'id', session.userId);
+        
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                profile_picture: user.profile_picture,
+                created_at: user.created_at
+            }
+        });
     } catch (error) {
-        console.error('Error fetching products:', error);
+        console.error('Profile error:', error);
         res.status(500).json({ error: 'Server error' });
     }
 });
 
-// Image upload setup
-const storage = multer.diskStorage({
-    destination: function(req, file, cb) { cb(null, 'uploads/'); },
-    filename: function(req, file, cb) { cb(null, Date.now() + '-' + file.originalname); }
-});
-const upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } });
-
-// Add product - SAVES TO DATABASE PERMANENTLY
-app.post('/api/products', upload.single('image'), async (req, res) => {
+app.put('/api/profile', async (req, res) => {
     try {
-        const { name, price, category, stock, imageUrl } = req.body;
+        const token = req.headers.authorization;
+        const session = await getUserFromToken(token);
         
-        if (!name || !price) {
-            return res.status(400).json({ error: 'Name and price required' });
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
         }
         
-        const productId = 'p' + Date.now();
-        let image = req.file ? req.file.filename : (imageUrl || null);
+        const { name, email } = req.body;
+        const updates = {};
+        if (name) updates.name = name;
+        if (email) updates.email = email;
         
-        // SAVE TO DATABASE - PERMANENT
-        await insertOne('products', {
-            id: productId,
-            name: name,
-            price: parseFloat(price),
-            category: category || 'digital',
-            image: image,
-            stock: stock || 999,
-            created_at: new Date().toISOString()
+        await updateOne('users', session.userId, 'id', updates);
+        
+        const updatedUser = await findOne('users', 'id', session.userId);
+        
+        res.json({
+            success: true,
+            user: {
+                id: updatedUser.id,
+                name: updatedUser.name,
+                email: updatedUser.email
+            }
         });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.put('/api/change-password', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = await getUserFromToken(token);
         
-        console.log('Product SAVED to database:', name, 'ID:', productId);
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
         
-        // Return the new product so frontend can add it immediately
+        const { currentPassword, newPassword } = req.body;
+        
+        const user = await findOne('users', 'id', session.userId);
+        
+        const validPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await updateOne('users', session.userId, 'id', { password: hashedPassword });
+        
+        res.json({ success: true, message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ============================================
+// PROFILE PICTURE ROUTES
+// ============================================
+
+// Configure multer for profile pictures
+const profileStorage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        const profileDir = path.join(__dirname, 'uploads', 'profiles');
+        if (!fs.existsSync(profileDir)) {
+            fs.mkdirSync(profileDir, { recursive: true });
+        }
+        cb(null, profileDir);
+    },
+    filename: function(req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, 'profile-' + uniqueSuffix + ext);
+    }
+});
+
+const profileUpload = multer({ 
+    storage: profileStorage,
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: function(req, file, cb) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images allowed'));
+        }
+    }
+});
+
+app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = await getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        
+        const profilePictureUrl = '/uploads/profiles/' + req.file.filename;
+        
+        await updateOne('users', session.userId, 'id', { profile_picture: profilePictureUrl });
+        
         res.json({ 
             success: true, 
-            product: { 
-                id: productId, 
-                name: name, 
-                price: parseFloat(price), 
-                category: category || 'digital',
-                image: image,
-                stock: stock || 999
-            } 
+            profilePicture: profilePictureUrl,
+            message: 'Profile picture updated successfully'
         });
     } catch (error) {
-        console.error('Error adding product:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Upload error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
 
-// Delete product from database
-app.delete('/api/products/:id', async (req, res) => {
+app.get('/api/profile-picture', async (req, res) => {
     try {
-        await deleteOne('products', 'id', req.params.id);
-        console.log('Product DELETED from database:', req.params.id);
-        res.json({ success: true });
-    } catch (error) {
-        console.error('Error deleting product:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// Update product image
-app.put('/api/products/:id', async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { image } = req.body;
+        const token = req.headers.authorization;
+        const session = await getUserFromToken(token);
         
-        if (image) {
-            await updateOne('products', id, 'id', { image: image });
-            res.json({ success: true, message: 'Image updated' });
-        } else {
-            res.status(400).json({ error: 'No image provided' });
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
         }
+        
+        const user = await findOne('users', 'id', session.userId);
+        
+        res.json({ 
+            profilePicture: user?.profile_picture || null,
+            hasPicture: !!(user?.profile_picture)
+        });
     } catch (error) {
-        console.error('Error updating product:', error);
-        res.status(500).json({ error: 'Server error' });
+        console.error('Get profile picture error:', error);
+        res.status(500).json({ error: 'Failed to get profile picture' });
+    }
+});
+
+app.delete('/api/profile-picture', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = await getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const user = await findOne('users', 'id', session.userId);
+        if (user?.profile_picture) {
+            const filePath = path.join(__dirname, user.profile_picture);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        }
+        
+        await updateOne('users', session.userId, 'id', { profile_picture: null });
+        
+        res.json({ success: true, message: 'Profile picture removed' });
+    } catch (error) {
+        console.error('Delete error:', error);
+        res.status(500).json({ error: 'Failed to delete profile picture' });
     }
 });
 
@@ -336,10 +497,37 @@ app.put('/api/products/:id', async (req, res) => {
 // ORDER ROUTES
 // ============================================
 
+app.get('/api/my-orders', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        const session = await getUserFromToken(token);
+        
+        if (!session) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const orders = await executeQuery(
+            'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
+            [session.userId]
+        );
+        
+        for (let order of orders) {
+            if (order.items && typeof order.items === 'string') {
+                order.items = JSON.parse(order.items);
+            }
+        }
+        
+        res.json({ success: true, orders: orders || [] });
+    } catch (error) {
+        console.error('My orders error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 app.post('/api/orders', async (req, res) => {
     try {
         const token = req.headers.authorization;
-        const session = getUserFromToken(token);
+        const session = await getUserFromToken(token);
         
         if (!session) {
             return res.status(401).json({ error: 'Please login to place order' });
@@ -392,6 +580,64 @@ app.get('/api/orders/:orderId', async (req, res) => {
 });
 
 // ============================================
+// PRODUCT ROUTES
+// ============================================
+
+app.get('/api/products', async (req, res) => {
+    try {
+        const products = await findAll('products');
+        res.json(products);
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+const storage = multer.diskStorage({
+    destination: function(req, file, cb) { cb(null, 'uploads/'); },
+    filename: function(req, file, cb) { cb(null, Date.now() + '-' + file.originalname); }
+});
+const upload = multer({ storage: storage, limits: { fileSize: 5 * 1024 * 1024 } });
+
+app.post('/api/products', upload.single('image'), async (req, res) => {
+    try {
+        const { name, price, category, stock, imageUrl } = req.body;
+        
+        if (!name || !price) {
+            return res.status(400).json({ error: 'Name and price required' });
+        }
+        
+        const productId = 'p' + Date.now();
+        let image = req.file ? req.file.filename : (imageUrl || null);
+        
+        await insertOne('products', {
+            id: productId,
+            name: name,
+            price: parseFloat(price),
+            category: category || 'digital',
+            image: image,
+            stock: stock || 999,
+            created_at: new Date().toISOString()
+        });
+        
+        res.json({ success: true, product: { id: productId, name: name, price: price } });
+    } catch (error) {
+        console.error('Error adding product:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+    try {
+        await deleteOne('products', 'id', req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ============================================
 // ADMIN ROUTES
 // ============================================
 
@@ -419,14 +665,12 @@ app.get('/api/admin/orders', async (req, res) => {
 });
 
 // ============================================
-// CHAT API ROUTES
+// CHAT ROUTES
 // ============================================
 
 app.post('/api/chat/save', async (req, res) => {
     try {
         const { userId, userName, message, isAdmin } = req.body;
-        console.log('Saving message from:', userName);
-        
         await executeQuery(
             'INSERT INTO chat_messages (user_id, user_name, message, is_admin) VALUES (?, ?, ?, ?)',
             [userId, userName, message, isAdmin ? 1 : 0]
@@ -440,10 +684,9 @@ app.post('/api/chat/save', async (req, res) => {
 
 app.get('/api/chat/history/:userId', async (req, res) => {
     try {
-        const userId = req.params.userId;
         const messages = await executeQuery(
             'SELECT * FROM chat_messages WHERE user_id = ? ORDER BY created_at ASC LIMIT 50',
-            [userId]
+            [req.params.userId]
         );
         res.json({ messages: messages || [] });
     } catch (error) {
@@ -465,6 +708,21 @@ app.get('/api/admin/chats', async (req, res) => {
         console.error('Admin chats error:', error);
         res.status(500).json({ error: error.message });
     }
+});
+
+// ============================================
+// NOTIFICATION FOR PRODUCT UPDATE
+// ============================================
+
+let lastProductUpdate = Date.now();
+
+app.post('/api/notify-shop-refresh', (req, res) => {
+    lastProductUpdate = Date.now();
+    res.json({ success: true });
+});
+
+app.get('/api/last-product-update', (req, res) => {
+    res.json({ lastUpdate: lastProductUpdate });
 });
 
 // ============================================
@@ -537,335 +795,9 @@ if (socketIo) {
 }
 
 // ============================================
-// EXPLICIT ROUTE FOR CHAT.HTML
-// ============================================
-app.get('/admin/chat.html', (req, res) => {
-    const filePath = path.join(__dirname, 'admin', 'chat.html');
-    if (fs.existsSync(filePath)) {
-        res.sendFile(filePath);
-    } else {
-        res.status(404).send('Chat page not found');
-    }
-});
-
-// ============================================
 // START SERVER
 // ============================================
-// Notify shop to refresh products
-let lastProductUpdate = Date.now();
 
-app.post('/api/notify-shop-refresh', (req, res) => {
-    lastProductUpdate = Date.now();
-    console.log('Product update notification sent to shop');
-    res.json({ success: true });
-});
-
-app.get('/api/last-product-update', (req, res) => {
-    res.json({ lastUpdate: lastProductUpdate });
-});
-
-// ============================================
-// PROFILE MANAGEMENT ROUTES
-// ============================================
-
-// Get user profile
-app.get('/api/profile', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        const session = getUserFromToken(token);
-        
-        if (!session) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const user = await findOne('users', 'id', session.userId);
-        
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        
-        res.json({
-            success: true,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                created_at: user.created_at
-            }
-        });
-    } catch (error) {
-        console.error('Profile error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// Update profile (name, email)
-app.put('/api/profile', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        const session = getUserFromToken(token);
-        
-        if (!session) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const { name, email } = req.body;
-        
-        if (!name && !email) {
-            return res.status(400).json({ error: 'Nothing to update' });
-        }
-        
-        const updates = {};
-        if (name) updates.name = name;
-        if (email) updates.email = email;
-        
-        await updateOne('users', session.userId, 'id', updates);
-        
-        // Update session user data
-        const updatedUser = await findOne('users', 'id', session.userId);
-        
-        res.json({
-            success: true,
-            user: {
-                id: updatedUser.id,
-                name: updatedUser.name,
-                email: updatedUser.email
-            }
-        });
-    } catch (error) {
-        console.error('Update profile error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// Change password
-app.put('/api/change-password', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        const session = getUserFromToken(token);
-        
-        if (!session) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const { currentPassword, newPassword } = req.body;
-        
-        if (!currentPassword || !newPassword) {
-            return res.status(400).json({ error: 'Current password and new password required' });
-        }
-        
-        if (newPassword.length < 6) {
-            return res.status(400).json({ error: 'New password must be at least 6 characters' });
-        }
-        
-        const user = await findOne('users', 'id', session.userId);
-        
-        const validPassword = await bcrypt.compare(currentPassword, user.password);
-        if (!validPassword) {
-            return res.status(401).json({ error: 'Current password is incorrect' });
-        }
-        
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await updateOne('users', session.userId, 'id', { password: hashedPassword });
-        
-        res.json({ success: true, message: 'Password changed successfully' });
-    } catch (error) {
-        console.error('Change password error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-
-// Get user orders
-app.get('/api/my-orders', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        const session = getUserFromToken(token);
-        
-        if (!session) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const orders = await executeQuery(
-            'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
-            [session.userId]
-        );
-        
-        for (let order of orders) {
-            if (order.items && typeof order.items === 'string') {
-                order.items = JSON.parse(order.items);
-            }
-        }
-        
-        res.json({ success: true, orders: orders || [] });
-    } catch (error) {
-        console.error('My orders error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
-// ============================================
-// PROFILE PICTURE UPLOAD
-// ============================================
-
-// Configure multer for profile pictures
-const profileStorage = multer.diskStorage({
-    destination: function(req, file, cb) {
-        const profileDir = path.join(__dirname, 'uploads', 'profiles');
-        if (!fs.existsSync(profileDir)) {
-            fs.mkdirSync(profileDir, { recursive: true });
-        }
-        cb(null, profileDir);
-    },
-    filename: function(req, file, cb) {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
-
-const profileUpload = multer({ 
-    storage: profileStorage,
-    limits: { fileSize: 2 * 1024 * 1024 }, // 2MB limit
-    fileFilter: function(req, file, cb) {
-        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only images allowed (JPEG, PNG, GIF, WEBP)'));
-        }
-    }
-});
-
-// Upload profile picture
-app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        const session = getUserFromToken(token);
-        
-        if (!session) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-        
-        const profilePictureUrl = `/uploads/profiles/${req.file.filename}`;
-        
-        await updateOne('users', session.userId, 'id', { profile_picture: profilePictureUrl });
-        
-        res.json({ 
-            success: true, 
-            profilePicture: profilePictureUrl,
-            message: 'Profile picture updated successfully'
-        });
-    } catch (error) {
-        console.error('Upload error:', error);
-        res.status(500).json({ error: 'Failed to upload profile picture' });
-    }
-});
-
-// Get profile picture
-app.get('/api/profile-picture', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        const session = getUserFromToken(token);
-        
-        if (!session) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const user = await findOne('users', 'id', session.userId);
-        
-        res.json({ 
-            profilePicture: user?.profile_picture || null,
-            hasPicture: !!user?.profile_picture
-        });
-    } catch (error) {
-        console.error('Get profile picture error:', error);
-        res.status(500).json({ error: 'Failed to get profile picture' });
-    }
-});
-
-// Delete profile picture
-app.delete('/api/profile-picture', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        const session = getUserFromToken(token);
-        
-        if (!session) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        // Get current picture to delete file
-        const user = await findOne('users', 'id', session.userId);
-        if (user?.profile_picture) {
-            const filePath = path.join(__dirname, user.profile_picture);
-            if (fs.existsSync(filePath)) {
-                fs.unlinkSync(filePath);
-            }
-        }
-        
-        await updateOne('users', session.userId, 'id', { profile_picture: null });
-        
-        res.json({ success: true, message: 'Profile picture removed' });
-    } catch (error) {
-        console.error('Delete error:', error);
-        res.status(500).json({ error: 'Failed to delete profile picture' });
-    }
-});
-// Upload profile picture
-app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
-    console.log('=== UPLOAD REQUEST RECEIVED ===');
-    console.log('Headers:', req.headers);
-    console.log('File:', req.file);
-    console.log('Body:', req.body);
-    
-    try {
-        const token = req.headers.authorization;
-        console.log('Token received:', token ? 'Yes' : 'No');
-        
-        if (!token) {
-            console.log('No token provided');
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const session = getUserFromToken(token);
-        console.log('Session found:', session ? 'Yes' : 'No');
-        
-        if (!session) {
-            console.log('Invalid session');
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        if (!req.file) {
-            console.log('No file uploaded');
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-        
-        console.log('File saved:', req.file.filename);
-        
-        const profilePictureUrl = '/uploads/profiles/' + req.file.filename;
-        
-        await updateOne('users', session.userId, 'id', { profile_picture: profilePictureUrl });
-        
-        console.log('Profile picture updated for user:', session.userId);
-        
-        res.json({ 
-            success: true, 
-            profilePicture: profilePictureUrl,
-            message: 'Profile picture updated successfully'
-        });
-    } catch (error) {
-        console.error('Upload error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});// Create necessary directories
-const dirs = ['./uploads', './uploads/profiles', './admin'];
-for (const dir of dirs) {
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-        console.log('Created directory:', dir);
-    }
-}
 server.listen(PORT, () => {
     console.log('========================================');
     console.log('SIGMA STORE IS RUNNING!');
@@ -876,5 +808,6 @@ server.listen(PORT, () => {
     console.log('Chat: http://localhost:' + PORT + '/admin/chat.html');
     console.log('Database: ' + (DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite'));
     console.log('Socket.io: ' + (socketIo ? 'Enabled' : 'Disabled'));
+    console.log('Sessions: Database based');
     console.log('========================================');
 });
