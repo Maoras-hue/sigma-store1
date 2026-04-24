@@ -152,6 +152,23 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Reviews table ready');
         
+        // Visitors table
+        await executeQuery(`CREATE TABLE IF NOT EXISTS visitors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            user_name TEXT,
+            user_email TEXT,
+            ip_address TEXT,
+            city TEXT,
+            country TEXT,
+            device TEXT,
+            browser TEXT,
+            page_visited TEXT,
+            referrer TEXT,
+            visited_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+        console.log('Visitors table ready');
+        
         // Insert default products if table is empty
         const productCount = await executeGet('SELECT COUNT(*) as count FROM products');
         if (productCount.count === 0) {
@@ -224,7 +241,7 @@ app.get('/admin', (req, res) => {
 
 app.post('/api/admin/login', (req, res) => {
     const { password } = req.body;
-    const ADMIN_PASSWORD = 'sigma123';
+    const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'sigma123';
     if (password === ADMIN_PASSWORD) {
         res.json({ success: true });
     } else {
@@ -254,7 +271,7 @@ app.post('/api/signup', async (req, res) => {
             [userId, email, name || email.split('@')[0], hashedPassword, createdAt]
         );
         const token = uuidv4();
-        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000); // 10 years
+        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000);
         await executeQuery('INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)', [token, userId, expires]);
         res.json({ success: true, token: token, user: { id: userId, email: email, name: name || email.split('@')[0] } });
     } catch (error) {
@@ -279,7 +296,7 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
         const token = uuidv4();
-        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000); // 10 years
+        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000);
         await executeQuery('INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)', [token, user.id, expires]);
         res.json({ success: true, token: token, user: { id: user.id, email: user.email, name: user.name, profile_picture: user.profile_picture } });
     } catch (error) {
@@ -482,9 +499,9 @@ app.post('/api/orders', async (req, res) => {
     const orderId = uuidv4();
     const createdAt = new Date().toISOString();
     await executeQuery(
-        `INSERT INTO orders (order_id, user_id, user_email, items, subtotal, shipping, total, notes, status, created_at) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [orderId, session.user_id, user.email, JSON.stringify(items), subtotal, shipping, total, notes, 'pending', createdAt]
+        `INSERT INTO orders (order_id, user_id, user_email, items, subtotal, shipping, total, notes, status, payment_method, payment_id, payment_status, created_at) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [orderId, session.user_id, user.email, JSON.stringify(items), subtotal, shipping, total, notes, 'pending', null, null, null, createdAt]
     );
     res.json({ success: true, orderId: orderId });
 });
@@ -502,7 +519,7 @@ app.get('/api/orders', async (req, res) => {
 });
 
 // ============================================
-// PRODUCT ROUTES - SAVE TO DATABASE
+// PRODUCT ROUTES
 // ============================================
 app.get('/api/products', async (req, res) => {
     try {
@@ -655,13 +672,7 @@ app.get('/api/last-product-update', (req, res) => {
 });
 
 // ============================================
-// FALLBACK ROUTE
-// ============================================
-app.get('*', (req, res) => {
-    res.status(404).json({ error: 'Route not found' });
-});
-// ============================================
-// VISITOR TRACKING API
+// VISITOR TRACKING ROUTES
 // ============================================
 
 // Save visitor info
@@ -669,11 +680,9 @@ app.post('/api/visitor/track', async (req, res) => {
     try {
         const { user_id, user_name, user_email, page, referrer } = req.body;
         
-        // Get IP address
         let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
         ip = ip.replace('::ffff:', '');
         
-        // Get browser and device info from user-agent
         const userAgent = req.headers['user-agent'] || '';
         let browser = 'Unknown';
         let device = 'Unknown';
@@ -728,6 +737,14 @@ app.get('/api/admin/visitors/stats', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+
+// ============================================
+// FALLBACK ROUTE
+// ============================================
+app.get('*', (req, res) => {
+    res.status(404).json({ error: 'Route not found' });
+});
+
 // ============================================
 // START SERVER
 // ============================================
@@ -736,8 +753,8 @@ app.listen(PORT, () => {
     console.log('SIGMA STORE BACKEND RUNNING');
     console.log('========================================');
     console.log(`Port: ${PORT}`);
-    console.log(`Test: https://sigma-store-api.onrender.com/api/test`);
-    console.log(`Admin: https://sigma-store-api.onrender.com/admin.html`);
+    console.log(`Test: http://localhost:${PORT}/api/test`);
+    console.log(`Admin: http://localhost:${PORT}/admin.html`);
     console.log(`Admin Password: sigma123`);
     console.log('========================================');
 });
