@@ -8,7 +8,11 @@ let searchTerm = '';
 let currentSort = 'default';
 let priceMin = 0;
 let priceMax = 1000;
+let minRating = 0;
 let productRatings = {};
+let currentPage = 1;
+let itemsPerPage = 6;
+let allFilteredProducts = [];
 
 const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
 
@@ -16,7 +20,6 @@ const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
 // LOAD PRODUCTS FROM BACKEND
 // ============================================
 async function loadProducts() {
-    console.log('Loading products from:', API_URL);
     const grid = document.getElementById('productsGrid');
     if (grid) grid.innerHTML = '<div class="spinner"></div>';
     
@@ -25,75 +28,162 @@ async function loadProducts() {
         if (!response.ok) throw new Error('Failed to fetch products');
         products = await response.json();
         console.log('Products loaded:', products.length);
-        renderProducts();
+        
+        await loadProductRatings();
+        applyFiltersAndSort();
         renderRecentlyViewed();
-        updateProductCount();
     } catch (error) {
         console.error('Error loading products:', error);
-        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">Cannot load products. Please try again later.</p>';
+        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">❌ Cannot load products. Please try again later.</p>';
     }
 }
 
-// Update product count in UI
-function updateProductCount() {
-    const countElement = document.getElementById('productCount');
-    if (countElement) countElement.innerText = products.length + ' products';
-}
-
-// ============================================
-// AUTO-REFRESH PRODUCTS
-// ============================================
-
-let lastUpdateCheck = Date.now();
-
-async function refreshProductsFromServer() {
-    console.log('Checking for product updates...');
-    try {
-        const response = await fetch(`${API_URL}/api/products`);
-        if (!response.ok) throw new Error('Failed to fetch');
-        const newProducts = await response.json();
-        
-        // Check if products changed
-        if (JSON.stringify(products) !== JSON.stringify(newProducts)) {
-            products = newProducts;
-            console.log('Products updated! New count:', products.length);
-            renderProducts();
-            renderRecentlyViewed();
-            updateProductCount();
-            showToast('Products updated!', 'info');
+// Load average ratings for all products
+async function loadProductRatings() {
+    for (let i = 0; i < products.length; i++) {
+        try {
+            const response = await fetch(`${API_URL}/api/products/${products[i].id}/rating`);
+            const data = await response.json();
+            productRatings[products[i].id] = data.averageRating || 0;
+        } catch(e) {
+            productRatings[products[i].id] = 0;
         }
-    } catch (error) {
-        console.error('Auto-refresh error:', error);
     }
 }
 
-async function checkForAdminUpdates() {
-    try {
-        const response = await fetch(`${API_URL}/api/last-product-update`);
-        const data = await response.json();
+// Apply all filters and sorting
+function applyFiltersAndSort() {
+    let filtered = [...products];
+    
+    // Category filter
+    if (currentFilter !== 'all') {
+        filtered = filtered.filter(p => p.category === currentFilter);
+    }
+    
+    // Search filter
+    if (searchTerm.trim()) {
+        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+    
+    // Price range filter
+    filtered = filtered.filter(p => p.price >= priceMin && p.price <= priceMax);
+    
+    // Rating filter
+    if (minRating > 0) {
+        filtered = filtered.filter(p => (productRatings[p.id] || 0) >= minRating);
+    }
+    
+    // Sort
+    if (currentSort === 'priceLow') {
+        filtered.sort((a, b) => a.price - b.price);
+    } else if (currentSort === 'priceHigh') {
+        filtered.sort((a, b) => b.price - a.price);
+    } else if (currentSort === 'newest') {
+        filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } else if (currentSort === 'oldest') {
+        filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+    } else if (currentSort === 'ratingHigh') {
+        filtered.sort((a, b) => (productRatings[b.id] || 0) - (productRatings[a.id] || 0));
+    } else if (currentSort === 'nameAZ') {
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (currentSort === 'nameZA') {
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
+    }
+    
+    allFilteredProducts = filtered;
+    currentPage = 1;
+    renderProductsWithPagination();
+}
+
+// Render products with pagination
+function renderProductsWithPagination() {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const paginatedProducts = allFilteredProducts.slice(start, end);
+    
+    renderProductGrid(paginatedProducts);
+    renderPagination();
+}
+
+// Render product grid
+function renderProductGrid(productsToRender) {
+    const grid = document.getElementById('productsGrid');
+    if (!grid) return;
+    
+    if (allFilteredProducts.length === 0) {
+        grid.innerHTML = '<p style="text-align:center;padding:40px;">No products found</p>';
+        return;
+    }
+    
+    grid.innerHTML = productsToRender.map(p => {
+        const heartColor = isInWishlist(p.id) ? '#e05a2a' : '#ccc';
+        const imageSrc = getProductImage(p);
+        const rating = productRatings[p.id] || 0;
+        const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
         
-        if (data.lastUpdate > lastUpdateCheck) {
-            console.log('Admin made changes, refreshing...');
-            lastUpdateCheck = data.lastUpdate;
-            await refreshProductsFromServer();
-        }
-    } catch(e) {
-        // Silently fail - admin notification endpoint might not exist
-    }
+        return `
+            <div class="product-card" onclick="addToRecentlyViewed('${p.id}')">
+                <div style="position:relative;">
+                    <img src="${imageSrc}" class="product-image" onerror="this.src='https://placehold.co/400x300/ff6b6b/white?text=Image+Error'" loading="lazy">
+                    <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" style="position:absolute;top:10px;right:10px;background:white;border:none;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
+                        <span style="color:${heartColor};">♥</span>
+                    </button>
+                </div>
+                <div class="product-info">
+                    <div class="product-title">${escapeHtml(p.name)}</div>
+                    <div class="product-rating">
+                        <span class="stars">${stars}</span>
+                        <span class="rating-count">(${rating.toFixed(1)})</span>
+                    </div>
+                    <div class="product-price">$${p.price}</div>
+                    <button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${escapeHtml(p.name)}',${p.price})">Add to Cart</button>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
-// Auto-refresh every 10 seconds
-setInterval(refreshProductsFromServer, 10000);
-
-// Check for admin updates every 5 seconds
-setInterval(checkForAdminUpdates, 5000);
-
-// Refresh when page becomes visible again
-document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-        refreshProductsFromServer();
+// Render pagination controls
+function renderPagination() {
+    const totalPages = Math.ceil(allFilteredProducts.length / itemsPerPage);
+    const paginationDiv = document.getElementById('pagination');
+    
+    if (!paginationDiv || totalPages <= 1) {
+        if (paginationDiv) paginationDiv.innerHTML = '';
+        return;
     }
-});
+    
+    let html = '';
+    
+    // Previous button
+    if (currentPage > 1) {
+        html += `<button onclick="goToPage(${currentPage - 1})" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer;">← Prev</button>`;
+    }
+    
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === currentPage) {
+            html += `<button style="padding:8px 12px;border-radius:8px;background:#e05a2a;color:white;border:none;cursor:pointer;">${i}</button>`;
+        } else if (Math.abs(i - currentPage) <= 2 || i === 1 || i === totalPages) {
+            html += `<button onclick="goToPage(${i})" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer;">${i}</button>`;
+        } else if (Math.abs(i - currentPage) === 3) {
+            html += `<span style="padding:8px 4px;">...</span>`;
+        }
+    }
+    
+    // Next button
+    if (currentPage < totalPages) {
+        html += `<button onclick="goToPage(${currentPage + 1})" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer;">Next →</button>`;
+    }
+    
+    paginationDiv.innerHTML = html;
+}
+
+function goToPage(page) {
+    currentPage = page;
+    renderProductsWithPagination();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
 // ============================================
 // SHOW TOAST NOTIFICATION
@@ -104,7 +194,7 @@ function showToast(message, type = 'success') {
     toast.style.cssText = `
         position: fixed;
         bottom: 20px;
-        left: 20px;
+        right: 20px;
         background: ${type === 'success' ? '#111' : '#e05a2a'};
         color: white;
         padding: 12px 24px;
@@ -145,27 +235,8 @@ function addToCart(id, name, price) {
         cart.push({ id, name, price, quantity: 1 });
     }
     saveCart(cart);
-    showToast(`${name} added to cart`);
+    showToast(`✓ ${name} added to cart`);
     pulseCart();
-}
-
-function updateQty(id, delta) {
-    let cart = getCart();
-    const index = cart.findIndex(i => i.id === id);
-    if (index !== -1) {
-        cart[index].quantity += delta;
-        if (cart[index].quantity < 1) cart.splice(index, 1);
-        saveCart(cart);
-        if (typeof renderCart === 'function') renderCart();
-    }
-}
-
-function removeItem(id) {
-    let cart = getCart();
-    cart = cart.filter(i => i.id !== id);
-    saveCart(cart);
-    if (typeof renderCart === 'function') renderCart();
-    showToast('Item removed from cart');
 }
 
 function pulseCart() {
@@ -197,7 +268,7 @@ function toggleWishlist(productId) {
         showToast('Added to wishlist');
     }
     saveWishlist(wishlist);
-    renderProducts();
+    applyFiltersAndSort();
 }
 
 function isInWishlist(productId) {
@@ -256,7 +327,10 @@ function getProductImage(product) {
     if (product.image.startsWith('http')) {
         return product.image;
     }
-    return `${API_URL}/uploads/${product.image}`;
+    if (product.image.startsWith('/uploads/')) {
+        return API_URL + product.image;
+    }
+    return API_URL + '/uploads/' + product.image;
 }
 
 function escapeHtml(str) {
@@ -270,133 +344,96 @@ function escapeHtml(str) {
 }
 
 // ============================================
-// RENDER PRODUCTS GRID
-// ============================================
-function renderProducts() {
-    const grid = document.getElementById('productsGrid');
-    if (!grid) return;
-    
-    if (products.length === 0) {
-        grid.innerHTML = '<p style="text-align:center;padding:40px;">Loading products...</p>';
-        return;
-    }
-    
-    let filtered = [...products];
-    
-    if (currentFilter !== 'all') {
-        filtered = filtered.filter(p => p.category === currentFilter);
-    }
-    
-    if (searchTerm.trim()) {
-        filtered = filtered.filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()));
-    }
-    
-    if (currentSort === 'priceLow') {
-        filtered.sort((a, b) => a.price - b.price);
-    } else if (currentSort === 'priceHigh') {
-        filtered.sort((a, b) => b.price - a.price);
-    }
-    
-    if (filtered.length === 0) {
-        grid.innerHTML = '<p style="text-align:center;padding:40px;">No products found</p>';
-        return;
-    }
-    
-    grid.innerHTML = filtered.map(p => {
-        const heartColor = isInWishlist(p.id) ? '#e05a2a' : '#ccc';
-        const imageSrc = getProductImage(p);
-        
-        return `
-            <div class="product-card" onclick="addToRecentlyViewed('${p.id}')">
-                <div style="position:relative;">
-                    <img src="${imageSrc}" class="product-image" onerror="this.src='https://placehold.co/400x300/ff6b6b/white?text=Image+Error'" loading="lazy">
-                    <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" style="position:absolute;top:10px;right:10px;background:white;border:none;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-                        <span style="color:${heartColor};">♥</span>
-                    </button>
-                </div>
-                <div class="product-info">
-                    <div class="product-title">${escapeHtml(p.name)}</div>
-const rating = productRatings[p.id] || 0;
-const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
-filtered = filtered.filter(p => p.price >= priceMin && p.price <= priceMax);
-                    <div class="product-price">$${p.price}</div>
-                    <button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${escapeHtml(p.name)}',${p.price})">Add to Cart</button>
-<div style="display: flex; align-items: center; gap: 0.25rem; margin: 0.25rem 0;">
-    <span style="font-size: 12px; color: #ffc107;">${stars}</span>
-    <span style="font-size: 10px; color: #888;">(${rating.toFixed(1)})</span>
-</div>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-// Load average ratings for all products
-async function loadProductRatings() {
-    try {
-        for (let i = 0; i < products.length; i++) {
-            const response = await fetch(`${API_URL}/api/products/${products[i].id}/rating`);
-            const data = await response.json();
-            productRatings[products[i].id] = data.averageRating || 0;
-        }
-    } catch(e) {
-        console.error('Error loading ratings:', e);
-    }
-}
-// Inside renderProducts function, after search filter, update the sorting section:
-
-if (currentSort === 'priceLow') {
-    filtered.sort((a, b) => a.price - b.price);
-} else if (currentSort === 'priceHigh') {
-    filtered.sort((a, b) => b.price - a.price);
-} else if (currentSort === 'newest') {
-    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-} else if (currentSort === 'oldest') {
-    filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-} else if (currentSort === 'ratingHigh') {
-    filtered.sort((a, b) => (productRatings[b.id] || 0) - (productRatings[a.id] || 0));
-} else if (currentSort === 'nameAZ') {
-    filtered.sort((a, b) => a.name.localeCompare(b.name));
-} else if (currentSort === 'nameZA') {
-    filtered.sort((a, b) => b.name.localeCompare(a.name));
-}
-// ============================================
 // FILTER AND SORT EVENT LISTENERS
 // ============================================
 function setupEventListeners() {
+    // Search input
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             searchTerm = e.target.value;
-            renderProducts();
+            applyFiltersAndSort();
         });
     }
     
+    // Clear search
     const clearBtn = document.getElementById('clearSearch');
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
             if (searchInput) searchInput.value = '';
             searchTerm = '';
-            renderProducts();
+            applyFiltersAndSort();
         });
     }
     
+    // Sort select
     const sortSelect = document.getElementById('sortBy');
     if (sortSelect) {
         sortSelect.addEventListener('change', (e) => {
             currentSort = e.target.value;
-            renderProducts();
+            applyFiltersAndSort();
         });
     }
     
+    // Category filters
     document.querySelectorAll('.filter-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
             btn.classList.add('active');
             currentFilter = btn.dataset.filter;
-            renderProducts();
+            applyFiltersAndSort();
         });
     });
     
+    // Price range filters
+    const priceSlider = document.getElementById('priceSlider');
+    const priceMinInput = document.getElementById('priceMin');
+    const priceMaxInput = document.getElementById('priceMax');
+    const applyPriceFilter = document.getElementById('applyPriceFilter');
+    const clearPriceFilter = document.getElementById('clearPriceFilter');
+    
+    if (priceSlider) {
+        priceSlider.addEventListener('input', function(e) {
+            const value = parseInt(e.target.value);
+            priceMinInput.value = 0;
+            priceMaxInput.value = value;
+            priceMin = 0;
+            priceMax = value;
+            applyFiltersAndSort();
+        });
+    }
+    
+    if (applyPriceFilter) {
+        applyPriceFilter.addEventListener('click', function() {
+            priceMin = parseInt(priceMinInput.value) || 0;
+            priceMax = parseInt(priceMaxInput.value) || 1000;
+            if (priceSlider) priceSlider.value = priceMax;
+            applyFiltersAndSort();
+        });
+    }
+    
+    if (clearPriceFilter) {
+        clearPriceFilter.addEventListener('click', function() {
+            priceMin = 0;
+            priceMax = 1000;
+            priceMinInput.value = 0;
+            priceMaxInput.value = 1000;
+            if (priceSlider) priceSlider.value = 1000;
+            applyFiltersAndSort();
+        });
+    }
+    
+    // Rating filters
+    document.querySelectorAll('.rating-option').forEach(option => {
+        option.addEventListener('click', function() {
+            document.querySelectorAll('.rating-option').forEach(o => o.classList.remove('active'));
+            this.classList.add('active');
+            minRating = parseInt(this.dataset.rating) || 0;
+            applyFiltersAndSort();
+        });
+    });
+    
+    // Dark mode
     const darkToggle = document.getElementById('darkToggle');
     if (darkToggle) {
         darkToggle.addEventListener('click', () => {
@@ -409,43 +446,6 @@ function setupEventListeners() {
             darkToggle.innerText = '☀️';
         }
     }
-}
-// Price range filter
-const priceSlider = document.getElementById('priceSlider');
-const priceMinInput = document.getElementById('priceMin');
-const priceMaxInput = document.getElementById('priceMax');
-const applyPriceFilter = document.getElementById('applyPriceFilter');
-const clearPriceFilter = document.getElementById('clearPriceFilter');
-
-if (priceSlider) {
-    priceSlider.addEventListener('input', function(e) {
-        const value = parseInt(e.target.value);
-        priceMinInput.value = 0;
-        priceMaxInput.value = value;
-        priceMin = 0;
-        priceMax = value;
-        renderProducts();
-    });
-}
-
-if (applyPriceFilter) {
-    applyPriceFilter.addEventListener('click', function() {
-        priceMin = parseInt(priceMinInput.value) || 0;
-        priceMax = parseInt(priceMaxInput.value) || 1000;
-        if (priceSlider) priceSlider.value = priceMax;
-        renderProducts();
-    });
-}
-
-if (clearPriceFilter) {
-    clearPriceFilter.addEventListener('click', function() {
-        priceMin = 0;
-        priceMax = 1000;
-        priceMinInput.value = 0;
-        priceMaxInput.value = 1000;
-        if (priceSlider) priceSlider.value = 1000;
-        renderProducts();
-    });
 }
 
 // ============================================
@@ -460,10 +460,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Make functions global
 window.addToCart = addToCart;
-window.updateQty = updateQty;
-window.removeItem = removeItem;
 window.toggleWishlist = toggleWishlist;
-window.refreshProductsFromServer = refreshProductsFromServer;
-window.showConfetti = function() {
-    console.log('Confetti!');
-};
+window.goToPage = goToPage;
+window.addToRecentlyViewed = addToRecentlyViewed;

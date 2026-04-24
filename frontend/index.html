@@ -5,7 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sigma — Shop</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Google tag (gtag.js) -->
+    <style>
+        /* Additional styles for new features */
+        .price-range-container {
+            margin: 1rem 0;
+            padding: 0.5rem 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+        .price-range-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .price-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .price-input input {
+            width: 80px;
+            padding: 5px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .price-slider {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .filter-btn-sm {
+            background: #e05a2a;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .filter-btn-sm.clear {
+            background: #666;
+        }
+        .rating-filter {
+            margin: 1rem 0;
+            padding: 0.5rem 0;
+        }
+        .rating-stars-filter {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        .rating-option {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: #f0f0f0;
+            font-size: 12px;
+        }
+        .rating-option.active {
+            background: #e05a2a;
+            color: white;
+        }
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin: 0.25rem 0;
+        }
+        .stars {
+            font-size: 12px;
+            color: #ffc107;
+        }
+        .rating-count {
+            font-size: 10px;
+            color: #888;
+        }
+        body.dark .rating-option {
+            background: #334155;
+            color: #e2e8f0;
+        }
+        body.dark .price-input input {
+            background: #334155;
+            border-color: #475569;
+            color: white;
+        }
+    </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -15,405 +101,128 @@
     </script>
 </head>
 <body>
-    <!-- WhatsApp fixed button -->
-    <a href="https://wa.me/923001234567?text=Hi%21%20I%20have%20a%20question" 
-       style="position:fixed; top:80px; left:15px; background-color:#25D366; color:white; border-radius:50%; width:55px; height:55px; display:flex; align-items:center; justify-content:center; font-size:28px; box-shadow:0 4px 10px rgba(0,0,0,0.2); z-index:9999; text-decoration:none;"
-       target="_blank"
-       aria-label="Chat on WhatsApp">
-       💬
-    </a>
 
-    <!-- Header -->
-    <div class="header">
-        <a href="index.html" class="logo">σ SIGMA</a>
-        <div class="nav">
-            <a href="index.html">shop</a>
-            <a href="reviews.html">reviews</a>
-            <a href="about.html">about</a>
-            <a href="blog.html">blog</a>
-            <a href="privacy.html">privacy</a>
-            <a href="wishlist.html">wishlist</a>
-            <a href="track.html">track order</a>
-            <a href="terms.html">terms</a>
-            <a href="refund.html">refund</a>
-            <a href="seller-dashboard.html">sell</a>
-            <a href="profile.html">profile</a>
-            <a href="login.html" id="authLink">login</a>
-        </div>
-        <button class="dark-toggle" id="darkToggle">🌙</button>
-        <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+<div class="header">
+    <a href="index.html" class="logo">σ SIGMA</a>
+    <div class="nav">
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="track.html">track order</a>
+        <a href="seller-dashboard.html">sell</a>
+        <a href="profile.html">profile</a>
+        <a href="login.html" id="authLink">login</a>
     </div>
-
-    <main>
-        <div class="hero">
-            <h1>The ecommerce web template, ready to run store.</h1>
-            <p>A full stack ecommerce web with full functionality.</p>
-        </div>
-
-        <div class="container">
-            <div class="search-bar">
-                <div style="display: flex; gap: 0.5rem;">
-                    <input type="text" id="searchInput" placeholder="search products..." class="search-input" style="flex:1;">
-                    <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">✕</button>
-                </div>
-                <div class="filters">
-                    <button class="filter-btn active" data-filter="all">all</button>
-                    <button class="filter-btn" data-filter="digital">digital</button>
-                    <!-- Price Range Filter -->
-<div style="margin: 1rem 0; padding: 0.5rem 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
-    <label style="font-weight: 600;">💰 Price Range:</label>
-    <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap;">
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span>Min:</span>
-            <input type="number" id="priceMin" placeholder="0" value="0" style="width: 80px; padding: 5px; border-radius: 8px; border: 1px solid #ddd;">
-        </div>
-        <div style="display: flex; align-items: center; gap: 0.5rem;">
-            <span>Max:</span>
-            <input type="number" id="priceMax" placeholder="1000" value="1000" style="width: 80px; padding: 5px; border-radius: 8px; border: 1px solid #ddd;">
-        </div>
-        <button id="applyPriceFilter" style="background: #e05a2a; color: white; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer;">Apply</button>
-        <button id="clearPriceFilter" style="background: #666; color: white; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer;">Clear</button>
-    </div>
-    <div style="margin-top: 0.5rem;">
-        <input type="range" id="priceSlider" min="0" max="1000" step="10" style="width: 100%;">
-    </div>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
-                </div>
-                <select id="sortBy" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
-    <option value="default">Sort by</option>
-    <option value="priceLow">Price: Low to High</option>
-    <option value="priceHigh">Price: High to Low</option>
-    <option value="newest">Newest First</option>
-    <option value="oldest">Oldest First</option>
-    <option value="ratingHigh">Highest Rated</option>
-    <option value="nameAZ">Name: A to Z</option>
-    <option value="nameZA">Name: Z to A</option>
-</select>
 
-            <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
-                <div style="flex: 3;">
-                    <div class="products" id="productsGrid"></div>
-                </div>
-                <div style="flex: 1; min-width: 200px;">
-                    <div style="background: #f5f5f5; padding: 1rem; border-radius: 12px; position: sticky; top: 100px;">
-                        <h3 style="font-size: 1rem; margin-bottom: 1rem;">recently viewed</h3>
-                        <div id="recentlyViewed"></div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="about-block">
-                <h2>I'm Ibrahim, 17 y.o from Mardan</h2>
-                <p>I started Sigma because I was tired of broken templates and overpriced garbage. Now I build things that actually work.</p>
-                
-                <div class="testimonial">
-                    "Clean code, fair price. Bought the template and it worked first try."<br>
-                    — Zulqarnain
-                </div>
-                <div class="testimonial">
-                    "Finally a template that doesn't need 3 hours of fixes. Worth it."<br>
-                    — Ali
-                </div>
-                
-                <p style="margin-top: 1rem;">No team. No investors. Just me and a laptop.</p>
-            </div>
-        </div>
-    </main>
-
-    <footer>
-        <p>Sigma Studio — Mardan, Pakistan</p>
-        <p style="margin-top: 0.5rem;">email: sigma@example.com</p>
-        <p style="margin-top: 0.5rem;">We accept: Visa, Mastercard & Payoneer</p>
-        <address>
-            <p>College chowk par-hoti Mardan.</p>
-        </address>
-    </footer>
-
-    <!-- Cookie Banner -->
-    <div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
-        <p style="margin:0;">🍪 We use cookies. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
-        <div> 
-            <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
-            <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button> 
-        </div> 
-    </div> 
-
-    <!-- Core Scripts -->
-    <script src="config.js"></script>
-    <script src="navbar.js"></script>
-    <script src="script.js"></script>
-
-    <!-- Cookie Functions -->
-    <script>
-        function acceptCookies() { 
-            localStorage.setItem('cookiesAccepted', 'true'); 
-            document.getElementById('cookieBanner').style.display = 'none'; 
-        } 
-        function declineCookies() { 
-            localStorage.setItem('cookiesAccepted', 'false'); 
-            document.getElementById('cookieBanner').style.display = 'none'; 
-        } 
-    </script>
-
-    <!-- Auth Check (Compatible with navbar.js) -->
-    <script>
-        async function checkAuth() {
-            const token = localStorage.getItem('sigma_token') || localStorage.getItem('authToken');
-            const authLink = document.getElementById('authLink');
-            if (!authLink) return;
-            if (!token) {
-                authLink.innerHTML = 'login';
-                authLink.href = 'login.html';
-                authLink.onclick = null;
-                return;
-            }
-            try {
-                const res = await fetch('https://sigma-store-api.onrender.com/api/me', {
-                    headers: { 'Authorization': token }
-                });
-                if (res.ok) {
-                    authLink.innerHTML = 'logout';
-                    authLink.href = '#';
-                    authLink.onclick = (e) => {
-                        e.preventDefault();
-                        localStorage.removeItem('sigma_token');
-                        localStorage.removeItem('authToken');
-                        window.location.href = 'index.html';
-                    };
-                } else {
-                    localStorage.removeItem('sigma_token');
-                    localStorage.removeItem('authToken');
-                    authLink.innerHTML = 'login';
-                    authLink.href = 'login.html';
-                    authLink.onclick = null;
-                }
-            } catch(e) {
-                console.log('Auth check failed', e);
-            }
-        }
-        // Only run if navbar.js didn't already handle it
-        if (typeof window.updateAuthButton === 'undefined') {
-            checkAuth();
-        }
-    </script>
-
-    <!-- Chat Widget -->
-    <div id="chatWidget" style="position:fixed; bottom:20px; right:20px; z-index:999;">
-        <div id="chatButton" style="width:60px; height:60px; background:linear-gradient(135deg,#e05a2a,#ff8c42); border-radius:50%; display:flex; align-items:center; justify-content:center; cursor:pointer; box-shadow:0 4px 15px rgba(224,90,42,0.3);">
-            <span style="font-size:28px; color:white;">💬</span>
-        </div>
-        
-        <div id="chatBox" style="display:none; position:absolute; bottom:80px; right:0; width:350px; height:450px; background:white; border-radius:16px; box-shadow:0 10px 40px rgba(0,0,0,0.2); flex-direction:column; overflow:hidden;">
-            <div style="background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; padding:15px; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0; font-size:16px;">Support Team</h3>
-                <button id="closeChat" style="background:none; border:none; color:white; font-size:20px; cursor:pointer;">×</button>
-            </div>
-            <div id="chatMessages" style="flex:1; padding:15px; overflow-y:auto; background:#f8f9fa;"></div>
-            <div style="display:flex; padding:10px; border-top:1px solid #dee2e6; background:white;">
-                <input type="text" id="chatInput" placeholder="Type your message..." style="flex:1; padding:10px; border:1px solid #dee2e6; border-radius:25px; outline:none;">
-                <button id="sendChat" style="margin-left:10px; padding:10px 20px; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; border-radius:25px; cursor:pointer;">Send</button>
-            </div>
-        </div>
+<main>
+    <div class="hero">
+        <h1>The ecommerce web template, ready to run store.</h1>
+        <p>A full stack ecommerce web with full functionality.</p>
     </div>
 
-    <!-- Socket.io Library -->
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-    
-    <!-- Chat Script -->
-    <script>
-        (function() {
-            const CHAT_API_URL = (typeof window.BACKEND_URL !== 'undefined' && window.BACKEND_URL) ? window.BACKEND_URL : 'https://sigma-store-api.onrender.com';
-            let chatSocket = null;
-            let isChatConnected = false;
+    <div class="container">
+        <div class="search-bar">
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="searchInput" placeholder="Search products..." class="search-input" style="flex:1;">
+                <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">✕</button>
+            </div>
+        </div>
 
-            function getUserId() {
-                let userId = localStorage.getItem('chat_user_id');
-                if (!userId) {
-                    userId = 'user_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                    localStorage.setItem('chat_user_id', userId);
-                }
-                return userId;
-            }
-            
-            function getUserName() {
-                const user = localStorage.getItem('sigma_user');
-                if (user) {
-                    try {
-                        const userData = JSON.parse(user);
-                        if (userData.name) return userData.name;
-                        if (userData.email) return userData.email.split('@')[0];
-                    } catch(e) {}
-                }
-                return 'Guest';
-            }
-            
-            function addChatMessage(message, isAdmin = false) {
-                const container = document.getElementById('chatMessages');
-                if (!container) return;
-                const msgDiv = document.createElement('div');
-                msgDiv.style.marginBottom = '10px';
-                msgDiv.style.padding = '10px 12px';
-                msgDiv.style.borderRadius = '15px';
-                msgDiv.style.maxWidth = '85%';
-                msgDiv.style.wordWrap = 'break-word';
-                if (isAdmin) {
-                    msgDiv.style.background = '#e9ecef';
-                    msgDiv.style.color = '#333';
-                    msgDiv.style.marginRight = 'auto';
-                } else {
-                    msgDiv.style.background = 'linear-gradient(135deg,#e05a2a,#ff8c42)';
-                    msgDiv.style.color = 'white';
-                    msgDiv.style.marginLeft = 'auto';
-                    msgDiv.style.textAlign = 'right';
-                }
-                msgDiv.textContent = message;
-                container.appendChild(msgDiv);
-                container.scrollTop = container.scrollHeight;
-            }
-            
-            async function saveChatMessage(message) {
-                try {
-                    await fetch(CHAT_API_URL + '/api/chat/save', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            userId: getUserId(),
-                            userName: getUserName(),
-                            message: message,
-                            isAdmin: false
-                        })
-                    });
-                } catch(e) {
-                    console.error('Save error:', e);
-                }
-            }
-            
-            function connectChatSocket() {
-                if (chatSocket && chatSocket.connected) return;
-                chatSocket = io(CHAT_API_URL, { transports: ['websocket', 'polling'] });
-                
-                chatSocket.on('connect', function() {
-                    console.log('Chat socket connected');
-                    isChatConnected = true;
-                    chatSocket.emit('user-join', getUserId());
-                });
-                
-                chatSocket.on('disconnect', function() {
-                    console.log('Chat socket disconnected');
-                    isChatConnected = false;
-                });
-                
-                chatSocket.on('new-message', function(data) {
-                    if (data && data.isAdmin === true && data.message) {
-                        addChatMessage(data.message, true);
-                    }
-                });
-            }
-            
-            async function sendChatMessage() {
-                const input = document.getElementById('chatInput');
-                if (!input) return;
-                const message = input.value.trim();
-                if (!message) return;
-                
-                addChatMessage(message, false);
-                await saveChatMessage(message);
-                
-                if (chatSocket && chatSocket.connected) {
-                    chatSocket.emit('customer-message', {
-                        userId: getUserId(),
-                        userName: getUserName(),
-                        message: message
-                    });
-                } else {
-                    connectChatSocket();
-                    setTimeout(() => {
-                        if (chatSocket && chatSocket.connected) {
-                            chatSocket.emit('customer-message', {
-                                userId: getUserId(),
-                                userName: getUserName(),
-                                message: message
-                            });
-                        }
-                    }, 1000);
-                }
-                input.value = '';
-            }
-            
-            function initChat() {
-                const chatButton = document.getElementById('chatButton');
-                const closeChatBtn = document.getElementById('closeChat');
-                const sendBtn = document.getElementById('sendChat');
-                const chatInput = document.getElementById('chatInput');
-                
-                if (!chatButton || !closeChatBtn || !sendBtn) {
-                    setTimeout(initChat, 500);
-                    return;
-                }
-                
-                chatButton.onclick = function() {
-                    const chatBox = document.getElementById('chatBox');
-                    if (chatBox) {
-                        chatBox.style.display = 'flex';
-                        chatButton.style.display = 'none';
-                    }
-                    if (!chatSocket || !chatSocket.connected) {
-                        connectChatSocket();
-                    }
-                };
-                
-                closeChatBtn.onclick = function() {
-                    const chatBox = document.getElementById('chatBox');
-                    if (chatBox) {
-                        chatBox.style.display = 'none';
-                        chatButton.style.display = 'flex';
-                    }
-                };
-                
-                sendBtn.onclick = sendChatMessage;
-                if (chatInput) {
-                    chatInput.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') sendChatMessage();
-                    });
-                }
-                connectChatSocket();
-            }
-            
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', initChat);
-            } else {
-                initChat();
-            }
-        })();
-    </script>
+        <!-- Filters Section -->
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="digital">Digital</button>
+            <button class="filter-btn" data-filter="electronics">Electronics</button>
+            <button class="filter-btn" data-filter="clothing">Clothing</button>
+            <button class="filter-btn" data-filter="home">Home & Living</button>
+        </div>
 
-    <!-- Fallback for products grid -->
-    <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            setTimeout(function() {
-                const grid = document.getElementById('productsGrid');
-                if (grid && grid.children.length === 0) {
-                    grid.innerHTML = `
-                        <div class="product-card" style="border:1px solid #ddd; border-radius:12px; padding:1rem; text-align:center;">
-                            <h3>Sigma Pro Template</h3>
-                            <p>Full-stack ecommerce solution</p>
-                            <strong>$49</strong>
-                            <button style="background:#e05a2a; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; margin-top:0.5rem;">Add to Cart</button>
-                        </div>
-                        <div class="product-card" style="border:1px solid #ddd; border-radius:12px; padding:1rem; text-align:center;">
-                            <h3>Digital Marketing Pack</h3>
-                            <p>Social media kit</p>
-                            <strong>$29</strong>
-                            <button style="background:#e05a2a; color:white; border:none; padding:0.5rem 1rem; border-radius:8px; margin-top:0.5rem;">Add to Cart</button>
-                        </div>
-                    `;
-                }
-                const recentDiv = document.getElementById('recentlyViewed');
-                if (recentDiv && recentDiv.innerHTML.trim() === '') {
-                    recentDiv.innerHTML = '<p style="font-size:0.8rem; color:#666;">No recent items</p>';
-                }
-            }, 1500);
-        });
-    </script>
+        <!-- Price Range Filter -->
+        <div class="price-range-container">
+            <label style="font-weight: 600;">💰 Price Range</label>
+            <div class="price-range-controls">
+                <div class="price-input">
+                    <span>Min:</span>
+                    <input type="number" id="priceMin" placeholder="0" value="0" step="1">
+                </div>
+                <div class="price-input">
+                    <span>Max:</span>
+                    <input type="number" id="priceMax" placeholder="1000" value="1000" step="1">
+                </div>
+                <button id="applyPriceFilter" class="filter-btn-sm">Apply</button>
+                <button id="clearPriceFilter" class="filter-btn-sm clear">Clear</button>
+            </div>
+            <input type="range" id="priceSlider" min="0" max="1000" step="10" value="1000" class="price-slider">
+        </div>
+
+        <!-- Rating Filter -->
+        <div class="rating-filter">
+            <label style="font-weight: 600;">⭐ Minimum Rating</label>
+            <div class="rating-stars-filter">
+                <div class="rating-option active" data-rating="0">All</div>
+                <div class="rating-option" data-rating="4">4★ & above</div>
+                <div class="rating-option" data-rating="3">3★ & above</div>
+                <div class="rating-option" data-rating="2">2★ & above</div>
+                <div class="rating-option" data-rating="1">1★ & above</div>
+            </div>
+        </div>
+
+        <!-- Sort Options -->
+        <div style="margin-top: 1rem;">
+            <select id="sortBy" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="default">Sort by</option>
+                <option value="priceLow">Price: Low to High</option>
+                <option value="priceHigh">Price: High to Low</option>
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="ratingHigh">Highest Rated</option>
+                <option value="nameAZ">Name: A to Z</option>
+                <option value="nameZA">Name: Z to A</option>
+            </select>
+        </div>
+
+        <!-- Products Grid & Recently Viewed -->
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-top: 2rem;">
+            <div style="flex: 3;">
+                <div class="products" id="productsGrid"></div>
+                <!-- Pagination -->
+                <div id="pagination" style="display: flex; justify-content: center; gap: 0.5rem; margin-top: 2rem; flex-wrap: wrap;"></div>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <div style="background: #f5f5f5; padding: 1rem; border-radius: 12px; position: sticky; top: 100px;">
+                    <h3 style="font-size: 1rem; margin-bottom: 1rem;">Recently Viewed</h3>
+                    <div id="recentlyViewed"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-block">
+            <h2>I'm Ibrahim, 17 y.o from Mardan</h2>
+            <p>I started Sigma because I was tired of broken templates and overpriced garbage. Now I build things that actually work.</p>
+            <div class="testimonial">"Clean code, fair price. Bought the template and it worked first try."<br>— Zulqarnain</div>
+            <div class="testimonial">"Finally a template that doesn't need 3 hours of fixes. Worth it."<br>— Ali</div>
+            <p style="margin-top: 1rem;">No team. No investors. Just me and a laptop.</p>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
+</footer>
+
+<script src="config.js"></script>
+<script src="navbar.js"></script>
+<script src="script.js"></script>
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+
 </body>
 </html>
