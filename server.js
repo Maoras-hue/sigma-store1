@@ -229,28 +229,40 @@ app.get('/api/products', (req, res) => {
 // ============================================
 // PROFILE PICTURE UPLOAD
 // ============================================
+// ============================================
+// PROFILE PICTURE UPLOAD - FIXED
+// ============================================
+
+// Ensure upload directories exist
+const uploadsDir = path.join(__dirname, 'uploads');
+const profilesDir = path.join(uploadsDir, 'profiles');
+
+if (!fs.existsSync(uploadsDir)) {
+    fs.mkdirSync(uploadsDir, { recursive: true });
+    console.log('Created uploads directory');
+}
+if (!fs.existsSync(profilesDir)) {
+    fs.mkdirSync(profilesDir, { recursive: true });
+    console.log('Created profiles directory');
+}
 
 // Configure multer for profile pictures
-const multer = require('multer');
-
 const profileStorage = multer.diskStorage({
     destination: function(req, file, cb) {
-        const profileDir = path.join(__dirname, 'uploads', 'profiles');
-        if (!fs.existsSync(profileDir)) {
-            fs.mkdirSync(profileDir, { recursive: true });
-        }
-        cb(null, profileDir);
+        console.log('Saving file to:', profilesDir);
+        cb(null, profilesDir);
     },
     filename: function(req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const ext = path.extname(file.originalname);
-        cb(null, 'profile-' + uniqueSuffix + ext);
+        const filename = 'profile-' + uniqueSuffix + path.extname(file.originalname);
+        console.log('Generated filename:', filename);
+        cb(null, filename);
     }
 });
 
 const profileUpload = multer({ 
     storage: profileStorage,
-    limits: { fileSize: 2 * 1024 * 1024 },
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
     fileFilter: function(req, file, cb) {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
         if (allowedTypes.includes(file.mimetype)) {
@@ -262,9 +274,8 @@ const profileUpload = multer({
 });
 
 // Upload profile picture
-// Upload profile picture
 app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
-    console.log('Upload request received');
+    console.log('=== UPLOAD REQUEST RECEIVED ===');
     
     try {
         const token = req.headers.authorization;
@@ -276,22 +287,23 @@ app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), 
         console.log('User ID:', userId);
         
         if (!req.file) {
+            console.log('No file in request');
             return res.status(400).json({ error: 'No file uploaded' });
         }
         
         console.log('File saved:', req.file.filename);
+        console.log('File path:', req.file.path);
         
         const profilePictureUrl = '/uploads/profiles/' + req.file.filename;
         
-        // Update the database
+        // Update database
         db.run(`UPDATE users SET profile_picture = ? WHERE id = ?`, [profilePictureUrl, userId], function(err) {
             if (err) {
                 console.error('DB update error:', err);
-                return res.status(500).json({ error: 'Database error: ' + err.message });
+                return res.status(500).json({ error: 'Database error' });
             }
             
             console.log('Database updated for user:', userId);
-            console.log('Rows affected:', this.changes);
             
             res.json({ 
                 success: true, 
@@ -304,10 +316,10 @@ app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), 
         res.status(500).json({ error: error.message });
     }
 });
+
 // Get profile picture
 app.get('/api/profile-picture', (req, res) => {
     const token = req.headers.authorization;
-    
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
@@ -329,14 +341,12 @@ app.get('/api/profile-picture', (req, res) => {
 // Delete profile picture
 app.delete('/api/profile-picture', (req, res) => {
     const token = req.headers.authorization;
-    
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
     
     const userId = token.split('_')[0];
     
-    // Get current picture to delete file
     db.get(`SELECT profile_picture FROM users WHERE id = ?`, [userId], (err, user) => {
         if (err) {
             return res.status(500).json({ error: 'Database error' });
@@ -346,6 +356,7 @@ app.delete('/api/profile-picture', (req, res) => {
             const filePath = path.join(__dirname, user.profile_picture);
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
+                console.log('Deleted file:', filePath);
             }
         }
         
@@ -353,11 +364,13 @@ app.delete('/api/profile-picture', (req, res) => {
             if (updateErr) {
                 return res.status(500).json({ error: 'Database error' });
             }
-            
             res.json({ success: true, message: 'Profile picture removed' });
         });
     });
 });
+
+// Serve static files - FIXED
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ============================================
 // PROFILE API ENDPOINTS
