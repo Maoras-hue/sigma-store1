@@ -1055,3 +1055,29 @@ app.post('/api/admin/bundles', async (req, res) => {
         res.status(500).json({ error: error.message }); 
     } 
 }); 
+ 
+// ============================================ 
+// PRICE DROP ALERTS 
+// ============================================ 
+app.post('/api/price-alert', async (req, res) => { 
+    try { 
+        const { productId, productName, email, desiredPrice } = req.body; 
+        const id = uuidv4(); 
+        await executeQuery( 
+            'INSERT INTO price_alerts (id, product_id, product_name, customer_email, alert_type, desired_price, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)', 
+            [id, productId, productName, email, 'price_drop', desiredPrice || null, new Date().toISOString()] 
+        ); 
+        res.json({ success: true, message: 'You will be notified when price drops!' }); 
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    } 
+}); 
+ 
+app.get('/api/admin/price-alerts', async (req, res) => { 
+    try { 
+        const alerts = await executeAll('SELECT * FROM price_alerts WHERE is_sent = 0 ORDER BY created_at DESC'); 
+        res.json({ alerts }); 
+    } catch (error) { 
+        res.status(500).json({ error: error.message }); 
+    } 
+}); 

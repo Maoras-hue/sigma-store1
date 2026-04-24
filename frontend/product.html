@@ -214,3 +214,33 @@ async function loadBundle(productId) {
         } 
     } catch(e) { console.error('Bundle error:', e); } 
 } 
+<div id="notifySection" style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 12px; display: none;"> 
+    <h4>?? Get notified when price drops</h4> 
+    <input type="email" id="notifyEmail" placeholder="Your email address" style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; width: 250px;"> 
+    <button id="notifyMeBtn" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-left: 10px;">Notify Me</button> 
+    <div id="notifyMessage" style="margin-top: 10px; font-size: 14px;"></div> 
+</div> 
+ 
+// Price drop alert 
+function showNotifySection() { 
+    const notifySection = document.getElementById('notifySection'); 
+    if (notifySection) notifySection.style.display = 'block'; 
+} 
+ 
+document.getElementById('notifyMeBtn')?.addEventListener('click', async () => { 
+    const email = document.getElementById('notifyEmail').value; 
+    if (!email) { alert('Please enter your email'); return; } 
+    const res = await fetch(`${API_URL}/api/price-alert`, { 
+        method: 'POST', 
+        headers: { 'Content-Type': 'application/json' }, 
+        body: JSON.stringify({ 
+            productId: currentProduct.id, 
+            productName: currentProduct.name, 
+            email: email, 
+            desiredPrice: currentProduct.price 
+        }) 
+    }); 
+    const data = await res.json(); 
+    document.getElementById('notifyEmail').value = ''; 
+}); 
+showNotifySection(); 
