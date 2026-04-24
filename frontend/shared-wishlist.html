@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shared Wishlist - Sigma Store</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .shared-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .shared-header { text-align: center; margin-bottom: 2rem; }
+        .shared-header h1 { font-size: 2rem; background: linear-gradient(135deg, #e05a2a, #ff8c42); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; }
+        .product-card { background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .product-card img { width: 100%; height: 200px; object-fit: cover; }
+        .product-info { padding: 1rem; }
+        .product-name { font-weight: 700; margin-bottom: 0.5rem; }
+        .product-price { color: #e05a2a; font-weight: 800; font-size: 1.2rem; }
+        .add-to-cart { background: #e05a2a; color: white; border: none; padding: 8px; border-radius: 50px; width: 100%; cursor: pointer; margin-top: 10px; }
+        body.dark .product-card { background: #1e293b; }
+        .error { text-align: center; padding: 3rem; color: #e05a2a; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">σ SIGMA</a>
+    <div class="nav">
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="login.html" id="authLink">login</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="shared-container">
+        <div class="shared-header">
+            <h1>✨ Shared Wishlist</h1>
+            <p id="wishlistOwner">Loading...</p>
+        </div>
+        <div id="productsGrid" class="products-grid"></div>
+    </div>
+</main>
+
+<footer>
+    <p>Sigma Studio — Mardan, Pakistan</p>
+</footer>
+
+<script src="config.js"></script>
+<script src="navbar.js"></script>
+<script>
+    const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+    
+    async function loadSharedWishlist() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareId = urlParams.get('id');
+        
+        if (!shareId) {
+            document.getElementById('productsGrid').innerHTML = '<div class="error">❌ Invalid wishlist link</div>';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`${API_URL}/api/wishlist/shared/${shareId}`);
+            const data = await response.json();
+            
+            if (!data.success) {
+                document.getElementById('productsGrid').innerHTML = '<div class="error">❌ Wishlist not found or expired</div>';
+                return;
+            }
+            
+            document.getElementById('wishlistOwner').innerHTML = `👤 ${data.ownerName}'s Wishlist • ${data.items.length} items`;
+            
+            if (data.items.length === 0) {
+                document.getElementById('productsGrid').innerHTML = '<div class="error">📭 This wishlist is empty</div>';
+                return;
+            }
+            
+            // Fetch product details
+            const productIds = data.items;
+            const productPromises = productIds.map(id => fetch(`${API_URL}/api/products/${id}`).then(res => res.json()));
+            const products = await Promise.all(productPromises);
+            
+            document.getElementById('productsGrid').innerHTML = products.map(p => `
+                <div class="product-card">
+                    <img src="${p.image || 'https://placehold.co/400x300/1a1a2e/white?text=' + p.name}" onerror="this.src='https://placehold.co/400x300/ff6b6b/white?text=Error'">
+                    <div class="product-info">
+                        <div class="product-name">${p.name}</div>
+                        <div class="product-price">$${p.price}</div>
+                        <button class="add-to-cart" onclick="addToCartAndRedirect('${p.id}', '${p.name}', ${p.price})">Add to Cart →</button>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (error) {
+            console.error('Error:', error);
+            document.getElementById('productsGrid').innerHTML = '<div class="error">❌ Error loading wishlist</div>';
+        }
+    }
+    
+    function addToCartAndRedirect(id, name, price) {
+        let cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        const existing = cart.find(item => item.id === id);
+        if (existing) existing.quantity++;
+        else cart.push({ id, name, price, quantity: 1 });
+        localStorage.setItem('sigma_cart', JSON.stringify(cart));
+        updateCartCount();
+        window.location.href = 'cart.html';
+    }
+    
+    function updateCartCount() {
+        const cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        const total = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
+        const badge = document.getElementById('cartCount');
+        if (badge) badge.innerText = total;
+    }
+    
+    loadSharedWishlist();
+    
+    // Dark mode
+    const darkToggle = document.getElementById('darkToggle');
+    if (darkToggle) {
+        darkToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark');
+            const isDark = document.body.classList.contains('dark');
+            localStorage.setItem('sigma_dark', isDark);
+            darkToggle.innerText = isDark ? '☀️' : '🌙';
+        });
+        if (localStorage.getItem('sigma_dark') === 'true') {
+            document.body.classList.add('dark');
+            darkToggle.innerText = '☀️';
+        }
+    }
+    
+    updateCartCount();
+</script>
+</body>
+</html>

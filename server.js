@@ -932,6 +932,54 @@ app.delete('/api/admin/subscribers/:id', async (req, res) => {
     }
 });
 // ============================================
+// WISHLIST SHARING ROUTES
+// ============================================
+
+app.post('/api/wishlist/share', async (req, res) => {
+    try {
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        const userId = await getUserFromToken(token);
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'Please login to share wishlist' });
+        }
+        
+        const user = await executeGet('SELECT name, email FROM users WHERE id = ?', [userId]);
+        const shareId = uuidv4();
+        const { items } = req.body;
+        
+        await executeQuery(
+            'INSERT OR REPLACE INTO shared_wishlists (share_id, user_id, user_name, items, created_at) VALUES (?, ?, ?, ?, ?)',
+            [shareId, userId, user.name || user.email.split('@')[0], JSON.stringify(items), new Date().toISOString()]
+        );
+        
+        res.json({ success: true, shareId });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/wishlist/shared/:shareId', async (req, res) => {
+    try {
+        const shared = await executeGet('SELECT * FROM shared_wishlists WHERE share_id = ?', [req.params.shareId]);
+        
+        if (!shared) {
+            return res.json({ success: false, error: 'Wishlist not found' });
+        }
+        
+        const items = JSON.parse(shared.items);
+        
+        res.json({
+            success: true,
+            ownerName: shared.user_name,
+            items: items,
+            createdAt: shared.created_at
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+// ============================================
 // START SERVER
 // ============================================
 server.listen(PORT, () => {

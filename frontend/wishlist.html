@@ -191,7 +191,11 @@
             <h1>â¤ï¸ My Wishlist</h1>
             <p>Products you've saved for later</p>
         </div>
-        
+        <div style="display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap;">
+    <button id="shareWishlistBtn" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer;">📤 Share Wishlist</button>
+    <button id="copyLinkBtn" style="background: #2196f3; color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer;">🔗 Copy Link</button>
+</div>
+<div id="shareMessage" style="margin-top: 10px; font-size: 14px;"></div>
         <div id="wishlistContent">
             <!-- Wishlist items will be loaded here -->
         </div>
@@ -540,6 +544,62 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
             }; 
         } 
     })(); 
+// Share Wishlist Functions
+async function shareWishlist() {
+    const wishlist = getWishlist();
+    if (wishlist.length === 0) {
+        document.getElementById('shareMessage').innerHTML = '<span style="color: #e05a2a;">❌ Your wishlist is empty!</span>';
+        return;
+    }
+    
+    const shareId = localStorage.getItem('wishlist_share_id');
+    if (!shareId) {
+        const response = await fetch(API_URL + '/api/wishlist/share', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ items: wishlist })
+        });
+        const data = await response.json();
+        localStorage.setItem('wishlist_share_id', data.shareId);
+    }
+    
+    const shareUrl = `${window.location.origin}/shared-wishlist.html?id=${localStorage.getItem('wishlist_share_id')}`;
+    
+    // Show share options
+    if (navigator.share) {
+        navigator.share({
+            title: 'My Wishlist',
+            text: 'Check out my wishlist on Sigma Store!',
+            url: shareUrl
+        });
+    } else {
+        prompt('Share this link:', shareUrl);
+    }
+}
+
+function copyWishlistLink() {
+    const wishlist = getWishlist();
+    if (wishlist.length === 0) {
+        document.getElementById('shareMessage').innerHTML = '<span style="color: #e05a2a;">❌ Your wishlist is empty!</span>';
+        return;
+    }
+    
+    const shareId = localStorage.getItem('wishlist_share_id');
+    if (!shareId) {
+        alert('Please click "Share Wishlist" first to generate a link');
+        return;
+    }
+    
+    const shareUrl = `${window.location.origin}/shared-wishlist.html?id=${shareId}`;
+    navigator.clipboard.writeText(shareUrl);
+    document.getElementById('shareMessage').innerHTML = '<span style="color: green;">✓ Link copied to clipboard!</span>';
+    setTimeout(() => {
+        document.getElementById('shareMessage').innerHTML = '';
+    }, 3000);
+}
+
+document.getElementById('shareWishlistBtn')?.addEventListener('click', shareWishlist);
+document.getElementById('copyLinkBtn')?.addEventListener('click', copyWishlistLink);
 </script> 
 <div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:9999; flex-wrap:wrap;"> 
     <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
