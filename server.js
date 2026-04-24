@@ -11,7 +11,11 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
@@ -586,7 +590,230 @@ app.post('/api/chat/messages', async (req, res) => {
         res.status(500).json({ error: 'Failed to send message' });
     }
 });
+// ============================================
+// PROFILE PICTURE ENDPOINTS - FIXED
+// ============================================
 
+// Upload profile picture
+app.post('/api/upload-profile-picture', upload.single('profilePicture'), async (req, res) => {
+    console.log('Upload request received');
+    
+    try {
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+        
+        // Remove 'Bearer ' if present
+        const cleanToken = token.replace('Bearer ', '');
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid or expired token' });
+        }
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        
+        const profilePicturePath = `/uploads/${req.file.filename}`;
+        await executeQuery('UPDATE users SET profile_picture = ? WHERE id = ?', [profilePicturePath, session.user_id]);
+        
+        res.json({ 
+            success: true,
+            profilePicture: profilePicturePath,
+            message: 'Profile picture updated successfully'
+        });
+    } catch (error) {
+        console.error('Upload error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get profile picture
+app.get('/api/profile-picture', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const cleanToken = token.replace('Bearer ', '');
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const user = await executeGet('SELECT profile_picture FROM users WHERE id = ?', [session.user_id]);
+        
+        res.json({ 
+            profilePicture: user?.profile_picture || null,
+            hasPicture: !!(user?.profile_picture)
+        });
+    } catch (error) {
+        console.error('Get profile picture error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete profile picture
+app.delete('/api/profile-picture', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const cleanToken = token.replace('Bearer ', '');
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        await executeQuery('UPDATE users SET profile_picture = NULL WHERE id = ?', [session.user_id]);
+        
+        res.json({ success: true, message: 'Profile picture removed' });
+    } catch (error) {
+        console.error('Delete error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get user profile
+app.get('/api/profile', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const cleanToken = token.replace('Bearer ', '');
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const user = await executeGet('SELECT id, email, name, profile_picture, created_at FROM users WHERE id = ?', [session.user_id]);
+        
+        res.json({ success: true, user: user });
+    } catch (error) {
+        console.error('Get profile error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update user profile
+app.put('/api/profile', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const cleanToken = token.replace('Bearer ', '');
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const { name, email } = req.body;
+        const updates = [];
+        const params = [];
+        
+        if (name) {
+            updates.push('name = ?');
+            params.push(name);
+        }
+        if (email) {
+            updates.push('email = ?');
+            params.push(email);
+        }
+        
+        if (updates.length > 0) {
+            params.push(session.user_id);
+            await executeQuery(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+        }
+        
+        const user = await executeGet('SELECT id, email, name, profile_picture FROM users WHERE id = ?', [session.user_id]);
+        
+        res.json({ success: true, user: user });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Change password
+app.put('/api/change-password', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const cleanToken = token.replace('Bearer ', '');
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const { currentPassword, newPassword } = req.body;
+        
+        const user = await executeGet('SELECT password FROM users WHERE id = ?', [session.user_id]);
+        
+        const validPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await executeQuery('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, session.user_id]);
+        
+        res.json({ success: true, message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get user orders
+app.get('/api/my-orders', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const cleanToken = token.replace('Bearer ', '');
+        
+        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const orders = await executeAll('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [session.user_id]);
+        
+        orders.forEach(order => {
+            if (order.items) {
+                try {
+                    order.items = JSON.parse(order.items);
+                } catch(e) {
+                    order.items = [];
+                }
+            }
+        });
+        
+        res.json({ success: true, orders: orders });
+    } catch (error) {
+        console.error('Get orders error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
