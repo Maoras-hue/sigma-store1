@@ -8,6 +8,7 @@ let searchTerm = '';
 let currentSort = 'default';
 let priceMin = 0;
 let priceMax = 1000;
+let productRatings = {};
 
 const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
 
@@ -300,7 +301,6 @@ function renderProducts() {
         grid.innerHTML = '<p style="text-align:center;padding:40px;">No products found</p>';
         return;
     }
-filtered = filtered.filter(p => p.price >= priceMin && p.price <= priceMax);
     
     grid.innerHTML = filtered.map(p => {
         const heartColor = isInWishlist(p.id) ? '#e05a2a' : '#ccc';
@@ -316,14 +316,49 @@ filtered = filtered.filter(p => p.price >= priceMin && p.price <= priceMax);
                 </div>
                 <div class="product-info">
                     <div class="product-title">${escapeHtml(p.name)}</div>
+const rating = productRatings[p.id] || 0;
+const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+filtered = filtered.filter(p => p.price >= priceMin && p.price <= priceMax);
                     <div class="product-price">$${p.price}</div>
                     <button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${escapeHtml(p.name)}',${p.price})">Add to Cart</button>
+<div style="display: flex; align-items: center; gap: 0.25rem; margin: 0.25rem 0;">
+    <span style="font-size: 12px; color: #ffc107;">${stars}</span>
+    <span style="font-size: 10px; color: #888;">(${rating.toFixed(1)})</span>
+</div>
                 </div>
             </div>
         `;
     }).join('');
 }
+// Load average ratings for all products
+async function loadProductRatings() {
+    try {
+        for (let i = 0; i < products.length; i++) {
+            const response = await fetch(`${API_URL}/api/products/${products[i].id}/rating`);
+            const data = await response.json();
+            productRatings[products[i].id] = data.averageRating || 0;
+        }
+    } catch(e) {
+        console.error('Error loading ratings:', e);
+    }
+}
+// Inside renderProducts function, after search filter, update the sorting section:
 
+if (currentSort === 'priceLow') {
+    filtered.sort((a, b) => a.price - b.price);
+} else if (currentSort === 'priceHigh') {
+    filtered.sort((a, b) => b.price - a.price);
+} else if (currentSort === 'newest') {
+    filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+} else if (currentSort === 'oldest') {
+    filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+} else if (currentSort === 'ratingHigh') {
+    filtered.sort((a, b) => (productRatings[b.id] || 0) - (productRatings[a.id] || 0));
+} else if (currentSort === 'nameAZ') {
+    filtered.sort((a, b) => a.name.localeCompare(b.name));
+} else if (currentSort === 'nameZA') {
+    filtered.sort((a, b) => b.name.localeCompare(a.name));
+}
 // ============================================
 // FILTER AND SORT EVENT LISTENERS
 // ============================================
