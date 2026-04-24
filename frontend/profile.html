@@ -12,12 +12,10 @@
             margin: 0 auto;
             padding: 2rem;
         }
-        
         .profile-header {
             text-align: center;
             margin-bottom: 2rem;
         }
-        
         .profile-header h1 {
             font-size: 2rem;
             font-weight: 800;
@@ -26,7 +24,6 @@
             background-clip: text;
             color: transparent;
         }
-        
         .profile-card {
             background: white;
             border-radius: 24px;
@@ -34,39 +31,31 @@
             margin-bottom: 2rem;
             box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         }
-        
         .profile-card h2 {
             margin-bottom: 1.5rem;
             color: #333;
             font-size: 1.3rem;
         }
-        
         .form-group {
             margin-bottom: 1.5rem;
         }
-        
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
             color: #333;
         }
-        
         .form-group input {
             width: 100%;
             padding: 12px;
             border: 2px solid #e0e0e0;
             border-radius: 12px;
             font-size: 1rem;
-            transition: all 0.3s;
         }
-        
         .form-group input:focus {
             outline: none;
             border-color: #e05a2a;
-            box-shadow: 0 0 0 3px rgba(224,90,42,0.1);
         }
-        
         .btn {
             background: linear-gradient(135deg, #e05a2a, #ff8c42);
             color: white;
@@ -75,18 +64,7 @@
             border-radius: 50px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s;
         }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(224,90,42,0.3);
-        }
-        
-        .btn-secondary {
-            background: #1a1a2e;
-        }
-        
         .message {
             margin-top: 1rem;
             padding: 12px;
@@ -94,97 +72,35 @@
             text-align: center;
             display: none;
         }
-        
         .message.success {
             background: #e8f5e9;
             color: #4caf50;
             display: block;
         }
-        
         .message.error {
             background: #ffebee;
             color: #e05a2a;
             display: block;
         }
-        
-        .orders-list {
-            margin-top: 1rem;
-        }
-        
-        .order-item {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-left: 4px solid #e05a2a;
-        }
-        
-        .order-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5rem;
-            flex-wrap: wrap;
-        }
-        
-        .order-id {
-            font-weight: bold;
-            color: #e05a2a;
-        }
-        
-        .order-status {
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        
-        .status-pending { background: #ff9800; color: white; }
-        .status-processing { background: #2196f3; color: white; }
-        .status-shipped { background: #9c27b0; color: white; }
-        .status-delivered { background: #4caf50; color: white; }
-        
-        .order-items {
-            font-size: 0.9rem;
-            color: #666;
-            margin-top: 0.5rem;
-        }
-        
-        .order-total {
-            font-weight: bold;
-            margin-top: 0.5rem;
-        }
-        
         .login-prompt {
             text-align: center;
             padding: 3rem;
             background: white;
             border-radius: 24px;
         }
-        
         body.dark .profile-card,
         body.dark .login-prompt {
             background: #1e293b;
         }
-        
         body.dark .profile-card h2,
         body.dark .form-group label {
             color: #e2e8f0;
         }
-        
         body.dark .form-group input {
             background: #334155;
             border-color: #475569;
             color: white;
         }
-        
-        body.dark .order-item {
-            background: #0f172a;
-        }
-        
-        body.dark .order-items {
-            color: #94a3b8;
-        }
-        
         @media (max-width: 768px) {
             .profile-container {
                 padding: 1rem;
@@ -198,7 +114,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">Ïƒ SIGMA</a>
+    <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -212,45 +128,24 @@
         <a href="profile.html">profile</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
-    <!-- Profile Picture Section -->
-<div class="profile-card">
-    <h2>Profile Picture</h2>
-    <div style="text-align: center;">
-        <div id="profilePictureContainer" style="margin-bottom: 1rem;">
-            <img id="profileImage" src="https://placehold.co/120x120/ccc/white?text=No+Image" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #e05a2a;">
+    <div class="profile-container">
+        <div class="profile-header">
+            <h1>My Profile</h1>
         </div>
-        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <label for="pictureUpload" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 10px 20px; border-radius: 50px; cursor: pointer;">📸 Upload Picture</label>
-            <input type="file" id="pictureUpload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
-            <button id="removePictureBtn" onclick="removeProfilePicture()" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer;">🗑️ Remove Picture</button>
+        
+        <div id="profileContent">
+            <!-- Content will be loaded here -->
         </div>
-        <div id="pictureMessage" class="message" style="margin-top: 1rem;"></div>
     </div>
-</div>
-
-<!-- Personal Info Section -->
-<div class="profile-card">
-    <h2>Personal Information</h2>
-    <div id="profileMessage" class="message"></div>
-    <div class="form-group">
-        <label>Full Name</label>
-        <input type="text" id="profileName">
-    </div>
-    <div class="form-group">
-        <label>Email Address</label>
-        <input type="email" id="profileEmail">
-    </div>
-    <button class="btn" onclick="updateProfile()">Update Profile</button>
-</div>
 </main>
 
 <footer>
-    <p>Sigma Studio  Mardan, Pakistan</p>
+    <p>Sigma Studio — Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -260,168 +155,73 @@
     const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
     let currentUser = null;
     
-
-// ============================================
-// PROFILE PICTURE FUNCTIONS
-// ============================================
-
-function loadProfilePicture() {
-    var token = getAuthToken();
-    if (!token) return;
-    
-    fetch(API_URL + '/api/profile-picture', {
-        headers: { 'Authorization': token }
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-        var img = document.getElementById('profileImage');
-        if (data.profilePicture) {
-            img.src = API_URL + data.profilePicture + '?t=' + Date.now();
-        } else {
-            img.src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
-        }
-    })
-    .catch(function(error) {
-        console.error('Load picture error:', error);
-    });
-}
-
-function uploadProfilePicture(input) {
-    var file = input.files[0];
-    if (!file) return;
-    
-    if (file.size > 2 * 1024 * 1024) {
-        alert('File too large! Maximum 2MB');
-        return;
-    }
-    
-    var allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
-    if (allowedTypes.indexOf(file.type) === -1) {
-        alert('Only images allowed (JPEG, PNG, GIF, WEBP)');
-        return;
-    }
-    
-    var token = getAuthToken();
-    var formData = new FormData();
-    formData.append('profilePicture', file);
-    
-    var messageDiv = document.getElementById('pictureMessage');
-    messageDiv.textContent = 'Uploading...';
-    messageDiv.className = 'message info';
-    messageDiv.style.display = 'block';
-    
-    fetch(API_URL + '/api/upload-profile-picture', {
-        method: 'POST',
-        headers: {
-            'Authorization': token
-        },
-        body: formData
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-        if (data.success) {
-            messageDiv.textContent = 'Profile picture updated!';
-            messageDiv.className = 'message success';
-            setTimeout(function() { messageDiv.style.display = 'none'; }, 3000);
-            var img = document.getElementById('profileImage');
-            img.src = API_URL + data.profilePicture + '?t=' + Date.now();
-        } else {
-            messageDiv.textContent = data.error || 'Upload failed';
-            messageDiv.className = 'message error';
-        }
-    })
-    .catch(function(error) {
-        console.error('Upload error:', error);
-        messageDiv.textContent = 'Error uploading picture: ' + error.message;
-        messageDiv.className = 'message error';
-    });
-    
-    input.value = '';
-}
-
-function removeProfilePicture() {
-    if (!confirm('Remove your profile picture?')) return;
-    
-    var token = getAuthToken();
-    var messageDiv = document.getElementById('pictureMessage');
-    
-    messageDiv.textContent = 'Removing...';
-    messageDiv.className = 'message info';
-    messageDiv.style.display = 'block';
-    
-    fetch(API_URL + '/api/profile-picture', {
-        method: 'DELETE',
-        headers: { 'Authorization': token }
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-        if (data.success) {
-            messageDiv.textContent = 'Profile picture removed!';
-            messageDiv.className = 'message success';
-            setTimeout(function() { messageDiv.style.display = 'none'; }, 3000);
-            document.getElementById('profileImage').src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
-        } else {
-            messageDiv.textContent = data.error || 'Remove failed';
-            messageDiv.className = 'message error';
-        }
-    })
-    .catch(function(error) {
-        console.error('Remove error:', error);
-        messageDiv.textContent = 'Error removing picture';
-        messageDiv.className = 'message error';
-    });
-}
-    // ============================================
-    // CHECK LOGIN
-    // ============================================
-    
     function getAuthToken() {
-        return localStorage.getItem('sigma_token');
+        var token = localStorage.getItem('sigma_token');
+        if (token) return token;
+        token = localStorage.getItem('authToken');
+        return token;
     }
     
     function isLoggedIn() {
-        const token = getAuthToken();
-        const expiry = localStorage.getItem('sigma_token_expiry');
-        if (!token || !expiry) return false;
-        return Date.now() < parseInt(expiry);
+        var token = getAuthToken();
+        var expiry = localStorage.getItem('sigma_token_expiry');
+        if (!token) return false;
+        if (expiry && Date.now() > parseInt(expiry)) {
+            localStorage.removeItem('sigma_token');
+            localStorage.removeItem('sigma_token_expiry');
+            return false;
+        }
+        return true;
     }
     
-    // ============================================
-    // LOAD PROFILE
-    // ============================================
+    function loadProfile() {
+        var token = getAuthToken();
+        if (!token) return;
+        
+        fetch(API_URL + '/api/profile', {
+            headers: { 'Authorization': token }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success && data.user) {
+                currentUser = data.user;
+                document.getElementById('profileName').value = currentUser.name || '';
+                document.getElementById('profileEmail').value = currentUser.email || '';
+            }
+        })
+        .catch(function(error) {
+            console.error('Load profile error:', error);
+        });
+    }
     
     function loadProfilePicture() {
-    var token = getAuthToken();
-    if (!token) return;
+        var token = getAuthToken();
+        if (!token) return;
+        
+        var img = document.getElementById('profileImage');
+        if (!img) return;
+        
+        fetch(API_URL + '/api/profile-picture', {
+            headers: { 'Authorization': token }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.profilePicture) {
+                img.src = API_URL + data.profilePicture + '?t=' + Date.now();
+            } else {
+                img.src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
+            }
+        })
+        .catch(function(error) {
+            console.error('Load picture error:', error);
+        });
+    }
     
-    var img = document.getElementById('profileImage');
-    if (!img) return;
-    
-    fetch(API_URL + '/api/profile-picture', {
-        headers: { 'Authorization': token }
-    })
-    .then(function(response) { return response.json(); })
-    .then(function(data) {
-        if (data.profilePicture) {
-            img.src = API_URL + data.profilePicture + '?t=' + Date.now();
-        } else {
-            img.src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
-        }
-    })
-    .catch(function(error) {
-        console.error('Load picture error:', error);
-    });
-}
-    
-    // ============================================
-    // UPDATE PROFILE
-    // ============================================
-    
-    async function updateProfile() {
-        const name = document.getElementById('profileName').value.trim();
-        const email = document.getElementById('profileEmail').value.trim();
-        const messageDiv = document.getElementById('profileMessage');
-        const token = getAuthToken();
+    function updateProfile() {
+        var name = document.getElementById('profileName').value.trim();
+        var email = document.getElementById('profileEmail').value.trim();
+        var messageDiv = document.getElementById('profileMessage');
+        var token = getAuthToken();
         
         if (!name && !email) {
             messageDiv.textContent = 'Nothing to update';
@@ -429,54 +229,45 @@ function removeProfilePicture() {
             return;
         }
         
-        try {
-            const response = await fetch(`${API_URL}/api/profile`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': token
-                },
-                body: JSON.stringify({ name, email })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
+        fetch(API_URL + '/api/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify({ name: name, email: email })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
                 messageDiv.textContent = 'Profile updated successfully!';
                 messageDiv.className = 'message success';
-                setTimeout(() => messageDiv.style.display = 'none', 3000);
-                
-                // Update stored user
-                const storedUser = localStorage.getItem('sigma_user');
+                setTimeout(function() { messageDiv.style.display = 'none'; }, 3000);
+                var storedUser = localStorage.getItem('sigma_user');
                 if (storedUser) {
-                    const user = JSON.parse(storedUser);
+                    var user = JSON.parse(storedUser);
                     if (name) user.name = name;
                     if (email) user.email = email;
                     localStorage.setItem('sigma_user', JSON.stringify(user));
                 }
-                
-                // Reload navbar to show updated name
                 if (typeof updateAuthLink === 'function') updateAuthLink();
             } else {
                 messageDiv.textContent = data.error || 'Update failed';
                 messageDiv.className = 'message error';
             }
-        } catch (error) {
+        })
+        .catch(function(error) {
             messageDiv.textContent = 'Error: ' + error.message;
             messageDiv.className = 'message error';
-        }
+        });
     }
     
-    // ============================================
-    // CHANGE PASSWORD
-    // ============================================
-    
-    async function changePassword() {
-        const currentPassword = document.getElementById('currentPassword').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        const messageDiv = document.getElementById('passwordMessage');
-        const token = getAuthToken();
+    function changePassword() {
+        var currentPassword = document.getElementById('currentPassword').value;
+        var newPassword = document.getElementById('newPassword').value;
+        var confirmPassword = document.getElementById('confirmPassword').value;
+        var messageDiv = document.getElementById('passwordMessage');
+        var token = getAuthToken();
         
         if (!currentPassword || !newPassword || !confirmPassword) {
             messageDiv.textContent = 'Please fill all fields';
@@ -496,197 +287,251 @@ function removeProfilePicture() {
             return;
         }
         
-        try {
-            const response = await fetch(`${API_URL}/api/change-password`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': token
-                },
-                body: JSON.stringify({ currentPassword, newPassword })
-            });
-            
-            const data = await response.json();
-            
-            if (response.ok) {
+        fetch(API_URL + '/api/change-password', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token
+            },
+            body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword })
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
                 messageDiv.textContent = 'Password changed successfully!';
                 messageDiv.className = 'message success';
                 document.getElementById('currentPassword').value = '';
                 document.getElementById('newPassword').value = '';
                 document.getElementById('confirmPassword').value = '';
-                setTimeout(() => messageDiv.style.display = 'none', 3000);
+                setTimeout(function() { messageDiv.style.display = 'none'; }, 3000);
             } else {
                 messageDiv.textContent = data.error || 'Password change failed';
                 messageDiv.className = 'message error';
             }
-        } catch (error) {
+        })
+        .catch(function(error) {
             messageDiv.textContent = 'Error: ' + error.message;
             messageDiv.className = 'message error';
-        }
+        });
     }
     
-    // ============================================
-    // LOAD ORDERS
-    // ============================================
+    function uploadProfilePicture(input) {
+        var file = input.files[0];
+        if (!file) return;
+        
+        if (file.size > 2 * 1024 * 1024) {
+            alert('File too large! Maximum 2MB');
+            return;
+        }
+        
+        var token = getAuthToken();
+        var formData = new FormData();
+        formData.append('profilePicture', file);
+        
+        var messageDiv = document.getElementById('pictureMessage');
+        messageDiv.textContent = 'Uploading...';
+        messageDiv.className = 'message info';
+        messageDiv.style.display = 'block';
+        
+        fetch(API_URL + '/api/upload-profile-picture', {
+            method: 'POST',
+            headers: {
+                'Authorization': token
+            },
+            body: formData
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                messageDiv.textContent = 'Profile picture updated!';
+                messageDiv.className = 'message success';
+                setTimeout(function() { messageDiv.style.display = 'none'; }, 3000);
+                var img = document.getElementById('profileImage');
+                img.src = API_URL + data.profilePicture + '?t=' + Date.now();
+            } else {
+                messageDiv.textContent = data.error || 'Upload failed';
+                messageDiv.className = 'message error';
+            }
+        })
+        .catch(function(error) {
+            console.error('Upload error:', error);
+            messageDiv.textContent = 'Error uploading picture: ' + error.message;
+            messageDiv.className = 'message error';
+        });
+        
+        input.value = '';
+    }
     
-    async function loadOrders() {
-        const token = getAuthToken();
-        const ordersDiv = document.getElementById('ordersList');
+    function removeProfilePicture() {
+        if (!confirm('Remove your profile picture?')) return;
+        
+        var token = getAuthToken();
+        var messageDiv = document.getElementById('pictureMessage');
+        
+        messageDiv.textContent = 'Removing...';
+        messageDiv.className = 'message info';
+        messageDiv.style.display = 'block';
+        
+        fetch(API_URL + '/api/profile-picture', {
+            method: 'DELETE',
+            headers: { 'Authorization': token }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success) {
+                messageDiv.textContent = 'Profile picture removed!';
+                messageDiv.className = 'message success';
+                setTimeout(function() { messageDiv.style.display = 'none'; }, 3000);
+                document.getElementById('profileImage').src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
+            } else {
+                messageDiv.textContent = data.error || 'Remove failed';
+                messageDiv.className = 'message error';
+            }
+        })
+        .catch(function(error) {
+            console.error('Remove error:', error);
+            messageDiv.textContent = 'Error removing picture';
+            messageDiv.className = 'message error';
+        });
+    }
+    
+    function loadOrders() {
+        var token = getAuthToken();
+        var ordersDiv = document.getElementById('ordersList');
+        
+        if (!ordersDiv) return;
         
         ordersDiv.innerHTML = '<div style="text-align:center; padding:20px;">Loading orders...</div>';
         
-        try {
-            const response = await fetch(`${API_URL}/api/my-orders`, {
-                headers: { 'Authorization': token }
-            });
-            
-            const data = await response.json();
-            
-            if (!response.ok) {
-                ordersDiv.innerHTML = '<div style="text-align:center; padding:20px;">Failed to load orders</div>';
-                return;
-            }
-            
-            const orders = data.orders || [];
+        fetch(API_URL + '/api/my-orders', {
+            headers: { 'Authorization': token }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            var orders = data.orders || [];
             
             if (orders.length === 0) {
                 ordersDiv.innerHTML = '<div style="text-align:center; padding:20px;">No orders yet. Start shopping!</div>';
                 return;
             }
             
-            ordersDiv.innerHTML = orders.map(order => {
-                let statusClass = '';
+            var html = '';
+            for (var i = 0; i < orders.length; i++) {
+                var order = orders[i];
+                var statusClass = '';
                 if (order.status === 'pending') statusClass = 'status-pending';
                 else if (order.status === 'processing') statusClass = 'status-processing';
                 else if (order.status === 'shipped') statusClass = 'status-shipped';
                 else if (order.status === 'delivered') statusClass = 'status-delivered';
                 
-                let itemsHtml = '';
+                var itemsHtml = '';
                 if (order.items && order.items.length > 0) {
-                    itemsHtml = order.items.map(item => `${item.name} x ${item.quantity}`).join(', ');
+                    var itemNames = [];
+                    for (var j = 0; j < order.items.length; j++) {
+                        itemNames.push(order.items[j].name + ' x ' + order.items[j].quantity);
+                    }
+                    itemsHtml = itemNames.join(', ');
                 }
                 
-                return `
-                    <div class="order-item">
-                        <div class="order-header">
-                            <span class="order-id">Order #${order.order_id}</span>
-                            <span class="order-status ${statusClass}">${order.status || 'pending'}</span>
-                        </div>
-                        <div class="order-items">Items: ${itemsHtml}</div>
-                        <div class="order-total">Total: $${order.total || 0}</div>
-                        <div style="font-size: 0.8rem; color: #888; margin-top: 0.5rem;">
-                            Date: ${new Date(order.created_at).toLocaleDateString()}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-        } catch (error) {
+                html += '<div class="order-item" style="background:#f8f9fa; border-radius:12px; padding:1rem; margin-bottom:1rem; border-left:4px solid #e05a2a;">' +
+                    '<div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">' +
+                    '<span style="font-weight:bold; color:#e05a2a;">Order #' + order.order_id + '</span>' +
+                    '<span class="' + statusClass + '">' + (order.status || 'pending') + '</span>' +
+                    '</div>' +
+                    '<div style="font-size:0.9rem; color:#666;">Items: ' + itemsHtml + '</div>' +
+                    '<div style="font-weight:bold;">Total: $' + (order.total || 0) + '</div>' +
+                    '<div style="font-size:0.8rem; color:#888;">Date: ' + new Date(order.created_at).toLocaleDateString() + '</div>' +
+                    '</div>';
+            }
+            ordersDiv.innerHTML = html;
+        })
+        .catch(function(error) {
             console.error('Load orders error:', error);
             ordersDiv.innerHTML = '<div style="text-align:center; padding:20px;">Error loading orders</div>';
+        });
+    }
+    
+    function renderPage() {
+        var container = document.getElementById('profileContent');
+        
+        if (!container) {
+            console.error('Profile content container not found');
+            return;
         }
-    }
-    
-    // ============================================
-    // RENDER PAGE
-    // ============================================
-function renderPage() {
-    var container = document.getElementById('profileContent');
-    
-    // Check if container exists
-    if (!container) {
-        console.error('Profile content container not found');
-        return;
-    }
-    
-    if (!isLoggedIn()) {
+        
+        if (!isLoggedIn()) {
+            container.innerHTML = '<div class="login-prompt"><h3>Please Login</h3><p>You need to be logged in to view your profile.</p><a href="login.html" class="btn" style="display: inline-block; margin-top: 1rem;">Login Now →</a></div>';
+            return;
+        }
+        
         container.innerHTML = `
-            <div class="login-prompt">
-                <h3>Please Login</h3>
-                <p>You need to be logged in to view your profile.</p>
-                <a href="login.html" class="btn" style="display: inline-block; margin-top: 1rem;">Login Now →</a>
+            <div class="profile-card">
+                <h2>Profile Picture</h2>
+                <div style="text-align: center;">
+                    <div id="profilePictureContainer" style="margin-bottom: 1rem;">
+                        <img id="profileImage" src="https://placehold.co/120x120/ccc/white?text=No+Image" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #e05a2a;">
+                    </div>
+                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                        <label for="pictureUpload" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 10px 20px; border-radius: 50px; cursor: pointer;">Upload Picture</label>
+                        <input type="file" id="pictureUpload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
+                        <button id="removePictureBtn" onclick="removeProfilePicture()" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer;">Remove Picture</button>
+                    </div>
+                    <div id="pictureMessage" class="message" style="margin-top: 1rem;"></div>
+                </div>
+            </div>
+            
+            <div class="profile-card">
+                <h2>Personal Information</h2>
+                <div id="profileMessage" class="message"></div>
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="profileName">
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="profileEmail">
+                </div>
+                <button class="btn" onclick="updateProfile()">Update Profile</button>
+            </div>
+            
+            <div class="profile-card">
+                <h2>Change Password</h2>
+                <div id="passwordMessage" class="message"></div>
+                <div class="form-group">
+                    <label>Current Password</label>
+                    <input type="password" id="currentPassword" placeholder="Enter current password">
+                </div>
+                <div class="form-group">
+                    <label>New Password</label>
+                    <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)">
+                </div>
+                <div class="form-group">
+                    <label>Confirm New Password</label>
+                    <input type="password" id="confirmPassword" placeholder="Confirm new password">
+                </div>
+                <button class="btn" onclick="changePassword()">Change Password</button>
+            </div>
+            
+            <div class="profile-card">
+                <h2>Order History</h2>
+                <div id="ordersList"></div>
             </div>
         `;
-        return;
+        
+        loadProfile();
+        loadOrders();
+        loadProfilePicture();
     }
     
-    container.innerHTML = `
-        <!-- Profile Picture Section -->
-        <div class="profile-card">
-            <h2>Profile Picture</h2>
-            <div style="text-align: center;">
-                <div id="profilePictureContainer" style="margin-bottom: 1rem;">
-                    <img id="profileImage" src="https://placehold.co/120x120/ccc/white?text=No+Image" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #e05a2a;">
-                </div>
-                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <label for="pictureUpload" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 10px 20px; border-radius: 50px; cursor: pointer;">📸 Upload Picture</label>
-                    <input type="file" id="pictureUpload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
-                    <button id="removePictureBtn" onclick="removeProfilePicture()" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer;">🗑️ Remove Picture</button>
-                </div>
-                <div id="pictureMessage" class="message" style="margin-top: 1rem;"></div>
-            </div>
-        </div>
-        
-        <!-- Personal Info Section -->
-        <div class="profile-card">
-            <h2>Personal Information</h2>
-            <div id="profileMessage" class="message"></div>
-            <div class="form-group">
-                <label>Full Name</label>
-                <input type="text" id="profileName">
-            </div>
-            <div class="form-group">
-                <label>Email Address</label>
-                <input type="email" id="profileEmail">
-            </div>
-            <button class="btn" onclick="updateProfile()">Update Profile</button>
-        </div>
-        
-        <!-- Change Password Section -->
-        <div class="profile-card">
-            <h2>Change Password</h2>
-            <div id="passwordMessage" class="message"></div>
-            <div class="form-group">
-                <label>Current Password</label>
-                <input type="password" id="currentPassword" placeholder="Enter current password">
-            </div>
-            <div class="form-group">
-                <label>New Password</label>
-                <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)">
-            </div>
-            <div class="form-group">
-                <label>Confirm New Password</label>
-                <input type="password" id="confirmPassword" placeholder="Confirm new password">
-            </div>
-            <button class="btn" onclick="changePassword()">Change Password</button>
-        </div>
-        
-        <!-- Order History Section -->
-        <div class="profile-card">
-            <h2>Order History</h2>
-            <div id="ordersList"></div>
-        </div>
-    `;
-    
-    // Only call these functions after elements are created
-    loadProfile();
-    loadOrders();
-    loadProfilePicture();
-}
-    
-    // ============================================
-    // INITIALIZE
-    // ============================================
-    
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', function() {
         updateCartCount();
         renderPage();
     });
     
-    // Make functions global
     window.updateProfile = updateProfile;
     window.changePassword = changePassword;
+    window.uploadProfilePicture = uploadProfilePicture;
+    window.removeProfilePicture = removeProfilePicture;
 </script>
-
 </body>
 </html>
