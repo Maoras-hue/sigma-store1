@@ -20,7 +20,7 @@
         
         .reviews-header h1 {
             font-size: 2rem;
-            font-weight: 700;
+            font-weight: 800;
             background: linear-gradient(135deg, #e05a2a, #ff8c42);
             -webkit-background-clip: text;
             background-clip: text;
@@ -28,7 +28,6 @@
             margin-bottom: 0.5rem;
         }
         
-        /* Write Review Section */
         .write-review {
             background: white;
             border-radius: 20px;
@@ -79,7 +78,7 @@
             margin-bottom: 1rem;
         }
         
-        .submit-review-btn {
+        .submit-btn {
             background: linear-gradient(135deg, #e05a2a, #ff8c42);
             color: white;
             border: none;
@@ -90,12 +89,11 @@
             transition: all 0.3s;
         }
         
-        .submit-review-btn:hover {
+        .submit-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(224,90,42,0.3);
         }
         
-        /* Reviews List */
         .reviews-list {
             background: white;
             border-radius: 20px;
@@ -154,7 +152,7 @@
         }
         
         .login-prompt {
-            background: #f0fdf4;
+            background: #fff3e0;
             border-radius: 12px;
             padding: 1rem;
             text-align: center;
@@ -209,7 +207,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">s SIGMA</a>
+    <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -220,44 +218,46 @@
         <a href="terms.html">terms</a>
         <a href="refund.html">refund</a>
         <a href="track.html">track order</a>
+        <a href="seller-dashboard.html">sell</a>
+        <a href="profile.html">profile</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">??</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="reviews-container">
         <div class="reviews-header">
-            <h1>? Customer Reviews</h1>
+            <h1>⭐ Product Reviews</h1>
             <p>See what others are saying about our products</p>
         </div>
         
         <!-- Write Review Section -->
-        <div id="writeReviewSection" class="write-review">
-            <h3>?? Write a Review</h3>
-            <div id="loginWarning" style="display:none;" class="login-prompt">
-                ?? Please <a href="login.html">login</a> to write a review
+        <div class="write-review">
+            <h3>📝 Write a Review</h3>
+            <div id="loginWarning" class="login-prompt" style="display: none;">
+                🔐 Please <a href="login.html" id="loginLinkWarning">login</a> to write a review
             </div>
-            <div id="reviewForm" style="display:none;">
+            <div id="reviewForm">
                 <select id="productSelect" class="product-select">
                     <option value="">Select a product</option>
                 </select>
                 <div class="rating-stars" id="ratingStars">
-                    <span class="star" data-rating="1">?</span>
-                    <span class="star" data-rating="2">?</span>
-                    <span class="star" data-rating="3">?</span>
-                    <span class="star" data-rating="4">?</span>
-                    <span class="star" data-rating="5">?</span>
+                    <span class="star" data-rating="1">☆</span>
+                    <span class="star" data-rating="2">☆</span>
+                    <span class="star" data-rating="3">☆</span>
+                    <span class="star" data-rating="4">☆</span>
+                    <span class="star" data-rating="5">☆</span>
                 </div>
                 <textarea id="reviewComment" class="review-textarea" rows="4" placeholder="Share your experience with this product..."></textarea>
-                <button id="submitReview" class="submit-review-btn">Submit Review ?</button>
+                <button id="submitBtn" class="submit-btn">Submit Review →</button>
             </div>
         </div>
         
         <!-- Reviews List -->
         <div class="reviews-list">
-            <h3>?? All Reviews</h3>
+            <h3>📖 Customer Reviews</h3>
             <div id="reviewsList">
                 <div class="no-reviews">Select a product to see reviews</div>
             </div>
@@ -279,6 +279,42 @@
     let currentProductId = '';
     
     // ============================================
+    // GET AUTH TOKEN - FIXED
+    // ============================================
+    
+    function getAuthToken() {
+        let token = localStorage.getItem('sigma_token');
+        if (!token) token = localStorage.getItem('authToken');
+        if (!token) token = localStorage.getItem('sigma_auth_token');
+        return token;
+    }
+    
+    function isLoggedIn() {
+        const token = getAuthToken();
+        const expiry = localStorage.getItem('sigma_token_expiry');
+        if (!token) return false;
+        if (expiry && Date.now() > parseInt(expiry)) return false;
+        return true;
+    }
+    
+    // ============================================
+    // CHECK LOGIN STATUS AND UPDATE UI
+    // ============================================
+    
+    function updateLoginStatus() {
+        const loginWarning = document.getElementById('loginWarning');
+        const reviewForm = document.getElementById('reviewForm');
+        
+        if (isLoggedIn()) {
+            loginWarning.style.display = 'none';
+            reviewForm.style.display = 'block';
+        } else {
+            loginWarning.style.display = 'block';
+            reviewForm.style.display = 'none';
+        }
+    }
+    
+    // ============================================
     // STAR RATING
     // ============================================
     
@@ -290,10 +326,10 @@
                 stars.forEach(s => {
                     const rating = parseInt(s.dataset.rating);
                     if (rating <= selectedRating) {
-                        s.innerHTML = '?';
+                        s.innerHTML = '★';
                         s.classList.add('active');
                     } else {
-                        s.innerHTML = '?';
+                        s.innerHTML = '☆';
                         s.classList.remove('active');
                     }
                 });
@@ -312,7 +348,7 @@
             
             const select = document.getElementById('productSelect');
             select.innerHTML = '<option value="">Select a product</option>' + 
-                products.map(p => `<option value="${p.id}">${p.name} - $${p.price}</option>`).join('');
+                products.map(p => `<option value="${p.id}">${escapeHtml(p.name)} - $${p.price}</option>`).join('');
         } catch (error) {
             console.error('Error loading products:', error);
         }
@@ -339,7 +375,7 @@
             const reviews = data.reviews || [];
             
             if (reviews.length === 0) {
-                reviewsDiv.innerHTML = '<div class="no-reviews">? No reviews yet. Be the first to review this product!</div>';
+                reviewsDiv.innerHTML = '<div class="no-reviews">⭐ No reviews yet. Be the first to review this product!</div>';
                 return;
             }
             
@@ -349,23 +385,24 @@
                         <span class="reviewer-name">${escapeHtml(r.user_name)}</span>
                         <span class="review-date">${new Date(r.created_at).toLocaleDateString()}</span>
                     </div>
-                    <div class="review-stars">${'?'.repeat(r.rating)}${'?'.repeat(5 - r.rating)}</div>
+                    <div class="review-stars">${'★'.repeat(r.rating)}${'☆'.repeat(5 - r.rating)}</div>
                     <div class="review-comment">${escapeHtml(r.comment)}</div>
                 </div>
             `).join('');
         } catch (error) {
+            console.error('Load reviews error:', error);
             reviewsDiv.innerHTML = '<div class="no-reviews">Error loading reviews</div>';
         }
     }
     
     // ============================================
-    // SUBMIT REVIEW
+    // SUBMIT REVIEW - FIXED
     // ============================================
     
     async function submitReview() {
         const productId = document.getElementById('productSelect').value;
         const comment = document.getElementById('reviewComment').value;
-        const token = localStorage.getItem('authToken');
+        const token = getAuthToken();
         
         if (!productId) {
             alert('Please select a product');
@@ -401,43 +438,30 @@
                 })
             });
             
+            const data = await response.json();
+            
             if (response.ok) {
-                alert('? Review submitted successfully!');
+                alert('✅ Review submitted successfully!');
                 document.getElementById('reviewComment').value = '';
                 selectedRating = 0;
                 const stars = document.querySelectorAll('.star');
                 stars.forEach(s => {
-                    s.innerHTML = '?';
+                    s.innerHTML = '☆';
                     s.classList.remove('active');
                 });
                 loadReviews(productId);
             } else {
-                const data = await response.json();
-                alert(data.error || 'Failed to submit review');
+                alert(data.error || 'Failed to submit review. Please try again.');
             }
         } catch (error) {
             console.error('Submit error:', error);
-            alert('Error submitting review');
+            alert('Error submitting review. Please check your connection.');
         }
     }
     
     // ============================================
-    // CHECK LOGIN STATUS
+    // HELPER FUNCTIONS
     // ============================================
-    
-    function checkLoginStatus() {
-        const token = localStorage.getItem('authToken');
-        const loginWarning = document.getElementById('loginWarning');
-        const reviewForm = document.getElementById('reviewForm');
-        
-        if (token) {
-            loginWarning.style.display = 'none';
-            reviewForm.style.display = 'block';
-        } else {
-            loginWarning.style.display = 'block';
-            reviewForm.style.display = 'none';
-        }
-    }
     
     function escapeHtml(str) {
         if (!str) return '';
@@ -453,21 +477,37 @@
     // INITIALIZE
     // ============================================
     
-    document.addEventListener('DOMContentLoaded', () => {
-        loadProducts();
-        checkLoginStatus();
+    document.addEventListener('DOMContentLoaded', async function() {
+        console.log('Reviews page loaded');
+        
+        // Update cart count
+        updateCartCount();
+        
+        // Update login status
+        updateLoginStatus();
+        
+        // Load products
+        await loadProducts();
+        
+        // Initialize stars
         initStars();
         
+        // Set up event listeners
         document.getElementById('productSelect').addEventListener('change', (e) => {
             loadReviews(e.target.value);
         });
         
-        document.getElementById('submitReview').addEventListener('click', submitReview);
-        updateCartCount();
+        document.getElementById('submitBtn').addEventListener('click', submitReview);
+        
+        // Also check login status when auth changes
+        window.addEventListener('storage', function() {
+            updateLoginStatus();
+        });
     });
+    
+    // Make functions global for navbar
+    window.updateCartCount = updateCartCount;
 </script>
 
 </body>
 </html>
-`n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-<script src="chat-widget.js?v=2"></script>
