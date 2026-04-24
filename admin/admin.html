@@ -179,6 +179,13 @@
             font-weight: 600;
         }
         
+        .product-img {
+            width: 50px;
+            height: 50px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        
         /* Product Form */
         .product-form {
             background: white;
@@ -187,11 +194,19 @@
             margin-bottom: 20px;
         }
         
-        .product-form input, .product-form select {
+        .form-row {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            margin-top: 15px;
+        }
+        
+        .form-row input, .form-row select {
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 6px;
             font-size: 14px;
+            flex: 1;
         }
         
         .product-form button {
@@ -212,29 +227,26 @@
             cursor: pointer;
         }
         
-        .status-pending {
-            color: #ff9800;
-            font-weight: bold;
+        .image-preview {
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         
-        .status-approved {
-            color: #4caf50;
-            font-weight: bold;
+        .image-preview img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #ddd;
         }
         
-        .auto-refresh-status {
+        .image-help {
             font-size: 12px;
-            color: #4caf50;
-            margin-left: 10px;
-        }
-        
-        .refresh-indicator {
-            background: #e05a2a;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            margin-left: 10px;
+            color: #888;
+            margin-top: 5px;
         }
         
         @media (max-width: 768px) {
@@ -263,11 +275,8 @@
 <!-- Dashboard -->
 <div id="dashboard" class="dashboard">
     <div class="header">
-        <div class="logo">Sigma Admin Panel</div>
-        <div>
-            <span id="autoStatus" class="auto-refresh-status">Auto-refresh ON</span>
-            <button class="logout-btn" onclick="logout()">Logout</button>
-        </div>
+        <div class="logo">σ Sigma Admin Panel</div>
+        <button class="logout-btn" onclick="logout()">Logout</button>
     </div>
     
     <div class="container">
@@ -293,25 +302,34 @@
         <div id="productsTab">
             <div class="product-form">
                 <h3>Add New Product</h3>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;">
-                    <input type="text" id="productName" placeholder="Product Name" style="flex:2">
-                    <input type="number" id="productPrice" placeholder="Price" style="flex:1">
-                    <select id="productCategory" style="flex:1">
+                <div class="form-row">
+                    <input type="text" id="productName" placeholder="Product Name">
+                    <input type="number" id="productPrice" step="0.01" placeholder="Price">
+                    <select id="productCategory">
                         <option value="digital">Digital</option>
                         <option value="electronics">Electronics</option>
                         <option value="clothing">Clothing</option>
                         <option value="home">Home & Living</option>
                     </select>
-                    <input type="text" id="productImage" placeholder="Image URL (optional)" style="flex:2">
+                </div>
+                <div class="form-row">
+                    <input type="text" id="productImage" placeholder="Image URL (e.g., https://...jpg)">
                     <button onclick="addProduct()">Add Product</button>
+                </div>
+                <div id="imagePreview" class="image-preview" style="display: none;">
+                    <span>Preview:</span>
+                    <img id="previewImg" src="" alt="Preview">
+                </div>
+                <div class="image-help">
+                    💡 Tip: Use free images from Unsplash (right-click -> Copy Image Address)
                 </div>
             </div>
             
             <div class="table-container">
-                <h3>All Products <span id="productCount" class="refresh-indicator"></span></h3>
-                <table id="productsTable">
+                <h3>All Products</h3>
+                <table>
                     <thead>
-                        <tr><th>ID</th><th>Name</th><th>Price</th><th>Category</th><th>Image</th><th>Action</th></tr>
+                        <tr><th>Image</th><th>ID</th><th>Name</th><th>Price</th><th>Category</th><th>Action</th></tr>
                     </thead>
                     <tbody id="productsList"></tbody>
                 </table>
@@ -322,8 +340,10 @@
         <div id="ordersTab" style="display: none;">
             <div class="table-container">
                 <h3>All Orders</h3>
-                <table id="ordersTable">
-                    <thead><tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+                <table>
+                    <thead>
+                        <tr><th>Order ID</th><th>Customer</th><th>Items</th><th>Total</th><th>Status</th><th>Date</th></tr>
+                    </thead>
                     <tbody id="ordersList"></tbody>
                 </table>
             </div>
@@ -335,7 +355,6 @@
     const API_URL = 'https://sigma-store-api.onrender.com';
     const ADMIN_PASSWORD = 'sigma123';
     let autoRefreshInterval = null;
-    let isLoggedIn = false;
     
     // ============================================
     // LOGIN FUNCTIONS
@@ -345,7 +364,6 @@
         const password = document.getElementById('adminPassword').value;
         
         if (password === ADMIN_PASSWORD) {
-            isLoggedIn = true;
             localStorage.setItem('adminLoggedIn', 'true');
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
@@ -358,7 +376,6 @@
     
     function logout() {
         stopAutoRefresh();
-        isLoggedIn = false;
         localStorage.removeItem('adminLoggedIn');
         document.getElementById('loginPage').style.display = 'flex';
         document.getElementById('dashboard').style.display = 'none';
@@ -374,7 +391,6 @@
                 loadOrders();
             }
         }, 5000);
-        document.getElementById('autoStatus').innerText = 'Auto-refresh ON (every 5 sec)';
     }
     
     function stopAutoRefresh() {
@@ -386,7 +402,6 @@
     
     function checkLogin() {
         if (localStorage.getItem('adminLoggedIn') === 'true') {
-            isLoggedIn = true;
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('dashboard').style.display = 'block';
             startAutoRefresh();
@@ -401,15 +416,35 @@
     function showTab(tab) {
         document.getElementById('productsTab').style.display = 'none';
         document.getElementById('ordersTab').style.display = 'none';
-        
         document.getElementById(tab + 'Tab').style.display = 'block';
         
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        const btns = document.querySelectorAll('.tab-btn');
+        btns.forEach(btn => btn.classList.remove('active'));
         event.target.classList.add('active');
         
         if (tab === 'products') loadProducts();
         if (tab === 'orders') loadOrders();
     }
+    
+    // ============================================
+    // IMAGE PREVIEW
+    // ============================================
+    
+    document.getElementById('productImage').addEventListener('input', function() {
+        const url = this.value;
+        const previewDiv = document.getElementById('imagePreview');
+        const previewImg = document.getElementById('previewImg');
+        
+        if (url && (url.startsWith('http') || url.startsWith('https'))) {
+            previewImg.src = url;
+            previewDiv.style.display = 'flex';
+            previewImg.onerror = function() {
+                previewImg.src = 'https://placehold.co/80x80/ff6b6b/white?text=Invalid+URL';
+            };
+        } else {
+            previewDiv.style.display = 'none';
+        }
+    });
     
     // ============================================
     // LOAD DASHBOARD
@@ -430,54 +465,64 @@
             const products = await response.json();
             
             document.getElementById('totalProducts').innerText = products.length;
-            document.getElementById('productCount').innerText = products.length + ' products';
             
             const tbody = document.getElementById('productsList');
-            tbody.innerHTML = products.map(p => `
-                <tr>
-                    <td>${p.id}</td>
-                    <td>${p.name}</td>
-                    <td>$${p.price}</td>
-                    <td>${p.category || 'digital'}</td>
-                    <td>${p.image ? (p.image.startsWith('http') ? 'URL' : 'Uploaded') : 'No image'}</td>
-                    <td><button class="delete-btn" onclick="deleteProduct('${p.id}')">Delete</button></td>
-                </tr>
-            `).join('');
+            tbody.innerHTML = products.map(p => {
+                let imgSrc = p.image;
+                if (!imgSrc) {
+                    imgSrc = `https://placehold.co/50x50/1a1a2e/white?text=${encodeURIComponent(p.name.substring(0, 3))}`;
+                } else if (imgSrc.startsWith('/uploads/')) {
+                    imgSrc = API_URL + imgSrc;
+                }
+                
+                return `
+                    <tr>
+                        <td><img src="${imgSrc}" class="product-img" onerror="this.src='https://placehold.co/50x50/ff6b6b/white?text=Error'"></td>
+                        <td>${p.id.substring(0, 8)}...</td>
+                        <td>${escapeHtml(p.name)}</td>
+                        <td>$${p.price}</td>
+                        <td>${p.category || 'digital'}</td>
+                        <td><button class="delete-btn" onclick="deleteProduct('${p.id}')">Delete</button></td>
+                    </tr>
+                `;
+            }).join('');
         } catch(e) {
             console.error('Error loading products:', e);
         }
     }
     
     async function addProduct() {
-        const name = document.getElementById('productName').value;
+        const name = document.getElementById('productName').value.trim();
         const price = document.getElementById('productPrice').value;
         const category = document.getElementById('productCategory').value;
-        const image = document.getElementById('productImage').value;
+        let image = document.getElementById('productImage').value.trim();
         
         if (!name || !price) {
-            alert('Name and price required');
+            alert('Please enter product name and price');
             return;
+        }
+        
+        // Use placeholder if no image provided
+        if (!image) {
+            image = `https://placehold.co/400x300/1a1a2e/white?text=${encodeURIComponent(name)}`;
         }
         
         try {
             const response = await fetch(`${API_URL}/api/products`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name, price, category, imageUrl: image })
+                body: JSON.stringify({ name, price, category, image })
             });
-            
-            const data = await response.json();
             
             if (response.ok) {
                 alert('Product added successfully!');
                 document.getElementById('productName').value = '';
                 document.getElementById('productPrice').value = '';
                 document.getElementById('productImage').value = '';
+                document.getElementById('imagePreview').style.display = 'none';
                 loadProducts();
-                
-                // Notify shop to refresh
-                fetch(`${API_URL}/api/notify-shop-refresh`, { method: 'POST' }).catch(e => console.log);
             } else {
+                const data = await response.json();
                 alert('Failed to add product: ' + (data.error || 'Unknown error'));
             }
         } catch(e) {
@@ -495,9 +540,6 @@
                 if (response.ok) {
                     alert('Product deleted');
                     loadProducts();
-                    
-                    // Notify shop to refresh
-                    fetch(`${API_URL}/api/notify-shop-refresh`, { method: 'POST' }).catch(e => console.log);
                 } else {
                     alert('Delete failed');
                 }
@@ -513,26 +555,40 @@
     
     async function loadOrders() {
         try {
-            const response = await fetch(`${API_URL}/api/admin/orders`);
-            const data = await response.json();
-            const orders = data.orders || [];
+            const response = await fetch(`${API_URL}/api/orders`);
+            const orders = await response.json();
             
             document.getElementById('totalOrders').innerText = orders.length;
             
             const tbody = document.getElementById('ordersList');
+            if (orders.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">No orders yet</td></tr>';
+                return;
+            }
+            
             tbody.innerHTML = orders.map(o => `
                 <tr>
-                    <td>${o.order_id}</td>
-                    <td>${o.user_email || 'N/A'}</td>
-                    <td>${o.items ? (typeof o.items === 'string' ? JSON.parse(o.items).length : o.items.length) : 0} items} items}</td>
+                    <td>${o.order_id ? o.order_id.substring(0, 12) + '...' : 'N/A'}</td>
+                    <td>${escapeHtml(o.user_email || 'N/A')}</td>
+                    <td>${o.items ? (typeof o.items === 'string' ? JSON.parse(o.items).length : o.items.length) : 0} items</td>
                     <td>$${o.total || 0}</td>
-                    <td>${o.status || 'pending'}</td>
+                    <td><span style="background:#ff9800; color:white; padding:2px 8px; border-radius:12px; font-size:12px;">${o.status || 'pending'}</span></td>
                     <td>${new Date(o.created_at).toLocaleDateString()}</td>
                 </tr>
             `).join('');
         } catch(e) {
             console.error('Error loading orders:', e);
         }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
     }
     
     // ============================================
