@@ -814,6 +814,90 @@ app.get('/api/my-orders', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
+// Signup endpoint
+app.post('/api/signup', async (req, res) => {
+    console.log('Signup request received:', req.body);
+    
+    try {
+        const { email, name, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password required' });
+        }
+        
+        // Check if user exists
+        const existingUser = await executeGet('SELECT id FROM users WHERE email = ?', [email]);
+        if (existingUser) {
+            return res.status(400).json({ error: 'Email already exists' });
+        }
+        
+        // Hash password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const userId = uuidv4();
+        const createdAt = new Date().toISOString();
+        
+        await executeQuery(
+            'INSERT INTO users (id, email, name, password, created_at) VALUES (?, ?, ?, ?, ?)',
+            [userId, email, name, hashedPassword, createdAt]
+        );
+        
+        // Create session token
+        const token = uuidv4();
+        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        await executeQuery(
+            'INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
+            [token, userId, expires]
+        );
+        
+        res.json({
+            success: true,
+            user: { id: userId, email: email, name: name },
+            token: token
+        });
+    } catch (error) {
+        console.error('Signup error:', error);
+        res.status(500).json({ error: 'Signup failed' });
+    }
+});
+// Login endpoint
+app.post('/api/login', async (req, res) => {
+    console.log('Login request received:', req.body);
+    
+    try {
+        const { email, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password required' });
+        }
+        
+        const user = await executeGet('SELECT * FROM users WHERE email = ?', [email]);
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        
+        // Create session token
+        const token = uuidv4();
+        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        await executeQuery(
+            'INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
+            [token, user.id, expires]
+        );
+        
+        res.json({
+            success: true,
+            user: { id: user.id, email: user.email, name: user.name, profile_picture: user.profile_picture },
+            token: token
+        });
+    } catch (error) {
+        console.error('Login error:', error);
+        res.status(500).json({ error: 'Login failed' });
+    }
+});
 // Start server
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
