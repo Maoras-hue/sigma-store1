@@ -145,6 +145,7 @@ function renderProductGrid(productsToRender) {
                     <div class="product-price">$${p.price}</div>
                     ${stockHtml}
                     ${addButtonHtml}
+                    <button class="buy-now-btn" onclick="event.stopPropagation(); buyNow('${p.id}', '${escapeHtml(p.name)}', ${p.price})" style="background: #e05a2a; color: white; border: none; padding: 8px 16px; border-radius: 50px; cursor: pointer; margin-top: 8px; width: 100%; font-weight:600;">Buy Now</button>
                 </div>
             </div>
         `;
@@ -245,6 +246,26 @@ function addToCart(id, name, price) {
     saveCart(cart);
     showToast(`✓ ${name} added to cart`);
     pulseCart();
+}
+
+function buyNow(id, name, price) {
+    const product = products.find(p => p.id === id);
+    const stock = product?.stock || 999;
+    
+    if (stock <= 0) {
+        showToast('❌ Out of stock!', 'error');
+        return;
+    }
+    
+    const cart = getCart();
+    const existing = cart.find(item => item.id === id);
+    if (existing) {
+        existing.quantity++;
+    } else {
+        cart.push({ id, name, price, quantity: 1 });
+    }
+    saveCart(cart);
+    window.location.href = 'cart.html';
 }
 
 function pulseCart() {
@@ -617,6 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Make functions global
 window.addToCart = addToCart;
+window.buyNow = buyNow;
 window.toggleWishlist = toggleWishlist;
 window.goToPage = goToPage;
 window.addToRecentlyViewed = addToRecentlyViewed;

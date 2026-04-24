@@ -182,11 +182,20 @@
 </div>
 
 <main>
+<!-- Discount Banner -->
+<div style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; text-align: center; padding: 20px; margin: 20px 0; border-radius: 16px;">
+    <p style="font-size: 1.2rem; margin-bottom: 10px;"> LIMITED TIME OFFER </p>
+    <p style="margin-bottom: 15px;">Get the complete Sigma Store template at <strong>20% OFF</strong>! Use code: <strong style="font-size: 1.3rem;">SIGMA20</strong></p>
+    <a href="buy.html" style="background: white; color: #e05a2a; padding: 10px 25px; border-radius: 50px; text-decoration: none; font-weight: 600;">Claim Discount →</a>
+</div>
     <div class="hero">
-        <h1>The ecommerce web template, ready to run store.</h1>
-        <p>A full stack ecommerce web with full functionality.</p>
+    <h1>The ecommerce web template, ready to run store.</h1>
+    <p>A full stack ecommerce web with full functionality.</p>
+    <div style="margin-top: 2rem;">
+        <a href="#products" class="cta-btn-primary" style="background: #e05a2a; color: white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: 600; margin-right: 15px; display: inline-block;"> Shop Now</a>
+        <a href="buy.html" class="cta-btn-secondary" style="background: transparent; color: white; border: 2px solid white; padding: 12px 30px; border-radius: 50px; text-decoration: none; font-weight: 600; display: inline-block;"> Buy Template</a>
     </div>
-
+</div>
     <div class="container">
         <div class="search-bar">
             <div style="display: flex; gap: 0.5rem; position: relative;">
@@ -400,6 +409,76 @@
     
     window.showQuickView = showQuickView;
     window.closeQuickView = closeQuickView;
+</script>
+<!-- Floating CTA Button -->
+<div id="floatingCTA" style="position: fixed; bottom: 100px; right: 20px; z-index: 1000; display: none;">
+    <a href="buy.html" style="display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 20px; border-radius: 50px; text-decoration: none; font-weight: 600; box-shadow: 0 4px 15px rgba(224,90,42,0.4); animation: pulse 2s infinite;">
+        <span style="font-size: 20px;">💰</span>
+        <span>Get Sigma Store - $179</span>
+    </a>
+</div>
+
+<style>
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    #floatingCTA.show {
+        display: block;
+        animation: slideIn 0.5s ease;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+</style>
+
+<script>
+    // Show floating CTA after scrolling
+    window.addEventListener('scroll', function() {
+        const cta = document.getElementById('floatingCTA');
+        if (window.scrollY > 300) {
+            cta.classList.add('show');
+        } else {
+            cta.classList.remove('show');
+        }
+    });
+</script>
+<!-- Exit Intent Popup -->
+<div id="exitPopup" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 20px; padding: 30px; max-width: 400px; text-align: center; position: relative;">
+        <button onclick="closeExitPopup()" style="position: absolute; top: 10px; right: 15px; background: none; border: none; font-size: 24px; cursor: pointer;">&times;</button>
+        <h2 style="color: #e05a2a;">Wait! Don't Leave!</h2>
+        <p style="margin: 20px 0;">Get your own e-commerce website today. Starting at just $179!</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <a href="buy.html" style="background: #e05a2a; color: white; padding: 10px 20px; border-radius: 50px; text-decoration: none;">View Pricing →</a>
+            <a href="index.html" onclick="closeExitPopup()" style="background: #ccc; color: #333; padding: 10px 20px; border-radius: 50px; text-decoration: none;">Continue Shopping</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    let mouseLeaveCount = 0;
+    document.addEventListener('mouseleave', function(e) {
+        if (e.clientY < 0 && mouseLeaveCount === 0) {
+            mouseLeaveCount++;
+            setTimeout(function() {
+                document.getElementById('exitPopup').style.display = 'flex';
+            }, 100);
+        }
+    });
+    
+    function closeExitPopup() {
+        document.getElementById('exitPopup').style.display = 'none';
+    }
 </script>
 </body>
 </html>

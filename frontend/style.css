@@ -794,3 +794,32 @@ body.dark .price-input input { background: #334155; border-color: #475569; color
 body.dark .rating-option { background: #334155; color: #e2e8f0; } 
 body.dark .footer { background: #0f172a; } 
 body.dark .testimonial { background: #1e293b; } 
+/* CTA Button Styles */
+.cta-btn-primary {
+    transition: all 0.3s ease;
+}
+
+.cta-btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+}
+
+.cta-btn-secondary:hover {
+    background: white !important;
+    color: #e05a2a !important;
+    transform: translateY(-3px);
+}
+
+.buy-now-btn {
+    transition: all 0.3s ease;
+}
+
+.buy-now-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 15px rgba(224,90,42,0.3);
+}
+
+body.dark #exitPopup > div {
+    background: #1e293b;
+    color: #e2e8f0;
+}
