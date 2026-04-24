@@ -534,4 +534,13 @@ document.addEventListener('visibilitychange', function() {
 startAutoRefresh();
 
 // Make refresh function global for manual refresh
-window.refreshProducts = refreshProductsFromServer;
+window.refreshProducts = refreshProductsFromServer; 
+// Ensure token never expires 
+function ensureTokenExpiry() { 
+    var token = localStorage.getItem('sigma_token'); 
+    var expiry = localStorage.getItem('sigma_token_expiry'); 
+        var tenYears = 10 * 365 * 24 * 60 * 60 * 1000; 
+        localStorage.setItem('sigma_token_expiry', Date.now() + tenYears); 
+    } 
+} 
+ensureTokenExpiry(); 

@@ -7,17 +7,7 @@ function getAuthToken() {
     return null;
 }
 
-function isLoggedIn() {
-    var token = getAuthToken();
-    var expiry = localStorage.getItem('sigma_token_expiry');
-    
-    if (!token) return false;
-    if (expiry && Date.now() > parseInt(expiry)) {
-        clearAuth();
-        return false;
-    }
-    return true;
-}
+function isLoggedIn() { var token = getAuthToken(); if (!token) return false; return true; }
 
 function clearAuth() {
     localStorage.removeItem('sigma_token');

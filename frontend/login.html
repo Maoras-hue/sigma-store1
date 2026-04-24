@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -237,7 +237,7 @@
         <button class="btn" id="loginBtn">Login</button>
         <div id="loginMessage" class="message"></div>
         <div class="back-link">
-            <a href="index.html">← Back to Shop</a>
+            <a href="index.html">? Back to Shop</a>
         </div>
     </div>
     
@@ -262,7 +262,7 @@
         <button class="btn" id="signupBtn">Create Account</button>
         <div id="signupMessage" class="message"></div>
         <div class="back-link">
-            <a href="index.html">← Back to Shop</a>
+            <a href="index.html">? Back to Shop</a>
         </div>
     </div>
 </div>
@@ -313,7 +313,7 @@
             if (response.ok && data.token) {
                 localStorage.setItem('sigma_token', data.token);
                 localStorage.setItem('sigma_user', JSON.stringify(data.user));
-                localStorage.setItem('sigma_token_expiry', Date.now() + (7 * 24 * 60 * 60 * 1000));
+                localStorage.setItem('sigma_token_expiry', Date.now() + (10 * 365 * 24 * 60 * 60 * 1000));
                 
                 messageDiv.textContent = 'Login successful! Redirecting...';
                 messageDiv.className = 'message success';
@@ -367,7 +367,7 @@
             if (response.ok && data.token) {
                 localStorage.setItem('sigma_token', data.token);
                 localStorage.setItem('sigma_user', JSON.stringify(data.user));
-                localStorage.setItem('sigma_token_expiry', Date.now() + (7 * 24 * 60 * 60 * 1000));
+                localStorage.setItem('sigma_token_expiry', Date.now() + (10 * 365 * 24 * 60 * 60 * 1000));
                 
                 messageDiv.textContent = 'Account created! Redirecting...';
                 messageDiv.className = 'message success';

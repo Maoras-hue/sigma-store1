@@ -232,7 +232,7 @@ app.post('/api/signup', async (req, res) => {
         );
         
         const token = uuidv4();
-        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000);
         await executeQuery(
             'INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
             [token, userId, expires]
@@ -270,7 +270,7 @@ app.post('/api/login', async (req, res) => {
         }
         
         const token = uuidv4();
-        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000);
         
         await executeQuery(
             'INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
