@@ -112,6 +112,20 @@ function renderProductGrid(productsToRender) {
         const imageSrc = getProductImage(p);
         const rating = productRatings[p.id] || 0;
         const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+        const stock = p.stock || 999;
+        const isLowStock = stock > 0 && stock <= 10;
+        const isOutOfStock = stock === 0;
+        
+        let stockHtml = '';
+        if (isOutOfStock) {
+            stockHtml = '<div style="background:#e05a2a; color:white; padding:2px 8px; border-radius:20px; font-size:10px; display:inline-block; margin-bottom:5px;">❌ Out of Stock</div>';
+        } else if (isLowStock) {
+            stockHtml = `<div style="background:#ff9800; color:white; padding:2px 8px; border-radius:20px; font-size:10px; display:inline-block; margin-bottom:5px;">🔥 Only ${stock} left!</div>`;
+        }
+        
+        const addButtonHtml = isOutOfStock 
+            ? '<button class="add-btn" disabled style="opacity:0.5; cursor:not-allowed;">Out of Stock</button>'
+            : `<button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${escapeHtml(p.name)}',${p.price})">Add to Cart</button>`;
         
         return `
             <div class="product-card">
@@ -129,7 +143,8 @@ function renderProductGrid(productsToRender) {
                         <span class="rating-count" style="font-size:10px; color:#888;">(${rating.toFixed(1)})</span>
                     </div>
                     <div class="product-price">$${p.price}</div>
-                    <button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${escapeHtml(p.name)}',${p.price})">Add to Cart</button>
+                    ${stockHtml}
+                    ${addButtonHtml}
                 </div>
             </div>
         `;
@@ -192,6 +207,9 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.remove(), 3000);
 }
 
+// ============================================
+// CART FUNCTIONS
+// ============================================
 function getCart() {
     return JSON.parse(localStorage.getItem('sigma_cart') || '[]');
 }
@@ -209,6 +227,14 @@ function updateCartCount() {
 }
 
 function addToCart(id, name, price) {
+    const product = products.find(p => p.id === id);
+    const stock = product?.stock || 999;
+    
+    if (stock <= 0) {
+        showToast('❌ Out of stock!', 'error');
+        return;
+    }
+    
     const cart = getCart();
     const existing = cart.find(item => item.id === id);
     if (existing) {
@@ -229,6 +255,9 @@ function pulseCart() {
     }
 }
 
+// ============================================
+// WISHLIST FUNCTIONS
+// ============================================
 function getWishlist() {
     return JSON.parse(localStorage.getItem('sigma_wishlist') || '[]');
 }
@@ -254,6 +283,9 @@ function isInWishlist(productId) {
     return getWishlist().includes(productId);
 }
 
+// ============================================
+// RECENTLY VIEWED FUNCTIONS
+// ============================================
 function getRecentlyViewed() {
     return JSON.parse(localStorage.getItem('sigma_recently_viewed') || '[]');
 }
@@ -293,6 +325,9 @@ function renderRecentlyViewed() {
     }).join('');
 }
 
+// ============================================
+// PRODUCT IMAGE HELPER
+// ============================================
 function getProductImage(product) {
     if (!product.image) {
         return `https://placehold.co/400x300/1a1a2e/white?text=${encodeURIComponent(product.name)}`;
@@ -319,7 +354,6 @@ function escapeHtml(str) {
 // ============================================
 // SEARCH AUTOCOMPLETE
 // ============================================
-
 let searchTimeout = null;
 const autocompleteList = document.getElementById('autocomplete-list');
 
@@ -371,7 +405,6 @@ document.addEventListener('click', function(e) {
 // ============================================
 // QUICK VIEW MODAL
 // ============================================
-
 async function showQuickView(productId) {
     try {
         const response = await fetch(`${API_URL}/api/products/${productId}`);
@@ -382,6 +415,8 @@ async function showQuickView(productId) {
         const rating = productRatings[productId] || 0;
         const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
         const imageSrc = getProductImage(product);
+        const stock = product.stock || 999;
+        const isOutOfStock = stock === 0;
         
         content.innerHTML = `
             <div style="display:flex; flex-direction:column; gap:20px;">
@@ -392,9 +427,10 @@ async function showQuickView(productId) {
                     <span style="color:#888;">(${rating.toFixed(1)})</span>
                 </div>
                 <div style="font-size:2rem; color:#e05a2a; font-weight:800;">$${product.price}</div>
-                <p style="color:#666; line-height:1.6;">${product.description || 'No description available. This is a high-quality product.'}</p>
+                <div>${stock > 0 ? `<span style="color:green;">✓ In Stock (${stock} available)</span>` : '<span style="color:red;">✗ Out of Stock</span>'}</div>
+                <p style="color:#666; line-height:1.6;">${product.description || 'No description available.'}</p>
                 <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-                    <button onclick="addToCart('${product.id}', '${escapeHtml(product.name)}', ${product.price}); closeQuickView();" style="flex:1; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; padding:12px; border-radius:50px; cursor:pointer; font-weight:600;">Add to Cart</button>
+                    ${!isOutOfStock ? `<button onclick="addToCart('${product.id}', '${escapeHtml(product.name)}', ${product.price}); closeQuickView();" style="flex:1; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; padding:12px; border-radius:50px; cursor:pointer; font-weight:600;">Add to Cart</button>` : ''}
                     <button onclick="closeQuickView()" style="background:#f0f0f0; border:none; padding:12px 25px; border-radius:50px; cursor:pointer;">Continue Shopping</button>
                 </div>
             </div>
@@ -411,23 +447,13 @@ function closeQuickView() {
     if (modal) modal.style.display = 'none';
 }
 
-// Close modal on Escape key
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeQuickView();
 });
 
-// Close modal when clicking outside
-const quickViewModal = document.getElementById('quickViewModal');
-if (quickViewModal) {
-    quickViewModal.addEventListener('click', function(e) {
-        if (e.target === this) closeQuickView();
-    });
-}
-
 // ============================================
 // SETUP EVENT LISTENERS
 // ============================================
-
 function setupEventListeners() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -538,7 +564,6 @@ function setupEventListeners() {
 // ============================================
 // AUTO-REFRESH PRODUCTS
 // ============================================
-
 let lastUpdateCheck = Date.now();
 let autoRefreshInterval = null;
 
@@ -573,15 +598,16 @@ function startAutoRefresh() {
         refreshProductsFromServer();
     }, 10000);
 }
+
 document.addEventListener('visibilitychange', function() {
     if (!document.hidden) refreshProductsFromServer();
 });
+
 startAutoRefresh();
 
 // ============================================
 // INITIALIZE ON PAGE LOAD
 // ============================================
-
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded - initializing Sigma Store');
     setupEventListeners();

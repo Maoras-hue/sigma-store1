@@ -82,6 +82,7 @@ function executeAll(sql, params = []) {
 // Create all tables and insert default data
 (async function initDatabase() {
     try {
+        // Users table
         await executeQuery(`CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             email TEXT UNIQUE,
@@ -92,11 +93,13 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Users table ready');
         
+        // Add profile_picture column if missing
         try {
             await executeQuery(`ALTER TABLE users ADD COLUMN profile_picture TEXT`);
             console.log('Added profile_picture column');
         } catch(e) {}
         
+        // Sessions table
         await executeQuery(`CREATE TABLE IF NOT EXISTS sessions (
             token TEXT PRIMARY KEY,
             user_id TEXT,
@@ -105,18 +108,20 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Sessions table ready');
         
+        // Products table with stock
         await executeQuery(`CREATE TABLE IF NOT EXISTS products (
             id TEXT PRIMARY KEY,
             name TEXT,
             price REAL,
             category TEXT,
             image TEXT,
-            stock INTEGER,
+            stock INTEGER DEFAULT 999,
             description TEXT,
             created_at TEXT
         )`);
         console.log('Products table ready');
         
+        // Orders table
         await executeQuery(`CREATE TABLE IF NOT EXISTS orders (
             order_id TEXT PRIMARY KEY,
             user_id TEXT,
@@ -134,6 +139,7 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Orders table ready');
         
+        // Reviews table
         await executeQuery(`CREATE TABLE IF NOT EXISTS reviews (
             id TEXT PRIMARY KEY,
             product_id TEXT,
@@ -145,6 +151,7 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Reviews table ready');
         
+        // Chat messages table
         await executeQuery(`CREATE TABLE IF NOT EXISTS chat_messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
@@ -155,6 +162,7 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Chat table ready');
         
+        // Sellers table (multi-vendor)
         await executeQuery(`CREATE TABLE IF NOT EXISTS sellers (
             id TEXT PRIMARY KEY,
             user_id TEXT,
@@ -169,6 +177,7 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Sellers table ready');
         
+        // Visitors table
         await executeQuery(`CREATE TABLE IF NOT EXISTS visitors (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
@@ -183,6 +192,7 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Visitors table ready');
         
+        // Coupons table
         await executeQuery(`CREATE TABLE IF NOT EXISTS coupons (
             id TEXT PRIMARY KEY,
             code TEXT UNIQUE,
@@ -196,6 +206,7 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Coupons table ready');
         
+        // Insert default products if table is empty
         const productCount = await executeGet('SELECT COUNT(*) as count FROM products');
         if (productCount.count === 0) {
             console.log('Adding default products...');
@@ -222,6 +233,9 @@ function executeAll(sql, params = []) {
     }
 })();
 
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
 function getUserIdFromToken(token) {
     if (!token) return null;
     const cleanToken = token.replace('Bearer ', '');
@@ -458,7 +472,7 @@ app.delete('/api/profile-picture', async (req, res) => {
 });
 
 // ============================================
-// PRODUCT ROUTES
+// PRODUCT ROUTES (CRUD with Stock)
 // ============================================
 app.get('/api/products', async (req, res) => {
     try {
@@ -537,7 +551,7 @@ app.delete('/api/products/:id', async (req, res) => {
 });
 
 // ============================================
-// ORDER ROUTES
+// ORDER ROUTES (Stock deduction on order)
 // ============================================
 app.post('/api/orders', async (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
@@ -546,6 +560,15 @@ app.post('/api/orders', async (req, res) => {
     const user = await executeGet('SELECT email FROM users WHERE id = ?', [userId]);
     const { items, subtotal, shipping, total, notes, paymentMethod, paymentId } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ error: 'Cart is empty' });
+    
+    // Check stock availability
+    for (const item of items) {
+        const product = await executeGet('SELECT stock FROM products WHERE id = ?', [item.id]);
+        if (!product || product.stock < item.quantity) {
+            return res.status(400).json({ error: `${item.name} is out of stock or insufficient quantity` });
+        }
+    }
+    
     const orderId = uuidv4();
     const createdAt = new Date().toISOString();
     await executeQuery(
@@ -553,6 +576,12 @@ app.post('/api/orders', async (req, res) => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [orderId, userId, user.email, JSON.stringify(items), subtotal || 0, shipping || 0, total || 0, notes || '', 'pending', paymentMethod || 'whatsapp', paymentId || null, paymentId ? 'paid' : 'pending', createdAt]
     );
+    
+    // Reduce stock for each item
+    for (const item of items) {
+        await executeQuery('UPDATE products SET stock = stock - ? WHERE id = ?', [item.quantity, item.id]);
+    }
+    
     res.json({ success: true, orderId });
 });
 
@@ -632,6 +661,18 @@ app.get('/api/seller/dashboard', async (req, res) => {
     if (!seller) return res.status(404).json({ error: 'Not a seller' });
     const products = await executeAll('SELECT * FROM products WHERE seller_id = ?', [seller.id]);
     res.json({ seller, stats: { totalProducts: products.length, totalSales: seller.total_sales || 0, balance: seller.balance || 0 } });
+});
+
+// ============================================
+// LOW STOCK ROUTES
+// ============================================
+app.get('/api/admin/low-stock', async (req, res) => {
+    try {
+        const products = await executeAll('SELECT * FROM products WHERE stock <= 10 ORDER BY stock ASC');
+        res.json({ products });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
 });
 
 // ============================================
