@@ -4,18 +4,113 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sigma Store - My Profile</title>
-    <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        body {
+            background: #f8fafc;
+            color: #0f172a;
+        }
+
+        body.dark {
+            background: #0f172a;
+            color: #e2e8f0;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        body.dark .header {
+            background: #1e293b;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-decoration: none;
+        }
+
+        .nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .nav a {
+            text-decoration: none;
+            color: #334155;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+
+        body.dark .nav a {
+            color: #cbd5e1;
+        }
+
+        .nav a:hover {
+            color: #e05a2a;
+        }
+
+        .cart-btn, .dark-toggle {
+            background: #f1f5f9;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        body.dark .cart-btn, body.dark .dark-toggle {
+            background: #334155;
+            color: #f1f5f9;
+        }
+
+        .cart-btn:hover, .dark-toggle:hover {
+            background: #e2e8f0;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
         .profile-container {
             max-width: 800px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 0rem;
         }
+
         .profile-header {
             text-align: center;
             margin-bottom: 2rem;
         }
+
         .profile-header h1 {
             font-size: 2rem;
             font-weight: 800;
@@ -24,97 +119,227 @@
             background-clip: text;
             color: transparent;
         }
+
         .profile-card {
             background: white;
-            border-radius: 24px;
+            border-radius: 28px;
             padding: 2rem;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+            transition: all 0.2s;
         }
+
+        body.dark .profile-card {
+            background: #1e293b;
+        }
+
         .profile-card h2 {
             margin-bottom: 1.5rem;
-            color: #333;
-            font-size: 1.3rem;
+            color: #1e293b;
+            font-size: 1.4rem;
+            font-weight: 600;
+            border-left: 4px solid #e05a2a;
+            padding-left: 1rem;
         }
+
+        body.dark .profile-card h2 {
+            color: #f1f5f9;
+        }
+
         .form-group {
             margin-bottom: 1.5rem;
         }
+
         .form-group label {
             display: block;
             margin-bottom: 0.5rem;
             font-weight: 600;
-            color: #333;
+            color: #0f172a;
         }
-        .form-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 1rem;
-        }
-        .form-group input:focus {
-            outline: none;
-            border-color: #e05a2a;
-        }
-        .btn {
-            background: linear-gradient(135deg, #e05a2a, #ff8c42);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .message {
-            margin-top: 1rem;
-            padding: 12px;
-            border-radius: 12px;
-            text-align: center;
-            display: none;
-        }
-        .message.success {
-            background: #e8f5e9;
-            color: #4caf50;
-            display: block;
-        }
-        .message.error {
-            background: #ffebee;
-            color: #e05a2a;
-            display: block;
-        }
-        .login-prompt {
-            text-align: center;
-            padding: 3rem;
-            background: white;
-            border-radius: 24px;
-        }
-        body.dark .profile-card,
-        body.dark .login-prompt {
-            background: #1e293b;
-        }
-        body.dark .profile-card h2,
+
         body.dark .form-group label {
             color: #e2e8f0;
         }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 1rem;
+            background: white;
+        }
+
         body.dark .form-group input {
             background: #334155;
             border-color: #475569;
             color: white;
         }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #e05a2a;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            font-weight: 700;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: scale(0.98);
+        }
+
+        .message {
+            margin-top: 1rem;
+            padding: 12px;
+            border-radius: 20px;
+            text-align: center;
+            display: none;
+            font-weight: 500;
+        }
+
+        .message.success {
+            background: #e8f5e9;
+            color: #2e7d32;
+            display: block;
+        }
+
+        body.dark .message.success {
+            background: #1b3b1f;
+            color: #a5d6a7;
+        }
+
+        .message.error {
+            background: #ffebee;
+            color: #c62828;
+            display: block;
+        }
+
+        body.dark .message.error {
+            background: #3b1e1e;
+            color: #ef9a9a;
+        }
+
+        .message.info {
+            background: #e3f2fd;
+            color: #1565c0;
+            display: block;
+        }
+
+        .login-prompt {
+            text-align: center;
+            padding: 3rem 2rem;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+        }
+
+        body.dark .login-prompt {
+            background: #1e293b;
+        }
+
+        .login-prompt h3 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .order-item {
+            transition: 0.1s;
+        }
+
+        .status-pending {
+            background: #fff3e0;
+            color: #ed6c02;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-processing {
+            background: #e3f2fd;
+            color: #0288d1;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-shipped {
+            background: #e8eaf6;
+            color: #3949ab;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+
+        .status-delivered {
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 4px 12px;
+            border-radius: 40px;
+        }
+
+        body.dark .order-item {
+            background: #0f172a !important;
+            border-left-color: #ff8c42;
+            color: #cbd5e1;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            margin-top: 3rem;
+            font-size: 0.85rem;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        body.dark footer {
+            background: #0f172a;
+            border-top: 1px solid #334155;
+        }
+
         @media (max-width: 768px) {
-            .profile-container {
-                padding: 1rem;
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .nav {
+                justify-content: center;
             }
             .profile-card {
                 padding: 1.5rem;
             }
+        }
+
+        .profile-img-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid #e05a2a;
+            background: #f1f5f9;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
         }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">σ SIGMA</a>
+    <a href="index.html" class="logo">SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -128,7 +353,7 @@
         <a href="profile.html">profile</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <button class="dark-toggle" id="darkToggle">Dark Mode</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
@@ -137,23 +362,18 @@
         <div class="profile-header">
             <h1>My Profile</h1>
         </div>
-        
         <div id="profileContent">
-            <!-- Content will be loaded here -->
         </div>
     </div>
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio - Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
-<script src="config.js"></script>
-<script src="navbar.js"></script>
 <script>
-    const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
-    let currentUser = null;
+    var API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
     
     function getAuthToken() {
         var token = localStorage.getItem('sigma_token');
@@ -174,24 +394,40 @@
         return true;
     }
     
-    function loadProfile() {
-        var token = getAuthToken();
-        if (!token) return;
-        
-        fetch(API_URL + '/api/profile', {
-            headers: { 'Authorization': token }
-        })
-        .then(function(response) { return response.json(); })
-        .then(function(data) {
-            if (data.success && data.user) {
-                currentUser = data.user;
-                document.getElementById('profileName').value = currentUser.name || '';
-                document.getElementById('profileEmail').value = currentUser.email || '';
+    function updateCartCount() {
+        var cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        var total = 0;
+        for (var i = 0; i < cart.length; i++) {
+            total += (cart[i].quantity || 0);
+        }
+        var cartSpan = document.getElementById('cartCount');
+        if (cartSpan) cartSpan.innerText = total;
+    }
+    
+    function updateAuthButton() {
+        var authLink = document.getElementById('authLink');
+        if (!authLink) return;
+        if (isLoggedIn()) {
+            var userName = 'Profile';
+            var userStr = localStorage.getItem('sigma_user');
+            if (userStr) {
+                try {
+                    var user = JSON.parse(userStr);
+                    if (user.name) userName = user.name.split(' ')[0];
+                    else if (user.email) userName = user.email.split('@')[0];
+                } catch(e) {}
             }
-        })
-        .catch(function(error) {
-            console.error('Load profile error:', error);
-        });
+            authLink.innerText = userName;
+            authLink.href = 'profile.html';
+        } else {
+            authLink.innerText = 'login';
+            authLink.href = 'login.html';
+        }
+    }
+    
+    function refreshUIAfterProfileChange() {
+        updateCartCount();
+        updateAuthButton();
     }
     
     function loadProfilePicture() {
@@ -207,14 +443,67 @@
         .then(function(response) { return response.json(); })
         .then(function(data) {
             if (data.profilePicture) {
-                img.src = API_URL + data.profilePicture + '?t=' + Date.now();
+                var fullImgUrl = API_URL + data.profilePicture + '?t=' + Date.now();
+                img.src = fullImgUrl;
+                
+                var userStr = localStorage.getItem('sigma_user');
+                if (userStr) {
+                    try {
+                        var user = JSON.parse(userStr);
+                        user.profile_picture = fullImgUrl;
+                        localStorage.setItem('sigma_user', JSON.stringify(user));
+                    } catch(e) { console.warn(e); }
+                } else {
+                    var dummyUser = { profile_picture: fullImgUrl };
+                    localStorage.setItem('sigma_user', JSON.stringify(dummyUser));
+                }
+                
+                if (typeof updateAuthButton === 'function') {
+                    updateAuthButton();
+                } else {
+                    updateAuthButton();
+                }
+                var event = new Event('profilePictureUpdated');
+                window.dispatchEvent(event);
             } else {
                 img.src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
             }
         })
         .catch(function(error) {
             console.error('Load picture error:', error);
+            var imgEl = document.getElementById('profileImage');
+            if(imgEl) imgEl.src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
         });
+    }
+    
+    function loadProfile() {
+        var token = getAuthToken();
+        if (!token) return Promise.reject('no token');
+        
+        return fetch(API_URL + '/api/profile', {
+            headers: { 'Authorization': token }
+        })
+        .then(function(response) { return response.json(); })
+        .then(function(data) {
+            if (data.success && data.user) {
+                window.currentUser = data.user;
+                var nameInput = document.getElementById('profileName');
+                var emailInput = document.getElementById('profileEmail');
+                if (nameInput) nameInput.value = data.user.name || '';
+                if (emailInput) emailInput.value = data.user.email || '';
+                var stored = localStorage.getItem('sigma_user');
+                if (stored) {
+                    try {
+                        var userObj = JSON.parse(stored);
+                        userObj.name = data.user.name || userObj.name;
+                        userObj.email = data.user.email || userObj.email;
+                        localStorage.setItem('sigma_user', JSON.stringify(userObj));
+                    } catch(e) {}
+                }
+                updateAuthButton();
+            }
+        })
+        .catch(function(err) { console.error('Load profile error:', err); });
     }
     
     function updateProfile() {
@@ -231,10 +520,7 @@
         
         fetch(API_URL + '/api/profile', {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': token
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': token },
             body: JSON.stringify({ name: name, email: email })
         })
         .then(function(response) { return response.json(); })
@@ -242,7 +528,7 @@
             if (data.success) {
                 messageDiv.textContent = 'Profile updated successfully!';
                 messageDiv.className = 'message success';
-                setTimeout(function() { messageDiv.style.display = 'none'; }, 3000);
+                setTimeout(function() { messageDiv.style.display = 'none'; }, 2500);
                 var storedUser = localStorage.getItem('sigma_user');
                 if (storedUser) {
                     var user = JSON.parse(storedUser);
@@ -250,14 +536,14 @@
                     if (email) user.email = email;
                     localStorage.setItem('sigma_user', JSON.stringify(user));
                 }
-                if (typeof updateAuthLink === 'function') updateAuthLink();
+                updateAuthButton();
             } else {
                 messageDiv.textContent = data.error || 'Update failed';
                 messageDiv.className = 'message error';
             }
         })
-        .catch(function(error) {
-            messageDiv.textContent = 'Error: ' + error.message;
+        .catch(function(err) {
+            messageDiv.textContent = 'Error: ' + err.message;
             messageDiv.className = 'message error';
         });
     }
@@ -274,13 +560,11 @@
             messageDiv.className = 'message error';
             return;
         }
-        
         if (newPassword !== confirmPassword) {
             messageDiv.textContent = 'New passwords do not match';
             messageDiv.className = 'message error';
             return;
         }
-        
         if (newPassword.length < 6) {
             messageDiv.textContent = 'Password must be at least 6 characters';
             messageDiv.className = 'message error';
@@ -289,10 +573,7 @@
         
         fetch(API_URL + '/api/change-password', {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': token
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': token },
             body: JSON.stringify({ currentPassword: currentPassword, newPassword: newPassword })
         })
         .then(function(response) { return response.json(); })
@@ -309,8 +590,8 @@
                 messageDiv.className = 'message error';
             }
         })
-        .catch(function(error) {
-            messageDiv.textContent = 'Error: ' + error.message;
+        .catch(function(err) {
+            messageDiv.textContent = 'Error: ' + err.message;
             messageDiv.className = 'message error';
         });
     }
@@ -318,26 +599,20 @@
     function uploadProfilePicture(input) {
         var file = input.files[0];
         if (!file) return;
-        
         if (file.size > 2 * 1024 * 1024) {
             alert('File too large! Maximum 2MB');
             return;
         }
-        
         var token = getAuthToken();
         var formData = new FormData();
         formData.append('profilePicture', file);
-        
         var messageDiv = document.getElementById('pictureMessage');
         messageDiv.textContent = 'Uploading...';
         messageDiv.className = 'message info';
-        messageDiv.style.display = 'block';
         
         fetch(API_URL + '/api/upload-profile-picture', {
             method: 'POST',
-            headers: {
-                'Authorization': token
-            },
+            headers: { 'Authorization': token },
             body: formData
         })
         .then(function(response) { return response.json(); })
@@ -345,32 +620,42 @@
             if (data.success) {
                 messageDiv.textContent = 'Profile picture updated!';
                 messageDiv.className = 'message success';
-                setTimeout(function() { messageDiv.style.display = 'none'; }, 3000);
+                setTimeout(function() { messageDiv.style.display = 'none'; }, 2500);
                 var img = document.getElementById('profileImage');
-                img.src = API_URL + data.profilePicture + '?t=' + Date.now();
+                var newImgUrl = API_URL + data.profilePicture + '?t=' + Date.now();
+                img.src = newImgUrl;
+                
+                var userStr = localStorage.getItem('sigma_user');
+                if (userStr) {
+                    try {
+                        var user = JSON.parse(userStr);
+                        user.profile_picture = newImgUrl;
+                        localStorage.setItem('sigma_user', JSON.stringify(user));
+                    } catch(e) {}
+                } else {
+                    localStorage.setItem('sigma_user', JSON.stringify({ profile_picture: newImgUrl }));
+                }
+                updateAuthButton();
+                window.dispatchEvent(new Event('storage'));
             } else {
                 messageDiv.textContent = data.error || 'Upload failed';
                 messageDiv.className = 'message error';
             }
         })
-        .catch(function(error) {
-            console.error('Upload error:', error);
-            messageDiv.textContent = 'Error uploading picture: ' + error.message;
+        .catch(function(err) {
+            console.error('Upload error:', err);
+            messageDiv.textContent = 'Error uploading picture';
             messageDiv.className = 'message error';
         });
-        
         input.value = '';
     }
     
     function removeProfilePicture() {
         if (!confirm('Remove your profile picture?')) return;
-        
         var token = getAuthToken();
         var messageDiv = document.getElementById('pictureMessage');
-        
         messageDiv.textContent = 'Removing...';
         messageDiv.className = 'message info';
-        messageDiv.style.display = 'block';
         
         fetch(API_URL + '/api/profile-picture', {
             method: 'DELETE',
@@ -381,15 +666,24 @@
             if (data.success) {
                 messageDiv.textContent = 'Profile picture removed!';
                 messageDiv.className = 'message success';
-                setTimeout(function() { messageDiv.style.display = 'none'; }, 3000);
+                setTimeout(function() { messageDiv.style.display = 'none'; }, 2500);
                 document.getElementById('profileImage').src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
+                var userStr = localStorage.getItem('sigma_user');
+                if (userStr) {
+                    try {
+                        var user = JSON.parse(userStr);
+                        delete user.profile_picture;
+                        localStorage.setItem('sigma_user', JSON.stringify(user));
+                    } catch(e) {}
+                }
+                updateAuthButton();
             } else {
                 messageDiv.textContent = data.error || 'Remove failed';
                 messageDiv.className = 'message error';
             }
         })
-        .catch(function(error) {
-            console.error('Remove error:', error);
+        .catch(function(err) {
+            console.error('Remove error:', err);
             messageDiv.textContent = 'Error removing picture';
             messageDiv.className = 'message error';
         });
@@ -398,9 +692,7 @@
     function loadOrders() {
         var token = getAuthToken();
         var ordersDiv = document.getElementById('ordersList');
-        
         if (!ordersDiv) return;
-        
         ordersDiv.innerHTML = '<div style="text-align:center; padding:20px;">Loading orders...</div>';
         
         fetch(API_URL + '/api/my-orders', {
@@ -409,12 +701,10 @@
         .then(function(response) { return response.json(); })
         .then(function(data) {
             var orders = data.orders || [];
-            
             if (orders.length === 0) {
                 ordersDiv.innerHTML = '<div style="text-align:center; padding:20px;">No orders yet. Start shopping!</div>';
                 return;
             }
-            
             var html = '';
             for (var i = 0; i < orders.length; i++) {
                 var order = orders[i];
@@ -425,106 +715,116 @@
                 else if (order.status === 'delivered') statusClass = 'status-delivered';
                 
                 var itemsHtml = '';
-                if (order.items && order.items.length > 0) {
-                    var itemNames = [];
+                if (order.items && order.items.length) {
+                    var names = [];
                     for (var j = 0; j < order.items.length; j++) {
-                        itemNames.push(order.items[j].name + ' x ' + order.items[j].quantity);
+                        names.push((order.items[j].name || order.items[j].product_name || 'Item') + ' x ' + order.items[j].quantity);
                     }
-                    itemsHtml = itemNames.join(', ');
+                    itemsHtml = names.join(', ');
                 }
-                
-                html += '<div class="order-item" style="background:#f8f9fa; border-radius:12px; padding:1rem; margin-bottom:1rem; border-left:4px solid #e05a2a;">' +
-                    '<div style="display:flex; justify-content:space-between; margin-bottom:0.5rem;">' +
-                    '<span style="font-weight:bold; color:#e05a2a;">Order #' + order.order_id + '</span>' +
+                html += '<div class="order-item" style="background:#f8f9fa; border-radius:20px; padding:1rem; margin-bottom:1rem; border-left:4px solid #e05a2a;">' +
+                    '<div style="display:flex; justify-content:space-between; margin-bottom:0.5rem; flex-wrap:wrap;">' +
+                    '<span style="font-weight:800; color:#e05a2a;">Order #' + (order.order_id || order.id) + '</span>' +
                     '<span class="' + statusClass + '">' + (order.status || 'pending') + '</span>' +
                     '</div>' +
-                    '<div style="font-size:0.9rem; color:#666;">Items: ' + itemsHtml + '</div>' +
-                    '<div style="font-weight:bold;">Total: $' + (order.total || 0) + '</div>' +
-                    '<div style="font-size:0.8rem; color:#888;">Date: ' + new Date(order.created_at).toLocaleDateString() + '</div>' +
+                    '<div style="font-size:0.9rem; margin: 8px 0;">Items: ' + (itemsHtml || '—') + '</div>' +
+                    '<div style="font-weight:bold;">Total: $' + parseFloat(order.total || 0).toFixed(2) + '</div>' +
+                    '<div style="font-size:0.75rem; color:#64748b; margin-top:6px;">Date: ' + new Date(order.created_at).toLocaleDateString() + '</div>' +
                     '</div>';
             }
             ordersDiv.innerHTML = html;
         })
-        .catch(function(error) {
-            console.error('Load orders error:', error);
-            ordersDiv.innerHTML = '<div style="text-align:center; padding:20px;">Error loading orders</div>';
+        .catch(function(err) {
+            console.error('Orders error:', err);
+            ordersDiv.innerHTML = '<div style="text-align:center; padding:20px;">Failed to load orders</div>';
         });
     }
     
     function renderPage() {
         var container = document.getElementById('profileContent');
-        
-        if (!container) {
-            console.error('Profile content container not found');
-            return;
-        }
+        if (!container) return;
         
         if (!isLoggedIn()) {
-            container.innerHTML = '<div class="login-prompt"><h3>Please Login</h3><p>You need to be logged in to view your profile.</p><a href="login.html" class="btn" style="display: inline-block; margin-top: 1rem;">Login Now →</a></div>';
+            container.innerHTML = '<div class="login-prompt">' +
+                '<h3>Please Login</h3>' +
+                '<p>You need to be logged in to view your profile and order history.</p>' +
+                '<a href="login.html" class="btn" style="display: inline-block; margin-top: 1rem;">Login Now →</a>' +
+                '</div>';
             return;
         }
         
-        container.innerHTML = `
-            <div class="profile-card">
-                <h2>Profile Picture</h2>
-                <div style="text-align: center;">
-                    <div id="profilePictureContainer" style="margin-bottom: 1rem;">
-                        <img id="profileImage" src="https://placehold.co/120x120/ccc/white?text=No+Image" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #e05a2a;">
-                    </div>
-                    <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                        <label for="pictureUpload" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 10px 20px; border-radius: 50px; cursor: pointer;">Upload Picture</label>
-                        <input type="file" id="pictureUpload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
-                        <button id="removePictureBtn" onclick="removeProfilePicture()" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer;">Remove Picture</button>
-                    </div>
-                    <div id="pictureMessage" class="message" style="margin-top: 1rem;"></div>
-                </div>
-            </div>
-            
-            <div class="profile-card">
-                <h2>Personal Information</h2>
-                <div id="profileMessage" class="message"></div>
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="profileName">
-                </div>
-                <div class="form-group">
-                    <label>Email Address</label>
-                    <input type="email" id="profileEmail">
-                </div>
-                <button class="btn" onclick="updateProfile()">Update Profile</button>
-            </div>
-            
-            <div class="profile-card">
-                <h2>Change Password</h2>
-                <div id="passwordMessage" class="message"></div>
-                <div class="form-group">
-                    <label>Current Password</label>
-                    <input type="password" id="currentPassword" placeholder="Enter current password">
-                </div>
-                <div class="form-group">
-                    <label>New Password</label>
-                    <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)">
-                </div>
-                <div class="form-group">
-                    <label>Confirm New Password</label>
-                    <input type="password" id="confirmPassword" placeholder="Confirm new password">
-                </div>
-                <button class="btn" onclick="changePassword()">Change Password</button>
-            </div>
-            
-            <div class="profile-card">
-                <h2>Order History</h2>
-                <div id="ordersList"></div>
-            </div>
-        `;
+        container.innerHTML = '<div class="profile-card">' +
+            '<h2>Profile Picture</h2>' +
+            '<div style="text-align: center;">' +
+            '<div style="margin-bottom: 1rem;">' +
+            '<img id="profileImage" src="https://placehold.co/120x120/ccc/white?text=No+Image" class="profile-img-circle">' +
+            '</div>' +
+            '<div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">' +
+            '<label for="pictureUpload" class="btn" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); cursor: pointer; padding: 10px 24px;">Upload Picture</label>' +
+            '<input type="file" id="pictureUpload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">' +
+            '<button id="removePictureBtn" onclick="removeProfilePicture()" class="btn" style="background: #dc2626;">Remove Picture</button>' +
+            '</div>' +
+            '<div id="pictureMessage" class="message" style="margin-top: 1rem;"></div>' +
+            '</div>' +
+            '</div>' +
+            '<div class="profile-card">' +
+            '<h2>Personal Information</h2>' +
+            '<div id="profileMessage" class="message"></div>' +
+            '<div class="form-group">' +
+            '<label>Full Name</label>' +
+            '<input type="text" id="profileName" placeholder="Your name">' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label>Email Address</label>' +
+            '<input type="email" id="profileEmail" placeholder="your@email.com">' +
+            '</div>' +
+            '<button class="btn" onclick="updateProfile()">Update Profile</button>' +
+            '</div>' +
+            '<div class="profile-card">' +
+            '<h2>Change Password</h2>' +
+            '<div id="passwordMessage" class="message"></div>' +
+            '<div class="form-group">' +
+            '<label>Current Password</label>' +
+            '<input type="password" id="currentPassword" placeholder="Enter current password">' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label>New Password (min 6 characters)</label>' +
+            '<input type="password" id="newPassword" placeholder="Enter new password">' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label>Confirm New Password</label>' +
+            '<input type="password" id="confirmPassword" placeholder="Confirm new password">' +
+            '</div>' +
+            '<button class="btn" onclick="changePassword()">Change Password</button>' +
+            '</div>' +
+            '<div class="profile-card">' +
+            '<h2>Order History</h2>' +
+            '<div id="ordersList"></div>' +
+            '</div>';
         
-        loadProfile();
-        loadOrders();
-        loadProfilePicture();
+        loadProfile().then(function() {
+            loadOrders();
+            loadProfilePicture();
+        }).catch(function() {
+            loadOrders();
+            loadProfilePicture();
+        });
+    }
+    
+    function initDarkMode() {
+        var darkToggle = document.getElementById('darkToggle');
+        var isDark = localStorage.getItem('sigma_dark') === 'true';
+        if (isDark) document.body.classList.add('dark');
+        darkToggle.addEventListener('click', function() {
+            document.body.classList.toggle('dark');
+            localStorage.setItem('sigma_dark', document.body.classList.contains('dark'));
+        });
     }
     
     document.addEventListener('DOMContentLoaded', function() {
         updateCartCount();
+        updateAuthButton();
+        initDarkMode();
         renderPage();
     });
     
@@ -532,6 +832,8 @@
     window.changePassword = changePassword;
     window.uploadProfilePicture = uploadProfilePicture;
     window.removeProfilePicture = removeProfilePicture;
+    window.loadProfilePicture = loadProfilePicture;
+    window.updateAuthButton = updateAuthButton;
 </script>
 </body>
 </html>
