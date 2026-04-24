@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,236 +7,37 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        .cart-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        .cart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .cart-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #e05a2a, #ff8c42);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-        .cart-items {
-            background: white;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem;
-            border-bottom: 1px solid #eee;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .cart-item:last-child {
-            border-bottom: none;
-        }
-        .item-info {
-            flex: 2;
-            min-width: 200px;
-        }
-        .item-name {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 0.25rem;
-        }
-        .item-price {
-            color: #e05a2a;
-            font-weight: 600;
-        }
-        .item-quantity {
-            display: flex;
-            align-items: center;
-            gap: 0.8rem;
-        }
-        .qty-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            border: 1px solid #ddd;
-            background: white;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1.2rem;
-        }
-        .qty-btn:hover {
-            background: #e05a2a;
-            color: white;
-            border-color: #e05a2a;
-        }
-        .qty-value {
-            min-width: 40px;
-            text-align: center;
-            font-weight: 600;
-        }
-        .item-total {
-            min-width: 100px;
-            text-align: right;
-            font-weight: 700;
-            font-size: 1.1rem;
-        }
-        .remove-btn {
-            background: none;
-            border: none;
-            color: #e05a2a;
-            cursor: pointer;
-            font-size: 1.2rem;
-            transition: all 0.3s;
-        }
-        .remove-btn:hover {
-            transform: scale(1.1);
-        }
-        .cart-summary {
-            background: white;
-            border-radius: 20px;
-            padding: 1.5rem;
-            margin-top: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.8rem 0;
-            border-bottom: 1px solid #eee;
-        }
-        .summary-row.total {
-            font-size: 1.3rem;
-            font-weight: 800;
-            border-bottom: none;
-            margin-top: 0.5rem;
-            padding-top: 1rem;
-            border-top: 2px solid #eee;
-        }
-        .free-shipping {
-            background: #e8f5e9;
-            padding: 0.8rem;
-            border-radius: 10px;
-            margin: 1rem 0;
-            text-align: center;
-            font-size: 0.85rem;
-            color: #4caf50;
-        }
-        .order-notes {
-            margin-top: 1.5rem;
-        }
-        .order-notes textarea {
-            width: 100%;
-            padding: 1rem;
-            border: 1px solid #ddd;
-            border-radius: 12px;
-            font-family: inherit;
-            resize: vertical;
-        }
-        .payment-buttons {
-            margin-top: 1.5rem;
-        }
-        .payment-btn {
-            width: 100%;
-            padding: 1rem;
-            border: none;
-            border-radius: 50px;
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 1rem;
-        }
-        .payment-btn.whatsapp {
-            background: #25D366;
-            color: white;
-        }
-        .payment-btn.whatsapp:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(37,211,102,0.3);
-        }
-        .payment-btn.stripe {
-            background: #635bff;
-            color: white;
-        }
-        .payment-btn.stripe:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(99,91,255,0.3);
-        }
-        .payment-btn.paypal {
-            background: #0070ba;
-            color: white;
-        }
-        .payment-btn.paypal:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(0,112,186,0.3);
-        }
-        .empty-cart {
-            text-align: center;
-            padding: 4rem;
-        }
-        .empty-cart p {
-            font-size: 1.2rem;
-            color: #666;
-            margin-bottom: 1.5rem;
-        }
-        .continue-shopping {
-            display: inline-block;
-            background: linear-gradient(135deg, #e05a2a, #ff8c42);
-            color: white;
-            padding: 0.8rem 2rem;
-            border-radius: 50px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-        .continue-shopping:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(224,90,42,0.3);
-        }
-        body.dark .cart-items,
-        body.dark .cart-summary {
-            background: #1e293b;
-        }
-        body.dark .cart-item {
-            border-bottom-color: #334155;
-        }
-        body.dark .free-shipping {
-            background: #1b5e20;
-            color: #a5d6a7;
-        }
-        body.dark .order-notes textarea {
-            background: #1e293b;
-            border-color: #334155;
-            color: white;
-        }
-        @media (max-width: 768px) {
-            .cart-container {
-                padding: 1rem;
-            }
-            .cart-item {
-                flex-direction: column;
-                text-align: center;
-            }
-            .item-total {
-                text-align: center;
-            }
-        }
+        .cart-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+        .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
+        .cart-header h1 { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #e05a2a, #ff8c42); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .cart-items { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #eee; flex-wrap: wrap; gap: 1rem; }
+        .item-info { flex: 2; min-width: 200px; }
+        .item-name { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+        .item-price { color: #e05a2a; font-weight: 600; }
+        .item-quantity { display: flex; align-items: center; gap: 0.8rem; }
+        .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ddd; background: white; cursor: pointer; }
+        .qty-btn:hover { background: #e05a2a; color: white; }
+        .item-total { min-width: 100px; text-align: right; font-weight: 700; }
+        .remove-btn { background: none; border: none; color: #e05a2a; cursor: pointer; font-size: 1.2rem; }
+        .cart-summary { background: white; border-radius: 20px; padding: 1.5rem; margin-top: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .summary-row { display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid #eee; }
+        .summary-row.total { font-size: 1.3rem; font-weight: 800; border-bottom: none; margin-top: 0.5rem; padding-top: 1rem; border-top: 2px solid #eee; }
+        .coupon-section { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
+        .coupon-section input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+        .coupon-section button { background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        .payment-btn { width: 100%; padding: 1rem; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; margin-bottom: 1rem; }
+        .payment-btn.whatsapp { background: #25D366; color: white; }
+        .empty-cart { text-align: center; padding: 4rem; }
+        body.dark .cart-items, body.dark .cart-summary { background: #1e293b; }
+        body.dark .cart-item { border-bottom-color: #334155; }
+        @media (max-width: 768px) { .cart-container { padding: 1rem; } .cart-item { flex-direction: column; text-align: center; } }
     </style>
 </head>
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">s SIGMA</a>
+    <a href="index.html" class="logo">σ SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -244,24 +45,22 @@
         <a href="blog.html">blog</a>
         <a href="privacy.html">privacy</a>
         <a href="wishlist.html">wishlist</a>
+        <a href="compare.html">compare</a>
         <a href="terms.html">terms</a>
         <a href="refund.html">refund</a>
         <a href="track.html">track order</a>
+        <a href="seller-dashboard.html">sell</a>
+        <a href="profile.html">profile</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">??</button>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
 <main>
     <div class="cart-container">
-        <div class="cart-header">
-            <h1>?? Your Shopping Cart</h1>
-        </div>
-        
-        <div id="cartContent">
-            <!-- Cart items will be loaded here -->
-        </div>
+        <div class="cart-header"><h1>🛒 Your Shopping Cart</h1></div>
+        <div id="cartContent"></div>
     </div>
 </main>
 
@@ -273,473 +72,142 @@
 <script src="config.js"></script>
 <script src="navbar.js"></script>
 <script>
-    // ============================================
-    // SIGMA STORE - CART PAGE
-    // ============================================
-    
     const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
-    let paymentConfig = { stripe: { enabled: false }, paypal: { enabled: false } };
-    
-    // ============================================
-    // CART FUNCTIONS
-    // ============================================
-    
-    function getCart() {
-        return JSON.parse(localStorage.getItem('sigma_cart') || '[]');
-    }
-    
-    function saveCart(cart) {
-        localStorage.setItem('sigma_cart', JSON.stringify(cart));
-        updateCartCount();
-        renderCart();
-    }
-    
-    function updateCartCount() {
-        const cart = getCart();
-        const total = cart.reduce((sum, item) => sum + (item.quantity || 1), 0);
-        const badge = document.getElementById('cartCount');
-        if (badge) badge.innerText = total;
-    }
+    let appliedCoupon = JSON.parse(localStorage.getItem('appliedCoupon') || 'null');
+
+    function getCart() { return JSON.parse(localStorage.getItem('sigma_cart') || '[]'); }
+    function saveCart(cart) { localStorage.setItem('sigma_cart', JSON.stringify(cart)); updateCartCount(); renderCart(); }
+    function updateCartCount() { const cart = getCart(); const total = cart.reduce((s, i) => s + (i.quantity || 1), 0); const badge = document.getElementById('cartCount'); if (badge) badge.innerText = total; }
     
     function updateQty(id, delta) {
         let cart = getCart();
-        const index = cart.findIndex(item => item.id === id);
+        const index = cart.findIndex(i => i.id === id);
         if (index !== -1) {
             cart[index].quantity += delta;
-            if (cart[index].quantity < 1) {
-                cart.splice(index, 1);
-            }
+            if (cart[index].quantity < 1) cart.splice(index, 1);
             saveCart(cart);
         }
     }
     
     function removeItem(id) {
         let cart = getCart();
-        cart = cart.filter(item => item.id !== id);
+        cart = cart.filter(i => i.id !== id);
         saveCart(cart);
-        showToast('Item removed from cart');
     }
     
-    // ============================================
-    // CALCULATIONS
-    // ============================================
-    
-    function calculateTotals() {
+    async function calculateTotals() {
         const cart = getCart();
         let subtotal = 0;
-        for (let item of cart) {
-            subtotal += item.price * item.quantity;
+        for (let item of cart) subtotal += item.price * item.quantity;
+        let discount = 0;
+        if (appliedCoupon && appliedCoupon.code) {
+            const res = await fetch(`${API_URL}/api/coupons/apply`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: appliedCoupon.code, subtotal })
+            });
+            const data = await res.json();
+            if (res.ok) discount = data.discount;
+            else { localStorage.removeItem('appliedCoupon'); appliedCoupon = null; }
         }
-        const shipping = subtotal > 120 ? 0 : 12;
-        const total = subtotal + shipping;
-        return { cart, subtotal, shipping, total };
+        const finalSubtotal = subtotal - discount;
+        const shipping = finalSubtotal > 120 ? 0 : 12;
+        const total = finalSubtotal + shipping;
+        return { cart, subtotal, discount, finalSubtotal, shipping, total };
     }
     
-    // ============================================
-    // RENDER CART
-    // ============================================
-    
-    function renderCart() {
+    async function renderCart() {
         const container = document.getElementById('cartContent');
-        const { cart, subtotal, shipping, total } = calculateTotals();
-        
+        const { cart, subtotal, discount, finalSubtotal, shipping, total } = await calculateTotals();
         if (cart.length === 0) {
-            container.innerHTML = `
-                <div class="empty-cart">
-                    <p>?? Your cart is empty</p>
-                    <a href="index.html" class="continue-shopping">Continue Shopping ?</a>
-                </div>
-            `;
+            container.innerHTML = '<div class="empty-cart"><p>🛒 Your cart is empty</p><a href="index.html" class="continue-shopping" style="display:inline-block; background:#e05a2a; color:white; padding:12px 24px; border-radius:50px; text-decoration:none;">Continue Shopping →</a></div>';
             return;
         }
-        
         let itemsHtml = '<div class="cart-items">';
         for (let item of cart) {
-            const itemTotal = item.price * item.quantity;
             itemsHtml += `
                 <div class="cart-item">
-                    <div class="item-info">
-                        <div class="item-name">${escapeHtml(item.name)}</div>
-                        <div class="item-price">$${item.price} each</div>
-                    </div>
-                    <div class="item-quantity">
-                        <button class="qty-btn" onclick="updateQty('${item.id}', -1)">-</button>
-                        <span class="qty-value">${item.quantity}</span>
-                        <button class="qty-btn" onclick="updateQty('${item.id}', 1)">+</button>
-                    </div>
-                    <div class="item-total">$${itemTotal.toFixed(2)}</div>
-                    <button class="remove-btn" onclick="removeItem('${item.id}')">???</button>
+                    <div class="item-info"><div class="item-name">${escapeHtml(item.name)}</div><div class="item-price">$${item.price} each</div></div>
+                    <div class="item-quantity"><button class="qty-btn" onclick="updateQty('${item.id}', -1)">-</button><span style="min-width:40px;text-align:center;">${item.quantity}</span><button class="qty-btn" onclick="updateQty('${item.id}', 1)">+</button></div>
+                    <div class="item-total">$${(item.price * item.quantity).toFixed(2)}</div>
+                    <button class="remove-btn" onclick="removeItem('${item.id}')">🗑️</button>
                 </div>
             `;
         }
         itemsHtml += '</div>';
-        
-        const freeShippingMsg = subtotal < 120 ? 
-            `<div class="free-shipping">? Add $${(120 - subtotal).toFixed(2)} more for free shipping ?</div>` : 
-            `<div class="free-shipping">?? Free shipping applied! ??</div>`;
-        
         const summaryHtml = `
             <div class="cart-summary">
-                <div class="summary-row">
-                    <span>Subtotal:</span>
-                    <span>$${subtotal.toFixed(2)}</span>
-                </div>
-                <div class="summary-row">
-                    <span>Shipping:</span>
-                    <span>${shipping === 0 ? 'Free' : '$' + shipping.toFixed(2)}</span>
-                </div>
-                ${freeShippingMsg}
-                <div class="summary-row total">
-                    <span>Total:</span>
-                    <span>$${total.toFixed(2)}</span>
-                </div>
-                
-                <div class="order-notes">
-                    <textarea id="orderNotes" rows="3" placeholder="Special instructions or notes for your order..."></textarea>
-                </div>
-                
-                <div class="payment-buttons" id="paymentButtons">
-                    <!-- Payment buttons will be loaded here -->
-                </div>
+                <div class="coupon-section"><input type="text" id="couponCode" placeholder="Coupon code"><button id="applyCouponBtn">Apply Coupon</button></div>
+                <div id="couponMessage" style="font-size:0.9rem; margin-bottom:10px;"></div>
+                <div class="summary-row"><span>Subtotal:</span><span>$${subtotal.toFixed(2)}</span></div>
+                ${discount > 0 ? `<div class="summary-row"><span>Discount:</span><span> -$${discount.toFixed(2)}</span></div>` : ''}
+                <div class="summary-row"><span>Shipping:</span><span>${shipping === 0 ? 'Free' : '$' + shipping.toFixed(2)}</span></div>
+                <div class="summary-row total"><span>Total:</span><span>$${total.toFixed(2)}</span></div>
+                <button class="payment-btn whatsapp" onclick="sendWhatsAppOrder()">📱 Order via WhatsApp (JazzCash/Easypaisa) - $${total.toFixed(2)}</button>
             </div>
         `;
-        
         container.innerHTML = itemsHtml + summaryHtml;
-        
-        // Load payment buttons after rendering
-        loadPaymentButtons();
+        document.getElementById('applyCouponBtn').onclick = applyCoupon;
+        if (appliedCoupon && appliedCoupon.code) document.getElementById('couponCode').value = appliedCoupon.code;
     }
     
-    function escapeHtml(str) {
-        if (!str) return '';
-        return str.replace(/[&<>]/g, function(m) {
-            if (m === '&') return '&amp;';
-            if (m === '<') return '&lt;';
-            if (m === '>') return '&gt;';
-            return m;
-        });
-    }
-    
-    function showToast(message) {
-        const toast = document.createElement('div');
-        toast.innerText = message;
-        toast.style.cssText = `
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #111;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            z-index: 9999;
-            animation: fadeInUp 0.3s ease;
-        `;
-        document.body.appendChild(toast);
-        setTimeout(() => toast.remove(), 3000);
-    }
-    
-    // ============================================
-    // PAYMENT FUNCTIONS
-    // ============================================
-    
-    async function loadPaymentButtons() {
-        const container = document.getElementById('paymentButtons');
-        if (!container) return;
-        
-        const { total } = calculateTotals();
-        
-        let buttonsHtml = `
-            <button class="payment-btn whatsapp" onclick="sendWhatsAppOrder()">
-                ?? Order via WhatsApp (JazzCash/Easypaisa) - $${total.toFixed(2)}
-            </button>
-        `;
-        
-        if (paymentConfig.stripe && paymentConfig.stripe.enabled) {
-            buttonsHtml += `
-                <button class="payment-btn stripe" onclick="initStripePayment()">
-                    ?? Pay with Credit Card (Stripe) - $${total.toFixed(2)}
-                </button>
-            `;
+    async function applyCoupon() {
+        const code = document.getElementById('couponCode').value.trim();
+        if (!code) return;
+        const validateRes = await fetch(`${API_URL}/api/coupons/validate/${code}`);
+        const validateData = await validateRes.json();
+        if (!validateData.valid) {
+            document.getElementById('couponMessage').innerHTML = `<span style="color:red;">${validateData.error}</span>`;
+            return;
         }
-        
-        if (paymentConfig.paypal && paymentConfig.paypal.enabled) {
-            buttonsHtml += `
-                <button class="payment-btn paypal" onclick="initPayPalPayment()">
-                    ?? PayPal - $${total.toFixed(2)}
-                </button>
-            `;
-        }
-        
-        container.innerHTML = buttonsHtml;
-    }
-    
-    async function loadPaymentConfig() {
-        try {
-            const response = await fetch(`${API_URL}/api/payment-config`);
-            paymentConfig = await response.json();
-        } catch(e) {
-            console.log('Payment config not available');
-        }
-    }
-    
-    async function createOrder(paymentMethod, paymentId = null) {
-        const cart = getCart();
-        if (cart.length === 0) {
-            showToast('Cart is empty');
-            return null;
-        }
-        
-        const { subtotal, shipping, total } = calculateTotals();
-        const notes = document.getElementById('orderNotes')?.value || '';
-        const token = localStorage.getItem('authToken');
-        
-        if (!token) {
-            if (confirm('Please login to place order. Go to login page?')) {
-                window.location.href = 'login.html';
-            }
-            return null;
-        }
-        
-        try {
-            const response = await fetch(`${API_URL}/api/orders`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': token
-                },
-                body: JSON.stringify({
-                    items: cart,
-                    subtotal: subtotal,
-                    shipping: shipping,
-                    total: total,
-                    notes: notes,
-                    paymentMethod: paymentMethod,
-                    paymentId: paymentId
-                })
-            });
-            
-            const data = await response.json();
-            if (data.success) {
-                return data.order;
-            } else {
-                showToast(data.error || 'Order failed');
-                return null;
-            }
-        } catch (error) {
-            console.error('Order error:', error);
-            showToast('Server error');
-            return null;
-        }
+        localStorage.setItem('appliedCoupon', JSON.stringify({ code }));
+        appliedCoupon = { code };
+        document.getElementById('couponMessage').innerHTML = '<span style="color:green;">Coupon applied!</span>';
+        renderCart();
     }
     
     async function sendWhatsAppOrder() {
         const cart = getCart();
-        if (cart.length === 0) {
-            showToast('Cart is empty');
-            return;
-        }
-        
-        const order = await createOrder('whatsapp');
-        if (!order) return;
-        
-        const { subtotal, shipping, total } = calculateTotals();
+        if (cart.length === 0) { alert('Cart is empty'); return; }
+        const token = localStorage.getItem('sigma_token');
+        if (!token) { if (confirm('Please login to place order')) window.location.href = 'login.html'; return; }
+        const { subtotal, discount, finalSubtotal, shipping, total } = await calculateTotals();
         const notes = document.getElementById('orderNotes')?.value || '';
-        
-        let itemsList = '';
-        for (let item of cart) {
-            itemsList += `${item.name} x ${item.quantity} = $${(item.price * item.quantity).toFixed(2)}\n`;
-        }
-        
-        let userName = 'Customer';
+        let order;
         try {
-            const user = JSON.parse(localStorage.getItem('sigma_user') || 'null');
-            if (user && user.name) userName = user.name;
-        } catch(e) {}
-        
-        const message = `?? NEW ORDER #${order.orderId}\n\n?? Customer: ${userName}\n\n?? ITEMS:\n${itemsList}\n?? Subtotal: $${subtotal.toFixed(2)}\n?? Shipping: ${shipping === 0 ? 'Free' : '$' + shipping.toFixed(2)}\n?? TOTAL: $${total.toFixed(2)}\n\n?? Notes: ${notes || 'None'}\n\n?? Track: ${window.location.origin}/track.html?order=${order.orderId}`;
-        
-        const encodedMessage = encodeURIComponent(message);
-        window.open(`https://wa.me/923259042317?text=${encodedMessage}`, '_blank');
-        
+            const res = await fetch(`${API_URL}/api/orders`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': token },
+                body: JSON.stringify({ items: cart, subtotal: finalSubtotal, shipping, total, notes, paymentMethod: 'whatsapp' })
+            });
+            order = await res.json();
+            if (!res.ok) throw new Error(order.error);
+        } catch(e) { alert('Order failed: ' + e.message); return; }
+        let itemsList = '';
+        for (let item of cart) itemsList += `${item.name} x ${item.quantity} = $${(item.price * item.quantity).toFixed(2)}\n`;
+        let userName = 'Customer';
+        try { const user = JSON.parse(localStorage.getItem('sigma_user')); if (user && user.name) userName = user.name; } catch(e) {}
+        const message = `🛒 NEW ORDER #${order.orderId}\n\n👤 Customer: ${userName}\n\n📦 ITEMS:\n${itemsList}\n💰 Subtotal: $${finalSubtotal.toFixed(2)}\n${discount > 0 ? `🏷️ Discount: -$${discount.toFixed(2)}\n` : ''}🚚 Shipping: ${shipping === 0 ? 'Free' : '$' + shipping.toFixed(2)}\n💵 TOTAL: $${total.toFixed(2)}\n\n📝 Notes: ${notes || 'None'}\n\n🔗 Track: ${window.location.origin}/track.html?order=${order.orderId}`;
+        window.open(`https://wa.me/923259042317?text=${encodeURIComponent(message)}`, '_blank');
         localStorage.removeItem('sigma_cart');
-        updateCartCount();
-        renderCart();
-        
-        showToast(`? Order placed! ID: ${order.orderId}`);
-    }
-    
-    async function initStripePayment() {
-        const { total } = calculateTotals();
-        showToast('Stripe payment coming soon. Use WhatsApp for now.');
-    }
-    
-    async function initPayPalPayment() {
-        const { total } = calculateTotals();
-        showToast('PayPal payment coming soon. Use WhatsApp for now.');
-    }
-    
-    // ============================================
-    // INITIALIZE
-    // ============================================
-    
-    document.addEventListener('DOMContentLoaded', async () => {
-        await loadPaymentConfig();
         renderCart();
         updateCartCount();
-    });
+        alert(`✅ Order placed! ID: ${order.orderId}`);
+    }
     
-    // Make functions global for onclick
-    window.updateQty = updateQty;
-    window.removeItem = removeItem;
-    window.sendWhatsAppOrder = sendWhatsAppOrder;
-    window.initStripePayment = initStripePayment;
-    window.initPayPalPayment = initPayPalPayment;
+    function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { return m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;'; }); }
+    
+    document.addEventListener('DOMContentLoaded', () => { updateCartCount(); renderCart(); });
+    window.updateQty = updateQty; window.removeItem = removeItem; window.sendWhatsAppOrder = sendWhatsAppOrder;
 </script>
 
-<style>
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-</style>
+<!-- SINGLE COOKIE BANNER -->
+<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;">
+    <p style="margin:0;">🍪 We use cookies. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p>
+    <div><button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button><button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div>
+</div>
+<script>function acceptCookies(){localStorage.setItem('cookiesAccepted','true');document.getElementById('cookieBanner').style.display='none';}function declineCookies(){localStorage.setItem('cookiesAccepted','false');document.getElementById('cookieBanner').style.display='none';}if(localStorage.getItem('cookiesAccepted')==='true'){document.getElementById('cookieBanner').style.display='none';}</script>
 
+<script src="visitor-track.js"></script>
 </body>
 </html>
-`n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-<script src="chat-widget.js?v=2"></script>
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
-    <div> 
-        <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
-        <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button> 
-    </div> 
-</div> 
-<script> 
-function acceptCookies() { 
-    localStorage.setItem('cookiesAccepted', 'true'); 
-    document.getElementById('cookieBanner').style.display = 'none'; 
-} 
-function declineCookies() { 
-    localStorage.setItem('cookiesAccepted', 'false'); 
-    document.getElementById('cookieBanner').style.display = 'none'; 
-} 
-if (localStorage.getItem('cookiesAccepted') === 'true') { 
-    document.getElementById('cookieBanner').style.display = 'none'; 
-} 
-</script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
-    <div style="display:flex; gap:10px;"> 
-        <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
-        <button id="declineCookiesBtn" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Decline</button> 
-    </div> 
-</div> 
-<script> 
-    function acceptCookies() { 
-        localStorage.setItem('cookiesAccepted', 'true'); 
-        document.getElementById('cookieBanner').style.display = 'none'; 
-    } 
-    function declineCookies() { 
-        localStorage.setItem('cookiesAccepted', 'false'); 
-        document.getElementById('cookieBanner').style.display = 'none'; 
-    } 
-    document.getElementById('acceptCookiesBtn').onclick = acceptCookies; 
-    document.getElementById('declineCookiesBtn').onclick = declineCookies; 
-    if (localStorage.getItem('cookiesAccepted') !== null) { 
-        document.getElementById('cookieBanner').style.display = 'none'; 
-    } 
-</script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:9999; flex-wrap:wrap;"> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
-    <div style="display:flex; gap:10px;"> 
-        <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
-        <button id="declineCookiesBtn" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Decline</button> 
-    </div> 
-</div> 
-<script> 
-    (function() { 
-        var banner = document.getElementById('cookieBanner'); 
-        if (!banner) return; 
-        if (localStorage.getItem('cookiesAccepted') === 'true') { 
-            banner.style.display = 'none'; 
-        } 
-        var acceptBtn = document.getElementById('acceptCookiesBtn'); 
-        var declineBtn = document.getElementById('declineCookiesBtn'); 
-        if (acceptBtn) { 
-            acceptBtn.onclick = function() { 
-                localStorage.setItem('cookiesAccepted', 'true'); 
-                banner.style.display = 'none'; 
-            }; 
-        } 
-        if (declineBtn) { 
-            declineBtn.onclick = function() { 
-                localStorage.setItem('cookiesAccepted', 'false'); 
-                banner.style.display = 'none'; 
-            }; 
-        } 
-    })(); 
-</script> 
-<script src="visitor-track.js"></script> 
-<script src="visitor-track.js"></script> 
- 
-<div style="margin-top: 1rem;"> 
-    <input type="text" id="couponCode" placeholder="Coupon code" style="padding:8px; border:1px solid #ddd; border-radius:8px;"> 
-    <button id="applyCouponBtn" style="background:#e05a2a; color:white; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">Apply Coupon</button> 
-    <div id="couponMessage" style="margin-top: 0.5rem; font-size:0.9rem;"></div> 
-</div> 
- 
-// Coupon logic 
-document.getElementById('applyCouponBtn').onclick = async function() { 
-    const code = document.getElementById('couponCode').value; 
-    const res = await fetch(`${API_URL}/api/coupons/validate/${code}`); 
-    const data = await res.json(); 
-    if (!data.valid) { 
-        return; 
-    } 
-    // Calculate discount based on subtotal 
-    const subtotal = calculateSubtotal(); // you need a function that returns current subtotal 
-    const applyRes = await fetch(`${API_URL}/api/coupons/apply`, { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ code, subtotal }) 
-    }); 
-    const discountData = await applyRes.json(); 
-    if (applyRes.ok) { 
-        localStorage.setItem('appliedCoupon', JSON.stringify({ code, discount: discountData.discount })); 
-        renderCart(); // refresh cart display 
-    } else { 
-    } 
-}; 
- 
-// Coupon logic 
-document.getElementById('applyCouponBtn').onclick = async function() { 
-    const code = document.getElementById('couponCode').value; 
-    const res = await fetch(window.BACKEND_URL + '/api/coupons/validate/' + code); 
-    const data = await res.json(); 
-    if (!data.valid) { 
-        return; 
-    } 
-    let subtotal = 0; 
-    document.querySelectorAll('.cart-item').forEach(function(item) { 
-        const price = parseFloat(item.querySelector('.item-price')?.innerText.replace('$','') || 0); 
-        const qty = parseInt(item.querySelector('.item-qty')?.innerText || 1); 
-        subtotal += price * qty; 
-    }); 
-    const applyRes = await fetch(window.BACKEND_URL + '/api/coupons/apply', { 
-        method: 'POST', 
-        headers: { 'Content-Type': 'application/json' }, 
-        body: JSON.stringify({ code: code, subtotal: subtotal }) 
-    }); 
-    const discountData = await applyRes.json(); 
-    if (applyRes.ok) { 
-        localStorage.setItem('appliedCoupon', JSON.stringify({ code: code, discount: discountData.discount })); 
-        location.reload(); 
-    } else { 
-    } 
-}; 
