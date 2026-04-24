@@ -5,6 +5,151 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sigma — Shop</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .price-range-container {
+            margin: 1rem 0;
+            padding: 0.5rem 0;
+            border-top: 1px solid #eee;
+            border-bottom: 1px solid #eee;
+        }
+        .price-range-controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .price-input {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .price-input input {
+            width: 80px;
+            padding: 5px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+        .price-slider {
+            width: 100%;
+            margin-top: 0.5rem;
+        }
+        .filter-btn-sm {
+            background: #e05a2a;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .filter-btn-sm.clear {
+            background: #666;
+        }
+        .rating-filter {
+            margin: 1rem 0;
+            padding: 0.5rem 0;
+        }
+        .rating-stars-filter {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+        .rating-option {
+            cursor: pointer;
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: #f0f0f0;
+            font-size: 12px;
+        }
+        .rating-option.active {
+            background: #e05a2a;
+            color: white;
+        }
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            margin: 0.25rem 0;
+        }
+        .stars {
+            font-size: 12px;
+            color: #ffc107;
+        }
+        .rating-count {
+            font-size: 10px;
+            color: #888;
+        }
+        body.dark .rating-option {
+            background: #334155;
+            color: #e2e8f0;
+        }
+        body.dark .price-input input {
+            background: #334155;
+            border-color: #475569;
+            color: white;
+        }
+        .autocomplete-item {
+            padding: 12px 15px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .autocomplete-item:hover {
+            background: #f5f5f5;
+        }
+        .autocomplete-item img {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+        .autocomplete-item .info {
+            flex: 1;
+        }
+        .autocomplete-item .name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .autocomplete-item .price {
+            color: #e05a2a;
+            font-weight: 700;
+            font-size: 13px;
+        }
+        body.dark .autocomplete-item {
+            border-bottom-color: #334155;
+        }
+        body.dark .autocomplete-item:hover {
+            background: #334155;
+        }
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        .pagination button {
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+        }
+        .pagination button.active {
+            background: #e05a2a;
+            color: white;
+            border: none;
+        }
+        body.dark .pagination button {
+            background: #1e293b;
+            border-color: #334155;
+            color: #e2e8f0;
+        }
+    </style>
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -43,26 +188,64 @@
 
     <div class="container">
         <div class="search-bar">
-            <div style="display: flex; gap: 0.5rem;">
-                <input type="text" id="searchInput" placeholder="search products..." class="search-input" style="flex:1;">
+            <div style="display: flex; gap: 0.5rem; position: relative;">
+                <input type="text" id="searchInput" placeholder="search products..." class="search-input" style="flex:1;" autocomplete="off">
                 <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">✕</button>
-            </div>
-            <div class="filters">
-                <button class="filter-btn active" data-filter="all">all</button>
-                <button class="filter-btn" data-filter="digital">digital</button>
-            </div>
-            <div style="margin-top: 1rem;">
-                <select id="sortBy" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
-                    <option value="default">sort by</option>
-                    <option value="priceLow">price: low to high</option>
-                    <option value="priceHigh">price: high to low</option>
-                </select>
+                <div id="autocomplete-list" style="position:absolute; top:50px; left:0; right:0; background:white; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); z-index:1000; display:none;"></div>
             </div>
         </div>
 
+        <div class="filters">
+            <button class="filter-btn active" data-filter="all">all</button>
+            <button class="filter-btn" data-filter="digital">digital</button>
+            <button class="filter-btn" data-filter="electronics">electronics</button>
+            <button class="filter-btn" data-filter="clothing">clothing</button>
+            <button class="filter-btn" data-filter="home">home</button>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="price-range-container">
+            <label style="font-weight: 600;">💰 Price Range</label>
+            <div class="price-range-controls">
+                <div class="price-input"><span>Min:</span><input type="number" id="priceMin" value="0" step="1"></div>
+                <div class="price-input"><span>Max:</span><input type="number" id="priceMax" value="1000" step="1"></div>
+                <button id="applyPriceFilter" class="filter-btn-sm">Apply</button>
+                <button id="clearPriceFilter" class="filter-btn-sm clear">Clear</button>
+            </div>
+            <input type="range" id="priceSlider" min="0" max="1000" step="10" value="1000" class="price-slider">
+        </div>
+
+        <!-- Rating Filter -->
+        <div class="rating-filter">
+            <label style="font-weight: 600;">⭐ Minimum Rating</label>
+            <div class="rating-stars-filter">
+                <div class="rating-option active" data-rating="0">All</div>
+                <div class="rating-option" data-rating="4">4★ & above</div>
+                <div class="rating-option" data-rating="3">3★ & above</div>
+                <div class="rating-option" data-rating="2">2★ & above</div>
+                <div class="rating-option" data-rating="1">1★ & above</div>
+            </div>
+        </div>
+
+        <!-- Sort Options -->
+        <div style="margin-top: 1rem;">
+            <select id="sortBy" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="default">sort by</option>
+                <option value="priceLow">price: low to high</option>
+                <option value="priceHigh">price: high to low</option>
+                <option value="newest">newest first</option>
+                <option value="oldest">oldest first</option>
+                <option value="ratingHigh">highest rated</option>
+                <option value="nameAZ">name: a to z</option>
+                <option value="nameZA">name: z to a</option>
+            </select>
+        </div>
+
+        <!-- Products Grid & Recently Viewed -->
         <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
             <div style="flex: 3;">
                 <div class="products" id="productsGrid"></div>
+                <div id="pagination" class="pagination"></div>
             </div>
             <div style="flex: 1; min-width: 200px;">
                 <div style="background: #f5f5f5; padding: 1rem; border-radius: 12px; position: sticky; top: 100px;">
@@ -84,8 +267,8 @@
 
 <footer>
     <p>Sigma Studio — Mardan, Pakistan</p>
-    <p style="margin-top: 0.5rem;">email: sigma@example.com</p>
-    <p style="margin-top: 0.5rem;">We accept: Visa, Mastercard & Payoneer</p>
+    <p>email: sigma@example.com</p>
+    <p>We accept: Visa, Mastercard & Payoneer</p>
     <address>College chowk par-hoti Mardan.</address>
 </footer>
 
