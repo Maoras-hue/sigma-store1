@@ -59,6 +59,25 @@
                 <div class="filters">
                     <button class="filter-btn active" data-filter="all">all</button>
                     <button class="filter-btn" data-filter="digital">digital</button>
+                    <!-- Price Range Filter -->
+<div style="margin: 1rem 0; padding: 0.5rem 0; border-top: 1px solid #eee; border-bottom: 1px solid #eee;">
+    <label style="font-weight: 600;">💰 Price Range:</label>
+    <div style="display: flex; gap: 1rem; align-items: center; margin-top: 0.5rem; flex-wrap: wrap;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>Min:</span>
+            <input type="number" id="priceMin" placeholder="0" value="0" style="width: 80px; padding: 5px; border-radius: 8px; border: 1px solid #ddd;">
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <span>Max:</span>
+            <input type="number" id="priceMax" placeholder="1000" value="1000" style="width: 80px; padding: 5px; border-radius: 8px; border: 1px solid #ddd;">
+        </div>
+        <button id="applyPriceFilter" style="background: #e05a2a; color: white; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer;">Apply</button>
+        <button id="clearPriceFilter" style="background: #666; color: white; border: none; padding: 5px 15px; border-radius: 20px; cursor: pointer;">Clear</button>
+    </div>
+    <div style="margin-top: 0.5rem;">
+        <input type="range" id="priceSlider" min="0" max="1000" step="10" style="width: 100%;">
+    </div>
+</div>
                 </div>
                 <div style="margin-top: 1rem;">
                     <select id="sortBy" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">

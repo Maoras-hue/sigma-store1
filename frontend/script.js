@@ -6,6 +6,8 @@ let products = [];
 let currentFilter = 'all';
 let searchTerm = '';
 let currentSort = 'default';
+let priceMin = 0;
+let priceMax = 1000;
 
 const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
 
@@ -298,6 +300,7 @@ function renderProducts() {
         grid.innerHTML = '<p style="text-align:center;padding:40px;">No products found</p>';
         return;
     }
+filtered = filtered.filter(p => p.price >= priceMin && p.price <= priceMax);
     
     grid.innerHTML = filtered.map(p => {
         const heartColor = isInWishlist(p.id) ? '#e05a2a' : '#ccc';
@@ -371,6 +374,43 @@ function setupEventListeners() {
             darkToggle.innerText = '☀️';
         }
     }
+}
+// Price range filter
+const priceSlider = document.getElementById('priceSlider');
+const priceMinInput = document.getElementById('priceMin');
+const priceMaxInput = document.getElementById('priceMax');
+const applyPriceFilter = document.getElementById('applyPriceFilter');
+const clearPriceFilter = document.getElementById('clearPriceFilter');
+
+if (priceSlider) {
+    priceSlider.addEventListener('input', function(e) {
+        const value = parseInt(e.target.value);
+        priceMinInput.value = 0;
+        priceMaxInput.value = value;
+        priceMin = 0;
+        priceMax = value;
+        renderProducts();
+    });
+}
+
+if (applyPriceFilter) {
+    applyPriceFilter.addEventListener('click', function() {
+        priceMin = parseInt(priceMinInput.value) || 0;
+        priceMax = parseInt(priceMaxInput.value) || 1000;
+        if (priceSlider) priceSlider.value = priceMax;
+        renderProducts();
+    });
+}
+
+if (clearPriceFilter) {
+    clearPriceFilter.addEventListener('click', function() {
+        priceMin = 0;
+        priceMax = 1000;
+        priceMinInput.value = 0;
+        priceMaxInput.value = 1000;
+        if (priceSlider) priceSlider.value = 1000;
+        renderProducts();
+    });
 }
 
 // ============================================
