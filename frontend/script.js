@@ -359,12 +359,6 @@ function selectProduct(id, name) {
     searchTerm = name;
     autocompleteList.style.display = 'none';
     applyFiltersAndSort();
-    
-    // Also scroll to the product
-    const productElement = document.querySelector(`.product-card[data-id="${id}"]`);
-    if (productElement) {
-        productElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
 }
 
 // Hide autocomplete when clicking outside
@@ -373,31 +367,39 @@ document.addEventListener('click', function(e) {
         autocompleteList.style.display = 'none';
     }
 });
-const searchInput = document.getElementById('searchInput');
-if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-        const value = e.target.value;
-        searchTerm = value;
+
+// ============================================
+// SETUP EVENT LISTENERS
+// ============================================
+
+function setupEventListeners() {
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', (e) => {
+            const value = e.target.value;
+            searchTerm = value;
+            
+            if (searchTimeout) clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                showAutocomplete(value);
+                applyFiltersAndSort();
+            }, 300);
+        });
         
-        if (searchTimeout) clearTimeout(searchTimeout);
-        searchTimeout = setTimeout(() => {
-            showAutocomplete(value);
-            applyFiltersAndSort();
-        }, 300);
-    });
-    
-    searchInput.addEventListener('focus', () => {
-        if (searchInput.value.length >= 2) {
-            showAutocomplete(searchInput.value);
-        }
-    });
-}
+        searchInput.addEventListener('focus', () => {
+            if (searchInput.value.length >= 2) {
+                showAutocomplete(searchInput.value);
+            }
+        });
+    }
     
     const clearBtn = document.getElementById('clearSearch');
     if (clearBtn) {
         clearBtn.addEventListener('click', () => {
-            if (searchInput) searchInput.value = '';
+            const searchInputElem = document.getElementById('searchInput');
+            if (searchInputElem) searchInputElem.value = '';
             searchTerm = '';
+            if (autocompleteList) autocompleteList.style.display = 'none';
             applyFiltersAndSort();
         });
     }
@@ -428,8 +430,8 @@ if (searchInput) {
     if (priceSlider) {
         priceSlider.addEventListener('input', function(e) {
             const value = parseInt(e.target.value);
-            priceMinInput.value = 0;
-            priceMaxInput.value = value;
+            if (priceMinInput) priceMinInput.value = 0;
+            if (priceMaxInput) priceMaxInput.value = value;
             priceMin = 0;
             priceMax = value;
             applyFiltersAndSort();
@@ -438,8 +440,8 @@ if (searchInput) {
     
     if (applyPriceFilter) {
         applyPriceFilter.addEventListener('click', function() {
-            priceMin = parseInt(priceMinInput.value) || 0;
-            priceMax = parseInt(priceMaxInput.value) || 1000;
+            priceMin = parseInt(priceMinInput?.value) || 0;
+            priceMax = parseInt(priceMaxInput?.value) || 1000;
             if (priceSlider) priceSlider.value = priceMax;
             applyFiltersAndSort();
         });
@@ -449,8 +451,8 @@ if (searchInput) {
         clearPriceFilter.addEventListener('click', function() {
             priceMin = 0;
             priceMax = 1000;
-            priceMinInput.value = 0;
-            priceMaxInput.value = 1000;
+            if (priceMinInput) priceMinInput.value = 0;
+            if (priceMaxInput) priceMaxInput.value = 1000;
             if (priceSlider) priceSlider.value = 1000;
             applyFiltersAndSort();
         });
@@ -479,6 +481,10 @@ if (searchInput) {
     }
 }
 
+// ============================================
+// INITIALIZE ON PAGE LOAD
+// ============================================
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded - initializing Sigma Store');
     setupEventListeners();
@@ -486,6 +492,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadProducts();
 });
 
+// Make functions global
 window.addToCart = addToCart;
 window.toggleWishlist = toggleWishlist;
 window.goToPage = goToPage;
