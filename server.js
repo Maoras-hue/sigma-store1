@@ -660,7 +660,74 @@ app.get('/api/last-product-update', (req, res) => {
 app.get('*', (req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
+// ============================================
+// VISITOR TRACKING API
+// ============================================
 
+// Save visitor info
+app.post('/api/visitor/track', async (req, res) => {
+    try {
+        const { user_id, user_name, user_email, page, referrer } = req.body;
+        
+        // Get IP address
+        let ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || '';
+        ip = ip.replace('::ffff:', '');
+        
+        // Get browser and device info from user-agent
+        const userAgent = req.headers['user-agent'] || '';
+        let browser = 'Unknown';
+        let device = 'Unknown';
+        
+        if (userAgent.includes('Chrome')) browser = 'Chrome';
+        else if (userAgent.includes('Firefox')) browser = 'Firefox';
+        else if (userAgent.includes('Safari')) browser = 'Safari';
+        else if (userAgent.includes('Edge')) browser = 'Edge';
+        
+        if (userAgent.includes('Mobile')) device = 'Mobile';
+        else if (userAgent.includes('Tablet')) device = 'Tablet';
+        else device = 'Desktop';
+        
+        await executeQuery(
+            `INSERT INTO visitors (user_id, user_name, user_email, ip_address, device, browser, page_visited, referrer, visited_at) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [user_id || null, user_name || 'Guest', user_email || null, ip, device, browser, page || '/', referrer || null, new Date().toISOString()]
+        );
+        
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Visitor track error:', error);
+        res.json({ success: false });
+    }
+});
+
+// Get all visitors (admin only)
+app.get('/api/admin/visitors', async (req, res) => {
+    try {
+        const visitors = await executeAll('SELECT * FROM visitors ORDER BY visited_at DESC LIMIT 100');
+        res.json({ visitors });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get visitor stats
+app.get('/api/admin/visitors/stats', async (req, res) => {
+    try {
+        const totalVisitors = await executeGet('SELECT COUNT(*) as count FROM visitors');
+        const uniqueVisitors = await executeGet('SELECT COUNT(DISTINCT ip_address) as count FROM visitors');
+        const todayVisitors = await executeGet("SELECT COUNT(*) as count FROM visitors WHERE date(visited_at) = date('now')");
+        const loggedInUsers = await executeGet("SELECT COUNT(DISTINCT user_id) as count FROM visitors WHERE user_id IS NOT NULL");
+        
+        res.json({
+            total: totalVisitors?.count || 0,
+            unique: uniqueVisitors?.count || 0,
+            today: todayVisitors?.count || 0,
+            loggedIn: loggedInUsers?.count || 0
+        });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 // ============================================
 // START SERVER
 // ============================================

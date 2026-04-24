@@ -328,6 +328,7 @@
         <div class="tabs">
             <button class="tab-btn active" onclick="showTab('products')">Products</button>
             <button class="tab-btn" onclick="showTab('orders')">Orders</button>
+<button class="tab-btn" onclick="showTab('visitors')">Visitors</button>
         </div>
         
         <!-- Products Tab -->
@@ -384,7 +385,23 @@
         </div>
     </div>
 </div>
-
+<div id="visitorsTab" style="display: none;">
+    <div class="stats-grid" style="margin-bottom: 20px;">
+        <div class="stat-card"><h3 id="totalVisitors">0</h3><p>Total Visitors</p></div>
+        <div class="stat-card"><h3 id="uniqueVisitors">0</h3><p>Unique Visitors</p></div>
+        <div class="stat-card"><h3 id="todayVisitors">0</h3><p>Today</p></div>
+        <div class="stat-card"><h3 id="loggedInVisitors">0</h3><p>Logged In Users</p></div>
+    </div>
+    <div class="table-container">
+        <h3>Recent Visitors</h3>
+        <table>
+            <thead>
+                <tr><th>Time</th><th>Name/Email</th><th>IP Address</th><th>Device</th><th>Browser</th><th>Page</th><th>Referrer</th></tr>
+            </thead>
+            <tbody id="visitorsList"></tbody>
+        </table>
+    </div>
+</div>
 <script>
     const API_URL = 'https://sigma-store-api.onrender.com';
     const ADMIN_PASSWORD = 'sigma123';
@@ -433,7 +450,44 @@
             autoRefreshInterval = null;
         }
     }
-    
+    async function loadVisitors() {
+    try {
+        const res = await fetch(`${API_URL}/api/admin/visitors`);
+        const data = await res.json();
+        const visitors = data.visitors || [];
+        
+        const tbody = document.getElementById('visitorsList');
+        if (visitors.length === 0) {
+            tbody.innerHTML = '<td><td colspan="7">No visitors yet</td></tr>';
+        } else {
+            tbody.innerHTML = visitors.map(v => `
+                <tr>
+                    <td>${new Date(v.visited_at).toLocaleString()}</td>
+                    <td>${v.user_name || 'Guest'}${v.user_email ? `<br><small>${v.user_email}</small>` : ''}</td>
+                    <td>${v.ip_address || '-'}</td>
+                    <td>${v.device || '-'}</td>
+                    <td>${v.browser || '-'}</td>
+                    <td>${v.page_visited || '-'}</td>
+                    <td>${v.referrer ? v.referrer.substring(0, 30) + '...' : '-'}</td>
+                </tr>
+            `).join('');
+        }
+        
+        // Load stats
+        const statsRes = await fetch(`${API_URL}/api/admin/visitors/stats`);
+        const stats = await statsRes.json();
+        document.getElementById('totalVisitors').innerText = stats.total || 0;
+        document.getElementById('uniqueVisitors').innerText = stats.unique || 0;
+        document.getElementById('todayVisitors').innerText = stats.today || 0;
+        document.getElementById('loggedInVisitors').innerText = stats.loggedIn || 0;
+        
+    } catch(e) {
+        console.error('Load visitors error:', e);
+    }
+}
+if (tab === 'products') loadProducts();
+if (tab === 'orders') loadOrders();
+if (tab === 'visitors') loadVisitors();
     function checkLogin() {
         if (localStorage.getItem('adminLoggedIn') === 'true') {
             document.getElementById('loginPage').style.display = 'none';
