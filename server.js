@@ -8,54 +8,43 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
-// Middleware
+// ============================================
+// MIDDLEWARE
+// ============================================
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
-app.use('/uploads', express.static('uploads'));
+app.use(express.urlencoded({ extended: true }));
 
-// Ensure uploads directory exists
-const uploadDir = './uploads';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Serve static files - IMPORTANT: Order matters
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use(express.static(path.join(__dirname, 'admin')));
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
+app.use(express.static(path.join(__dirname, 'frontend')));
 
-// Configure multer for profile picture uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        cb(null, 'uploads/');
-    },
-    filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
-    }
-});
+// Ensure directories exist
+const uploadsDir = path.join(__dirname, 'uploads');
+const adminDir = path.join(__dirname, 'admin');
+const frontendDir = path.join(__dirname, 'frontend');
 
-const upload = multer({
-    storage: storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
-    fileFilter: (req, file, cb) => {
-        const filetypes = /jpeg|jpg|png|gif/;
-        const mimetype = filetypes.test(file.mimetype);
-        const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
-        
-        if (mimetype && extname) {
-            return cb(null, true);
-        } else {
-            cb(new Error('Only image files are allowed'));
-        }
-    }
-});
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+if (!fs.existsSync(adminDir)) fs.mkdirSync(adminDir, { recursive: true });
+if (!fs.existsSync(frontendDir)) fs.mkdirSync(frontendDir, { recursive: true });
 
-// Database setup
-const db = new sqlite3.Database('./ecommerce.db');
+console.log('Directories ready');
 
-// Promisify db.run and db.get
+// ============================================
+// DATABASE SETUP
+// ============================================
+const dbPath = path.join(__dirname, 'sigma_store.db');
+const db = new sqlite3.Database(dbPath);
+
+// Promisify database functions
 function executeQuery(sql, params = []) {
     return new Promise((resolve, reject) => {
         db.run(sql, params, function(err) {
@@ -86,7 +75,7 @@ function executeAll(sql, params = []) {
 // Create all tables
 (async function initDatabase() {
     try {
-        // Users table with profile_picture column
+        // Users table
         await executeQuery(`CREATE TABLE IF NOT EXISTS users (
             id TEXT PRIMARY KEY,
             email TEXT UNIQUE,
@@ -97,14 +86,11 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Users table ready');
         
-        // Add profile_picture column if missing (for existing databases)
+        // Add profile_picture column if missing
         try {
             await executeQuery(`ALTER TABLE users ADD COLUMN profile_picture TEXT`);
             console.log('Added profile_picture column');
-        } catch(e) {
-            // Column already exists - ignore
-            console.log('Profile picture column already exists');
-        }
+        } catch(e) {}
         
         // Sessions table
         await executeQuery(`CREATE TABLE IF NOT EXISTS sessions (
@@ -161,40 +147,117 @@ function executeAll(sql, params = []) {
     }
 })();
 
-// ============= USER ROUTES =============
+// ============================================
+// HELPER FUNCTIONS
+// ============================================
 
-// Register user
-app.post('/api/register', async (req, res) => {
+function getUserIdFromToken(token) {
+    if (!token) return null;
+    // Remove 'Bearer ' if present
+    const cleanToken = token.replace('Bearer ', '');
+    return cleanToken;
+}
+
+// ============================================
+// TEST ROUTES
+// ============================================
+
+app.get('/api/test', (req, res) => {
+    res.json({ message: 'Backend is working!', status: 'online', time: new Date().toISOString() });
+});
+
+app.get('/test', (req, res) => {
+    res.json({ message: 'Server is running' });
+});
+
+// ============================================
+// ADMIN ROUTES
+// ============================================
+
+// Serve admin.html directly
+app.get('/admin.html', (req, res) => {
+    const filePath = path.join(__dirname, 'admin', 'admin.html');
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Admin page not found. Make sure admin/admin.html exists.');
+    }
+});
+
+app.get('/admin', (req, res) => {
+    const filePath = path.join(__dirname, 'admin', 'admin.html');
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Admin page not found');
+    }
+});
+
+app.post('/api/admin/login', (req, res) => {
+    const { password } = req.body;
+    const ADMIN_PASSWORD = 'sigma123';
+    if (password === ADMIN_PASSWORD) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ error: 'Wrong password' });
+    }
+});
+
+// ============================================
+// USER AUTH ROUTES
+// ============================================
+
+app.post('/api/signup', async (req, res) => {
+    console.log('Signup request:', req.body);
+    
     try {
         const { email, name, password } = req.body;
         
-        // Check if user exists
-        const existingUser = await executeGet('SELECT id FROM users WHERE email = ?', [email]);
-        if (existingUser) {
-            return res.status(400).json({ error: 'User already exists' });
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password required' });
         }
         
-        // Hash password
+        const existingUser = await executeGet('SELECT id FROM users WHERE email = ?', [email]);
+        if (existingUser) {
+            return res.status(400).json({ error: 'Email already exists' });
+        }
+        
         const hashedPassword = await bcrypt.hash(password, 10);
         const userId = uuidv4();
         const createdAt = new Date().toISOString();
         
         await executeQuery(
             'INSERT INTO users (id, email, name, password, created_at) VALUES (?, ?, ?, ?, ?)',
-            [userId, email, name, hashedPassword, createdAt]
+            [userId, email, name || email.split('@')[0], hashedPassword, createdAt]
         );
         
-        res.status(201).json({ message: 'User registered successfully', userId });
+        const token = uuidv4();
+        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
+        await executeQuery(
+            'INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
+            [token, userId, expires]
+        );
+        
+        res.json({
+            success: true,
+            token: token,
+            user: { id: userId, email: email, name: name || email.split('@')[0] }
+        });
     } catch (error) {
-        console.error('Registration error:', error);
-        res.status(500).json({ error: 'Registration failed' });
+        console.error('Signup error:', error);
+        res.status(500).json({ error: 'Signup failed' });
     }
 });
 
-// Login user
 app.post('/api/login', async (req, res) => {
+    console.log('Login request:', req.body.email);
+    
     try {
         const { email, password } = req.body;
+        
+        if (!email || !password) {
+            return res.status(400).json({ error: 'Email and password required' });
+        }
         
         const user = await executeGet('SELECT * FROM users WHERE email = ?', [email]);
         if (!user) {
@@ -206,17 +269,17 @@ app.post('/api/login', async (req, res) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
         
-        // Create session token
         const token = uuidv4();
-        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
+        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
         
         await executeQuery(
-            'INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
+            'INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
             [token, user.id, expires]
         );
         
         res.json({
-            token,
+            success: true,
+            token: token,
             user: {
                 id: user.id,
                 email: user.email,
@@ -230,118 +293,256 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// Get user profile
-app.get('/api/user/profile', async (req, res) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        const user = await executeGet('SELECT id, email, name, profile_picture, created_at FROM users WHERE id = ?', [session.user_id]);
-        if (!user) {
-            return res.status(404).json({ error: 'User not found' });
-        }
-        
-        res.json(user);
-    } catch (error) {
-        console.error('Get profile error:', error);
-        res.status(500).json({ error: 'Failed to get profile' });
-    }
-});
-
-// Update user profile
-app.put('/api/user/profile', async (req, res) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        const { name, email } = req.body;
-        const updates = [];
-        const params = [];
-        
-        if (name) {
-            updates.push('name = ?');
-            params.push(name);
-        }
-        
-        if (email) {
-            updates.push('email = ?');
-            params.push(email);
-        }
-        
-        if (updates.length > 0) {
-            params.push(session.user_id);
-            await executeQuery(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
-        }
-        
-        const updatedUser = await executeGet('SELECT id, email, name, profile_picture FROM users WHERE id = ?', [session.user_id]);
-        res.json(updatedUser);
-    } catch (error) {
-        console.error('Update profile error:', error);
-        res.status(500).json({ error: 'Failed to update profile' });
-    }
-});
-
-// Upload profile picture
-app.post('/api/user/profile-picture', upload.single('profile_picture'), async (req, res) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-        
-        const profilePicturePath = `/uploads/${req.file.filename}`;
-        await executeQuery('UPDATE users SET profile_picture = ? WHERE id = ?', [profilePicturePath, session.user_id]);
-        
-        res.json({ 
-            message: 'Profile picture uploaded successfully',
-            profile_picture: profilePicturePath
-        });
-    } catch (error) {
-        console.error('Upload profile picture error:', error);
-        res.status(500).json({ error: 'Failed to upload profile picture' });
-    }
-});
-
-// Logout
 app.post('/api/logout', async (req, res) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (token) {
-            await executeQuery('DELETE FROM sessions WHERE token = ?', [token]);
-        }
-        res.json({ message: 'Logged out successfully' });
-    } catch (error) {
-        console.error('Logout error:', error);
-        res.status(500).json({ error: 'Logout failed' });
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (token) {
+        await executeQuery('DELETE FROM sessions WHERE token = ?', [token]);
+    }
+    res.json({ success: true });
+});
+
+app.get('/api/me', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+    if (!session) {
+        return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    const user = await executeGet('SELECT id, email, name, profile_picture FROM users WHERE id = ?', [session.user_id]);
+    if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+    }
+    
+    res.json({ user: user });
+});
+
+// ============================================
+// PROFILE ROUTES
+// ============================================
+
+app.get('/api/profile', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+    if (!session) {
+        return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    const user = await executeGet('SELECT id, email, name, profile_picture, created_at FROM users WHERE id = ?', [session.user_id]);
+    res.json({ success: true, user: user });
+});
+
+app.put('/api/profile', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+    if (!session) {
+        return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    const { name, email } = req.body;
+    const updates = [];
+    const params = [];
+    
+    if (name) {
+        updates.push('name = ?');
+        params.push(name);
+    }
+    if (email) {
+        updates.push('email = ?');
+        params.push(email);
+    }
+    
+    if (updates.length > 0) {
+        params.push(session.user_id);
+        await executeQuery(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
+    }
+    
+    const user = await executeGet('SELECT id, email, name, profile_picture FROM users WHERE id = ?', [session.user_id]);
+    res.json({ success: true, user: user });
+});
+
+app.put('/api/change-password', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+    if (!session) {
+        return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    const { currentPassword, newPassword } = req.body;
+    
+    const user = await executeGet('SELECT password FROM users WHERE id = ?', [session.user_id]);
+    const validPassword = await bcrypt.compare(currentPassword, user.password);
+    if (!validPassword) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+    }
+    
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await executeQuery('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, session.user_id]);
+    
+    res.json({ success: true, message: 'Password changed successfully' });
+});
+
+// ============================================
+// PROFILE PICTURE ROUTES
+// ============================================
+
+const profileStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, path.join(__dirname, 'uploads'));
+    },
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
-// ============= PRODUCT ROUTES =============
+const profileUpload = multer({
+    storage: profileStorage,
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images allowed'));
+        }
+    }
+});
 
-// Get all products
+app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+    if (!session) {
+        return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    if (!req.file) {
+        return res.status(400).json({ error: 'No file uploaded' });
+    }
+    
+    const profilePictureUrl = '/uploads/' + req.file.filename;
+    await executeQuery('UPDATE users SET profile_picture = ? WHERE id = ?', [profilePictureUrl, session.user_id]);
+    
+    res.json({ success: true, profilePicture: profilePictureUrl });
+});
+
+app.get('/api/profile-picture', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+    if (!session) {
+        return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    const user = await executeGet('SELECT profile_picture FROM users WHERE id = ?', [session.user_id]);
+    res.json({ profilePicture: user?.profile_picture || null });
+});
+
+app.delete('/api/profile-picture', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+    if (!session) {
+        return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    await executeQuery('UPDATE users SET profile_picture = NULL WHERE id = ?', [session.user_id]);
+    res.json({ success: true });
+});
+
+// ============================================
+// ORDER ROUTES
+// ============================================
+
+app.get('/api/my-orders', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+    if (!session) {
+        return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    const orders = await executeAll('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [session.user_id]);
+    orders.forEach(order => {
+        if (order.items) {
+            try {
+                order.items = JSON.parse(order.items);
+            } catch(e) {}
+        }
+    });
+    
+    res.json({ success: true, orders: orders });
+});
+
+app.post('/api/orders', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+    if (!session) {
+        return res.status(401).json({ error: 'Invalid session' });
+    }
+    
+    const user = await executeGet('SELECT email FROM users WHERE id = ?', [session.user_id]);
+    const { items, subtotal, shipping, total, notes } = req.body;
+    const orderId = uuidv4();
+    const createdAt = new Date().toISOString();
+    
+    await executeQuery(
+        `INSERT INTO orders (order_id, user_id, user_email, items, subtotal, shipping, total, notes, status, created_at) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [orderId, session.user_id, user.email, JSON.stringify(items), subtotal, shipping, total, notes, 'pending', createdAt]
+    );
+    
+    res.json({ success: true, orderId: orderId });
+});
+
+app.get('/api/orders', async (req, res) => {
+    const orders = await executeAll('SELECT * FROM orders ORDER BY created_at DESC');
+    orders.forEach(order => {
+        if (order.items) {
+            try {
+                order.items = JSON.parse(order.items);
+            } catch(e) {}
+        }
+    });
+    res.json(orders);
+});
+
+// ============================================
+// PRODUCT ROUTES
+// ============================================
+
 app.get('/api/products', async (req, res) => {
     try {
         const products = await executeAll('SELECT * FROM products ORDER BY created_at DESC');
@@ -352,555 +553,119 @@ app.get('/api/products', async (req, res) => {
     }
 });
 
-// Get single product
-app.get('/api/products/:id', async (req, res) => {
-    try {
-        const product = await executeGet('SELECT * FROM products WHERE id = ?', [req.params.id]);
-        if (!product) {
-            return res.status(404).json({ error: 'Product not found' });
-        }
-        res.json(product);
-    } catch (error) {
-        console.error('Get product error:', error);
-        res.status(500).json({ error: 'Failed to get product' });
-    }
-});
-
-// Create product (admin only - simplified for demo)
 app.post('/api/products', async (req, res) => {
     try {
         const { name, price, category, image, stock } = req.body;
         const id = uuidv4();
         const createdAt = new Date().toISOString();
         
+        let productImage = image;
+        if (!productImage) {
+            productImage = `https://placehold.co/400x300/1a1a2e/white?text=${encodeURIComponent(name)}`;
+        }
+        
         await executeQuery(
             'INSERT INTO products (id, name, price, category, image, stock, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            [id, name, price, category, image, stock, createdAt]
+            [id, name, parseFloat(price), category || 'digital', productImage, stock || 999, createdAt]
         );
         
-        res.status(201).json({ message: 'Product created successfully', id });
+        res.status(201).json({ success: true, id: id });
     } catch (error) {
         console.error('Create product error:', error);
         res.status(500).json({ error: 'Failed to create product' });
     }
 });
 
-// Update product
-app.put('/api/products/:id', async (req, res) => {
-    try {
-        const { name, price, category, image, stock } = req.body;
-        const updates = [];
-        const params = [];
-        
-        if (name) {
-            updates.push('name = ?');
-            params.push(name);
-        }
-        if (price) {
-            updates.push('price = ?');
-            params.push(price);
-        }
-        if (category) {
-            updates.push('category = ?');
-            params.push(category);
-        }
-        if (image) {
-            updates.push('image = ?');
-            params.push(image);
-        }
-        if (stock !== undefined) {
-            updates.push('stock = ?');
-            params.push(stock);
-        }
-        
-        if (updates.length === 0) {
-            return res.status(400).json({ error: 'No fields to update' });
-        }
-        
-        params.push(req.params.id);
-        await executeQuery(`UPDATE products SET ${updates.join(', ')} WHERE id = ?`, params);
-        
-        res.json({ message: 'Product updated successfully' });
-    } catch (error) {
-        console.error('Update product error:', error);
-        res.status(500).json({ error: 'Failed to update product' });
-    }
-});
-
-// Delete product
 app.delete('/api/products/:id', async (req, res) => {
     try {
         await executeQuery('DELETE FROM products WHERE id = ?', [req.params.id]);
-        res.json({ message: 'Product deleted successfully' });
+        res.json({ success: true });
     } catch (error) {
         console.error('Delete product error:', error);
         res.status(500).json({ error: 'Failed to delete product' });
     }
 });
 
-// ============= ORDER ROUTES =============
+// ============================================
+// CHAT ROUTES
+// ============================================
 
-// Create order
-app.post('/api/orders', async (req, res) => {
+app.post('/api/chat/save', async (req, res) => {
     try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        const user = await executeGet('SELECT email, name FROM users WHERE id = ?', [session.user_id]);
-        
-        const { items, subtotal, shipping, total, notes, payment_method, payment_id } = req.body;
-        const orderId = uuidv4();
-        const createdAt = new Date().toISOString();
-        
+        const { userId, userName, message, isAdmin } = req.body;
         await executeQuery(
-            `INSERT INTO orders (order_id, user_id, user_email, items, subtotal, shipping, total, notes, status, payment_method, payment_id, payment_status, created_at) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [orderId, session.user_id, user.email, JSON.stringify(items), subtotal, shipping, total, notes, 'pending', payment_method, payment_id, 'pending', createdAt]
-        );
-        
-        res.status(201).json({ message: 'Order created successfully', orderId });
-    } catch (error) {
-        console.error('Create order error:', error);
-        res.status(500).json({ error: 'Failed to create order' });
-    }
-});
-
-// Get user orders
-app.get('/api/orders', async (req, res) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        const orders = await executeAll('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [session.user_id]);
-        // Parse items JSON for each order
-        orders.forEach(order => {
-            if (order.items) {
-                order.items = JSON.parse(order.items);
-            }
-        });
-        
-        res.json(orders);
-    } catch (error) {
-        console.error('Get orders error:', error);
-        res.status(500).json({ error: 'Failed to get orders' });
-    }
-});
-
-// Get single order
-app.get('/api/orders/:id', async (req, res) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        const order = await executeGet('SELECT * FROM orders WHERE order_id = ? AND user_id = ?', [req.params.id, session.user_id]);
-        if (!order) {
-            return res.status(404).json({ error: 'Order not found' });
-        }
-        
-        if (order.items) {
-            order.items = JSON.parse(order.items);
-        }
-        
-        res.json(order);
-    } catch (error) {
-        console.error('Get order error:', error);
-        res.status(500).json({ error: 'Failed to get order' });
-    }
-});
-
-// ============= CHAT ROUTES =============
-
-// Get chat messages
-app.get('/api/chat/messages', async (req, res) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        const messages = await executeAll('SELECT * FROM chat_messages ORDER BY created_at ASC LIMIT 100');
-        res.json(messages);
-    } catch (error) {
-        console.error('Get messages error:', error);
-        res.status(500).json({ error: 'Failed to get messages' });
-    }
-});
-
-// Send chat message
-app.post('/api/chat/messages', async (req, res) => {
-    try {
-        const token = req.headers.authorization?.split(' ')[1];
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        const user = await executeGet('SELECT name FROM users WHERE id = ?', [session.user_id]);
-        const { message } = req.body;
-        
-        if (!message || message.trim() === '') {
-            return res.status(400).json({ error: 'Message cannot be empty' });
-        }
-        
-        const result = await executeQuery(
             'INSERT INTO chat_messages (user_id, user_name, message, is_admin) VALUES (?, ?, ?, ?)',
-            [session.user_id, user.name, message, 0]
+            [userId, userName, message, isAdmin ? 1 : 0]
         );
-        
-        res.status(201).json({ 
-            id: result.lastID,
-            user_id: session.user_id,
-            user_name: user.name,
-            message: message,
-            is_admin: 0,
-            created_at: new Date().toISOString()
-        });
+        res.json({ success: true });
     } catch (error) {
-        console.error('Send message error:', error);
-        res.status(500).json({ error: 'Failed to send message' });
+        console.error('Save chat error:', error);
+        res.status(500).json({ error: error.message });
     }
 });
+
+app.get('/api/chat/history/:userId', async (req, res) => {
+    try {
+        const messages = await executeAll(
+            'SELECT * FROM chat_messages WHERE user_id = ? ORDER BY created_at ASC LIMIT 50',
+            [req.params.userId]
+        );
+        res.json({ messages: messages || [] });
+    } catch (error) {
+        console.error('History error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/admin/chats', async (req, res) => {
+    try {
+        const chats = await executeAll(
+            `SELECT user_id, user_name, COUNT(*) as count, MAX(created_at) as last_message 
+             FROM chat_messages 
+             GROUP BY user_id 
+             ORDER BY last_message DESC`
+        );
+        res.json({ chats: chats || [] });
+    } catch (error) {
+        console.error('Admin chats error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // ============================================
-// PROFILE PICTURE ENDPOINTS - FIXED
+// NOTIFICATION ROUTES
 // ============================================
 
-// Upload profile picture
-app.post('/api/upload-profile-picture', upload.single('profilePicture'), async (req, res) => {
-    console.log('Upload request received');
-    
-    try {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ error: 'No token provided' });
-        }
-        
-        // Remove 'Bearer ' if present
-        const cleanToken = token.replace('Bearer ', '');
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid or expired token' });
-        }
-        
-        if (!req.file) {
-            return res.status(400).json({ error: 'No file uploaded' });
-        }
-        
-        const profilePicturePath = `/uploads/${req.file.filename}`;
-        await executeQuery('UPDATE users SET profile_picture = ? WHERE id = ?', [profilePicturePath, session.user_id]);
-        
-        res.json({ 
-            success: true,
-            profilePicture: profilePicturePath,
-            message: 'Profile picture updated successfully'
-        });
-    } catch (error) {
-        console.error('Upload error:', error);
-        res.status(500).json({ error: error.message });
-    }
+let lastProductUpdate = Date.now();
+
+app.post('/api/notify-shop-refresh', (req, res) => {
+    lastProductUpdate = Date.now();
+    res.json({ success: true });
 });
 
-// Get profile picture
-app.get('/api/profile-picture', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const cleanToken = token.replace('Bearer ', '');
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const user = await executeGet('SELECT profile_picture FROM users WHERE id = ?', [session.user_id]);
-        
-        res.json({ 
-            profilePicture: user?.profile_picture || null,
-            hasPicture: !!(user?.profile_picture)
-        });
-    } catch (error) {
-        console.error('Get profile picture error:', error);
-        res.status(500).json({ error: error.message });
-    }
+app.get('/api/last-product-update', (req, res) => {
+    res.json({ lastUpdate: lastProductUpdate });
 });
 
-// Delete profile picture
-app.delete('/api/profile-picture', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const cleanToken = token.replace('Bearer ', '');
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        await executeQuery('UPDATE users SET profile_picture = NULL WHERE id = ?', [session.user_id]);
-        
-        res.json({ success: true, message: 'Profile picture removed' });
-    } catch (error) {
-        console.error('Delete error:', error);
-        res.status(500).json({ error: error.message });
-    }
+// ============================================
+// FALLBACK ROUTE
+// ============================================
+
+app.get('*', (req, res) => {
+    res.status(404).json({ error: 'Route not found' });
 });
 
-// Get user profile
-app.get('/api/profile', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const cleanToken = token.replace('Bearer ', '');
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const user = await executeGet('SELECT id, email, name, profile_picture, created_at FROM users WHERE id = ?', [session.user_id]);
-        
-        res.json({ success: true, user: user });
-    } catch (error) {
-        console.error('Get profile error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
+// ============================================
+// START SERVER
+// ============================================
 
-// Update user profile
-app.put('/api/profile', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const cleanToken = token.replace('Bearer ', '');
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const { name, email } = req.body;
-        const updates = [];
-        const params = [];
-        
-        if (name) {
-            updates.push('name = ?');
-            params.push(name);
-        }
-        if (email) {
-            updates.push('email = ?');
-            params.push(email);
-        }
-        
-        if (updates.length > 0) {
-            params.push(session.user_id);
-            await executeQuery(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
-        }
-        
-        const user = await executeGet('SELECT id, email, name, profile_picture FROM users WHERE id = ?', [session.user_id]);
-        
-        res.json({ success: true, user: user });
-    } catch (error) {
-        console.error('Update profile error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Change password
-app.put('/api/change-password', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const cleanToken = token.replace('Bearer ', '');
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const { currentPassword, newPassword } = req.body;
-        
-        const user = await executeGet('SELECT password FROM users WHERE id = ?', [session.user_id]);
-        
-        const validPassword = await bcrypt.compare(currentPassword, user.password);
-        if (!validPassword) {
-            return res.status(401).json({ error: 'Current password is incorrect' });
-        }
-        
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        await executeQuery('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, session.user_id]);
-        
-        res.json({ success: true, message: 'Password changed successfully' });
-    } catch (error) {
-        console.error('Change password error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-
-// Get user orders
-app.get('/api/my-orders', async (req, res) => {
-    try {
-        const token = req.headers.authorization;
-        if (!token) {
-            return res.status(401).json({ error: 'Not logged in' });
-        }
-        
-        const cleanToken = token.replace('Bearer ', '');
-        
-        const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [cleanToken, Date.now()]);
-        if (!session) {
-            return res.status(401).json({ error: 'Invalid token' });
-        }
-        
-        const orders = await executeAll('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [session.user_id]);
-        
-        orders.forEach(order => {
-            if (order.items) {
-                try {
-                    order.items = JSON.parse(order.items);
-                } catch(e) {
-                    order.items = [];
-                }
-            }
-        });
-        
-        res.json({ success: true, orders: orders });
-    } catch (error) {
-        console.error('Get orders error:', error);
-        res.status(500).json({ error: error.message });
-    }
-});
-// Signup endpoint
-app.post('/api/signup', async (req, res) => {
-    console.log('Signup request received:', req.body);
-    
-    try {
-        const { email, name, password } = req.body;
-        
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password required' });
-        }
-        
-        // Check if user exists
-        const existingUser = await executeGet('SELECT id FROM users WHERE email = ?', [email]);
-        if (existingUser) {
-            return res.status(400).json({ error: 'Email already exists' });
-        }
-        
-        // Hash password
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const userId = uuidv4();
-        const createdAt = new Date().toISOString();
-        
-        await executeQuery(
-            'INSERT INTO users (id, email, name, password, created_at) VALUES (?, ?, ?, ?, ?)',
-            [userId, email, name, hashedPassword, createdAt]
-        );
-        
-        // Create session token
-        const token = uuidv4();
-        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
-        await executeQuery(
-            'INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
-            [token, userId, expires]
-        );
-        
-        res.json({
-            success: true,
-            user: { id: userId, email: email, name: name },
-            token: token
-        });
-    } catch (error) {
-        console.error('Signup error:', error);
-        res.status(500).json({ error: 'Signup failed' });
-    }
-});
-// Login endpoint
-app.post('/api/login', async (req, res) => {
-    console.log('Login request received:', req.body);
-    
-    try {
-        const { email, password } = req.body;
-        
-        if (!email || !password) {
-            return res.status(400).json({ error: 'Email and password required' });
-        }
-        
-        const user = await executeGet('SELECT * FROM users WHERE email = ?', [email]);
-        if (!user) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-        
-        const validPassword = await bcrypt.compare(password, user.password);
-        if (!validPassword) {
-            return res.status(401).json({ error: 'Invalid credentials' });
-        }
-        
-        // Create session token
-        const token = uuidv4();
-        const expires = Date.now() + 7 * 24 * 60 * 60 * 1000;
-        await executeQuery(
-            'INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
-            [token, user.id, expires]
-        );
-        
-        res.json({
-            success: true,
-            user: { id: user.id, email: user.email, name: user.name, profile_picture: user.profile_picture },
-            token: token
-        });
-    } catch (error) {
-        console.error('Login error:', error);
-        res.status(500).json({ error: 'Login failed' });
-    }
-});
-// Start server
 app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+    console.log('========================================');
+    console.log('SIGMA STORE BACKEND RUNNING');
+    console.log('========================================');
+    console.log(`Port: ${PORT}`);
+    console.log(`Test: https://sigma-store-api.onrender.com/api/test`);
+    console.log(`Admin: https://sigma-store-api.onrender.com/admin.html`);
+    console.log(`Admin Password: sigma123`);
+    console.log('========================================');
 });
-
-module.exports = app;
