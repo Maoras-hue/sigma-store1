@@ -1,53 +1,120 @@
-<!DOCTYPE html> 
-<html lang="en"> 
-<head> 
-    <meta charset="UTF-8"> 
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
-    <title>Sigma - Shop</title> 
-    <link rel="stylesheet" href="style.css"> 
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script> 
-</head> 
-<body> 
-<div class="header"> 
-    <a href="index.html" class="logo">� SIGMA</a> 
-    <div class="nav"> 
-        <a href="index.html">shop</a> <a href="reviews.html">reviews</a> <a href="about.html">about</a> <a href="blog.html">blog</a> <a href="privacy.html">privacy</a> <a href="wishlist.html">wishlist</a> <a href="terms.html">terms</a> <a href="refund.html">refund</a> <a href="track.html">track order</a> <a href="seller-dashboard.html">sell</a> <a href="profile.html">profile</a> <a href="login.html" id="authLink">login</a> 
-    </div> 
-    <button class="dark-toggle" id="darkToggle">??</button> 
-    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a> 
-</div> 
-<main> 
-    <div class="hero"><h1>The ecommerce web template, ready to run store.</h1><p>A full stack ecommerce web with full functionality.</p></div> 
-    <div class="container"> 
-        <div class="search-bar"><div style="display:flex; gap:0.5rem; position:relative;"><input type="text" id="searchInput" placeholder="Search products..." class="search-input" style="flex:1;" autocomplete="off"><button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">?</button><div id="autocomplete-list" style="position:absolute; top:50px; left:0; right:0; background:white; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); z-index:1000; display:none;"></div></div></div> 
-        <div class="price-range-container"><label style="font-weight:600;">?? Price Range</label><div class="price-range-controls"><div class="price-input"><span>Min:</span><input type="number" id="priceMin" value="0" step="1"></div><div class="price-input"><span>Max:</span><input type="number" id="priceMax" value="1000" step="1"></div><button id="applyPriceFilter" class="filter-btn-sm">Apply</button><button id="clearPriceFilter" class="filter-btn-sm clear">Clear</button></div><input type="range" id="priceSlider" min="0" max="1000" step="10" value="1000" class="price-slider"></div> 
-        <div style="margin-top:1rem;"><select id="sortBy" style="padding:0.5rem; border-radius:8px; border:1px solid #ddd;"><option value="default">Sort by</option><option value="priceLow">Price: Low to High</option><option value="priceHigh">Price: High to Low</option><option value="newest">Newest First</option><option value="oldest">Oldest First</option><option value="ratingHigh">Highest Rated</option><option value="nameAZ">Name: A to Z</option><option value="nameZA">Name: Z to A</option></select></div> 
-        <div style="display:flex; gap:2rem; flex-wrap:wrap; margin-top:2rem;"><div style="flex:3;"><div class="products" id="productsGrid"></div><div id="pagination" style="display:flex; justify-content:center; gap:0.5rem; margin-top:2rem;"></div></div><div style="flex:1; min-width:200px;"><div style="background:#f5f5f5; padding:1rem; border-radius:12px; position:sticky; top:100px;"><h3 style="font-size:1rem; margin-bottom:1rem;">Recently Viewed</h3><div id="recentlyViewed"></div></div></div></div> 
-        <div class="about-block"><h2>I'm Ibrahim, 17 y.o from Mardan</h2><p>I started Sigma because I was tired of broken templates and overpriced garbage. Now I build things that actually work.</p><div class="testimonial">"Clean code, fair price. Bought the template and it worked first try."<br>- Zulqarnain</div><div class="testimonial">"Finally a template that doesn't need 3 hours of fixes. Worth it."<br>- Ali</div><p style="margin-top:1rem;">No team. No investors. Just me and a laptop.</p></div> 
-    </div> 
-</main> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#1a1a2e; color:white; padding:15px 20px; display:flex; justify-content:space-between; align-items:center; z-index:9999; flex-wrap:wrap;"> 
-    <p style="margin:0; font-size:14px;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
-    <div style="display:flex; gap:10px;"> 
-        <button id="acceptCookieBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
-        <button id="declineCookieBtn" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Decline</button> 
-    </div> 
-</div> 
-<script src="config.js"></script> 
-<script src="navbar.js"></script> 
-<script src="script.js"></script> 
-<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script> 
-<script> 
-(function() { 
-    var banner = document.getElementById('cookieBanner'); 
-    if (banner) { 
-        if (localStorage.getItem('cookiesAccepted') === 'true') { banner.style.display = 'none'; } 
-        var acceptBtn = document.getElementById('acceptCookieBtn'); 
-        var declineBtn = document.getElementById('declineCookieBtn'); 
-        if (acceptBtn) { acceptBtn.onclick = function() { localStorage.setItem('cookiesAccepted', 'true'); banner.style.display = 'none'; }; } 
-        if (declineBtn) { declineBtn.onclick = function() { localStorage.setItem('cookiesAccepted', 'false'); banner.style.display = 'none'; }; } 
-    } 
-})(); 
-</script> 
-</body> 
-</html> 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sigma — Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-699CL509Z4"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-699CL509Z4');
+    </script>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">σ SIGMA</a>
+    <div class="nav">
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="track.html">track order</a>
+        <a href="seller-dashboard.html">sell</a>
+        <a href="profile.html">profile</a>
+        <a href="login.html" id="authLink">login</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="hero">
+        <h1>The ecommerce web template, ready to run store.</h1>
+        <p>A full stack ecommerce web with full functionality.</p>
+    </div>
+
+    <div class="container">
+        <div class="search-bar">
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" id="searchInput" placeholder="search products..." class="search-input" style="flex:1;">
+                <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">✕</button>
+            </div>
+            <div class="filters">
+                <button class="filter-btn active" data-filter="all">all</button>
+                <button class="filter-btn" data-filter="digital">digital</button>
+            </div>
+            <div style="margin-top: 1rem;">
+                <select id="sortBy" style="padding: 0.5rem; border-radius: 8px; border: 1px solid #ddd;">
+                    <option value="default">sort by</option>
+                    <option value="priceLow">price: low to high</option>
+                    <option value="priceHigh">price: high to low</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 2rem; flex-wrap: wrap;">
+            <div style="flex: 3;">
+                <div class="products" id="productsGrid"></div>
+            </div>
+            <div style="flex: 1; min-width: 200px;">
+                <div style="background: #f5f5f5; padding: 1rem; border-radius: 12px; position: sticky; top: 100px;">
+                    <h3 style="font-size: 1rem; margin-bottom: 1rem;">recently viewed</h3>
+                    <div id="recentlyViewed"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="about-block">
+            <h2>I'm Ibrahim, 17 y.o from Mardan</h2>
+            <p>I started Sigma because I was tired of broken templates and overpriced garbage. Now I build things that actually work.</p>
+            <div class="testimonial">"Clean code, fair price. Bought the template and it worked first try."<br>— Zulqarnain</div>
+            <div class="testimonial">"Finally a template that doesn't need 3 hours of fixes. Worth it."<br>— Ali</div>
+            <p style="margin-top: 1rem;">No team. No investors. Just me and a laptop.</p>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p style="margin-top: 0.5rem;">email: sigma@example.com</p>
+    <p style="margin-top: 0.5rem;">We accept: Visa, Mastercard & Payoneer</p>
+    <address>College chowk par-hoti Mardan.</address>
+</footer>
+
+<!-- Cookie Banner -->
+<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;">
+    <p style="margin:0;">🍪 We use cookies. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p>
+    <div>
+        <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button>
+        <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button>
+    </div>
+</div>
+
+<script>
+    function acceptCookies() {
+        localStorage.setItem('cookiesAccepted', 'true');
+        document.getElementById('cookieBanner').style.display = 'none';
+    }
+    function declineCookies() {
+        localStorage.setItem('cookiesAccepted', 'false');
+        document.getElementById('cookieBanner').style.display = 'none';
+    }
+    if (localStorage.getItem('cookiesAccepted') === 'true') {
+        document.getElementById('cookieBanner').style.display = 'none';
+    }
+</script>
+
+<script src="config.js"></script>
+<script src="navbar.js"></script>
+<script src="script.js"></script>
+
+</body>
+</html>
