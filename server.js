@@ -226,6 +226,131 @@ app.get('/api/products', (req, res) => {
         res.json(products || []);
     });
 });
+// ============================================
+// PROFILE PICTURE UPLOAD
+// ============================================
+
+// Configure multer for profile pictures
+const multer = require('multer');
+
+const profileStorage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        const profileDir = path.join(__dirname, 'uploads', 'profiles');
+        if (!fs.existsSync(profileDir)) {
+            fs.mkdirSync(profileDir, { recursive: true });
+        }
+        cb(null, profileDir);
+    },
+    filename: function(req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        const ext = path.extname(file.originalname);
+        cb(null, 'profile-' + uniqueSuffix + ext);
+    }
+});
+
+const profileUpload = multer({ 
+    storage: profileStorage,
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: function(req, file, cb) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images allowed'));
+        }
+    }
+});
+
+// Upload profile picture
+app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
+    console.log('Upload request received');
+    
+    try {
+        const token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ error: 'No token provided' });
+        }
+        
+        const userId = token.split('_')[0];
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        
+        const profilePictureUrl = '/uploads/profiles/' + req.file.filename;
+        
+        db.run(`UPDATE users SET profile_picture = ? WHERE id = ?`, [profilePictureUrl, userId], function(err) {
+            if (err) {
+                console.error('DB update error:', err);
+                return res.status(500).json({ error: 'Database error' });
+            }
+            
+            res.json({ 
+                success: true, 
+                profilePicture: profilePictureUrl,
+                message: 'Profile picture updated successfully'
+            });
+        });
+    } catch (error) {
+        console.error('Upload error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get profile picture
+app.get('/api/profile-picture', (req, res) => {
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const userId = token.split('_')[0];
+    
+    db.get(`SELECT profile_picture FROM users WHERE id = ?`, [userId], (err, user) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        res.json({ 
+            profilePicture: user?.profile_picture || null,
+            hasPicture: !!(user?.profile_picture)
+        });
+    });
+});
+
+// Delete profile picture
+app.delete('/api/profile-picture', (req, res) => {
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const userId = token.split('_')[0];
+    
+    // Get current picture to delete file
+    db.get(`SELECT profile_picture FROM users WHERE id = ?`, [userId], (err, user) => {
+        if (err) {
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        if (user?.profile_picture) {
+            const filePath = path.join(__dirname, user.profile_picture);
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+            }
+        }
+        
+        db.run(`UPDATE users SET profile_picture = NULL WHERE id = ?`, [userId], function(updateErr) {
+            if (updateErr) {
+                return res.status(500).json({ error: 'Database error' });
+            }
+            
+            res.json({ success: true, message: 'Profile picture removed' });
+        });
+    });
+});
 
 // ========== START SERVER ==========
 app.listen(PORT, () => {
