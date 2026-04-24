@@ -390,28 +390,28 @@ function removeProfilePicture() {
     // LOAD PROFILE
     // ============================================
     
-    async function loadProfile() {
-        const token = getAuthToken();
-        
-        try {
-            const response = await fetch(`${API_URL}/api/profile`, {
-                headers: { 'Authorization': token }
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to load profile');
-            }
-            
-            const data = await response.json();
-            currentUser = data.user;
-            
-            document.getElementById('profileName').value = currentUser.name || '';
-            document.getElementById('profileEmail').value = currentUser.email || '';
-            
-        } catch (error) {
-            console.error('Load profile error:', error);
+    function loadProfilePicture() {
+    var token = getAuthToken();
+    if (!token) return;
+    
+    var img = document.getElementById('profileImage');
+    if (!img) return;
+    
+    fetch(API_URL + '/api/profile-picture', {
+        headers: { 'Authorization': token }
+    })
+    .then(function(response) { return response.json(); })
+    .then(function(data) {
+        if (data.profilePicture) {
+            img.src = API_URL + data.profilePicture + '?t=' + Date.now();
+        } else {
+            img.src = 'https://placehold.co/120x120/ccc/white?text=No+Image';
         }
-    }
+    })
+    .catch(function(error) {
+        console.error('Load picture error:', error);
+    });
+}
     
     // ============================================
     // UPDATE PROFILE
@@ -590,8 +590,14 @@ function removeProfilePicture() {
     // ============================================
     // RENDER PAGE
     // ============================================
-   function renderPage() {
+function renderPage() {
     var container = document.getElementById('profileContent');
+    
+    // Check if container exists
+    if (!container) {
+        console.error('Profile content container not found');
+        return;
+    }
     
     if (!isLoggedIn()) {
         container.innerHTML = `
@@ -613,9 +619,9 @@ function removeProfilePicture() {
                     <img id="profileImage" src="https://placehold.co/120x120/ccc/white?text=No+Image" style="width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid #e05a2a;">
                 </div>
                 <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <label for="pictureUpload" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 10px 20px; border-radius: 50px; cursor: pointer;"> Upload Picture</label>
+                    <label for="pictureUpload" style="background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 10px 20px; border-radius: 50px; cursor: pointer;">📸 Upload Picture</label>
                     <input type="file" id="pictureUpload" accept="image/*" style="display: none;" onchange="uploadProfilePicture(this)">
-                    <button id="removePictureBtn" onclick="removeProfilePicture()" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer;"> Remove Picture</button>
+                    <button id="removePictureBtn" onclick="removeProfilePicture()" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 50px; cursor: pointer;">🗑️ Remove Picture</button>
                 </div>
                 <div id="pictureMessage" class="message" style="margin-top: 1rem;"></div>
             </div>
@@ -662,6 +668,7 @@ function removeProfilePicture() {
         </div>
     `;
     
+    // Only call these functions after elements are created
     loadProfile();
     loadOrders();
     loadProfilePicture();
