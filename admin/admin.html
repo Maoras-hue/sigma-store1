@@ -331,7 +331,7 @@
             <button class="tab-btn" onclick="showTab('orders')">Orders</button>
             <button class="tab-btn" onclick="showTab('visitors')">Visitors</button>
             <button class="tab-btn" onclick="showTab('coupons')">Coupons</button>
-        </div>
+<button class="tab-btn" onclick="showTab('subscribers')">Subscribers</button>
         
         <!-- Products Tab -->
         <div id="productsTab">
@@ -347,6 +347,17 @@
                         <option value="home">Home & Living</option>
                         <option value="accessories">Accessories</option>
                         <option value="sports">Sports</option>
+<div id="subscribersTab" style="display: none;">
+    <div class="table-container">
+        <h3>Newsletter Subscribers <button onclick="exportSubscribers()" style="background: #4caf50; color:white; border:none; padding:5px 10px; border-radius:5px; margin-left:10px; cursor:pointer;">📥 Export CSV</button></h3>
+        <table>
+            <thead>
+                <tr><th>Email</th><th>Subscribed Date</th><th>Action</th></tr>
+            </thead>
+            <tbody id="subscribersList"></tbody>
+        </table>
+    </div>
+</div>`cx
                     </select>
                 </div>
                 <div class="form-row">
@@ -493,7 +504,60 @@
             autoRefreshInterval = null;
         }
     }
-    
+} else if (document.getElementById('subscribersTab').style.display !== 'none') {
+    loadSubscribers();
+}
+    async function loadSubscribers() {
+    try {
+        const res = await fetch(`${API_URL}/api/admin/subscribers`);
+        const data = await res.json();
+        const subscribers = data.subscribers || [];
+        
+        const tbody = document.getElementById('subscribersList');
+        if (subscribers.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3">No subscribers yet</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = subscribers.map(s => `
+            <tr>
+                <td>${escapeHtml(s.email)}</td>
+                <td>${new Date(s.subscribed_at).toLocaleString()}</td>
+                <td><button class="delete-btn" onclick="deleteSubscriber('${s.id}')">Delete</button></td>
+            </tr>
+        `).join('');
+    } catch(e) {
+        console.error('Load subscribers error:', e);
+    }
+}
+
+async function deleteSubscriber(id) {
+    if (confirm('Delete this subscriber?')) {
+        const res = await fetch(`${API_URL}/api/admin/subscribers/${id}`, { method: 'DELETE' });
+        if (res.ok) {
+            alert('Subscriber deleted');
+            loadSubscribers();
+        }
+    }
+}
+
+function exportSubscribers() {
+    fetch(`${API_URL}/api/admin/subscribers`)
+        .then(res => res.json())
+        .then(data => {
+            let csv = 'Email,Subscribed Date\n';
+            data.subscribers.forEach(s => {
+                csv += `"${s.email}","${new Date(s.subscribed_at).toLocaleString()}"\n`;
+            });
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'subscribers.csv';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+}
     function checkLogin() {
         if (localStorage.getItem('adminLoggedIn') === 'true') {
             document.getElementById('loginPage').style.display = 'none';
@@ -522,6 +586,7 @@
         if (tab === 'orders') loadOrders();
         if (tab === 'visitors') loadVisitors();
         if (tab === 'coupons') loadCoupons();
+        if (tab === 'subscribers') loadSubscribers();
     }
     
     // ============================================

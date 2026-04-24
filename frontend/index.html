@@ -274,7 +274,16 @@
         </div>
     </div>
 </main>
-
+<!-- Newsletter Section -->
+<div style="background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 40px 20px; margin: 40px 0; border-radius: 20px; text-align: center;">
+    <h3 style="margin-bottom: 10px;">📧 Subscribe to Our Newsletter</h3>
+    <p style="margin-bottom: 20px;">Get latest updates, new products and exclusive discounts directly to your inbox.</p>
+    <div style="display: flex; gap: 10px; max-width: 500px; margin: 0 auto; flex-wrap: wrap; justify-content: center;">
+        <input type="email" id="newsletterEmail" placeholder="Your email address" style="flex: 1; padding: 12px 20px; border: none; border-radius: 50px; min-width: 250px;">
+        <button id="subscribeBtn" style="background: #e05a2a; color: white; border: none; padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: 600;">Subscribe →</button>
+    </div>
+    <div id="newsletterMessage" style="margin-top: 15px; font-size: 14px;"></div>
+</div>
 <footer>
     <p>Sigma Studio — Mardan, Pakistan</p>
     <p>email: sigma@example.com</p>
@@ -479,6 +488,36 @@
     function closeExitPopup() {
         document.getElementById('exitPopup').style.display = 'none';
     }
+</script>
+<script>
+    document.getElementById('subscribeBtn').onclick = async function() {
+        const email = document.getElementById('newsletterEmail').value;
+        const messageDiv = document.getElementById('newsletterMessage');
+        
+        if (!email) {
+            messageDiv.innerHTML = '<span style="color: #ff9800;">Please enter email</span>';
+            return;
+        }
+        
+        try {
+            const response = await fetch(API_URL + '/api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email })
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok) {
+                messageDiv.innerHTML = '<span style="color: #4caf50;">✓ ' + data.message + '</span>';
+                document.getElementById('newsletterEmail').value = '';
+            } else {
+                messageDiv.innerHTML = '<span style="color: #e05a2a;">❌ ' + (data.error || 'Subscription failed') + '</span>';
+            }
+        } catch(e) {
+            messageDiv.innerHTML = '<span style="color: #e05a2a;">❌ Error connecting to server</span>';
+        }
+    };
 </script>
 </body>
 </html>

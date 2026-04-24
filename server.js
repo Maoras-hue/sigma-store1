@@ -880,7 +880,50 @@ io.on('connection', (socket) => {
 app.get('*', (req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
+// ============================================
+// NEWSLETTER SUBSCRIBE ROUTES
+// ============================================
 
+app.post('/api/subscribe', async (req, res) => {
+    try {
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ error: 'Email required' });
+        
+        const id = uuidv4();
+        const subscribed_at = new Date().toISOString();
+        
+        await executeQuery(
+            'INSERT INTO subscribers (id, email, subscribed_at) VALUES (?, ?, ?)',
+            [id, email.toLowerCase(), subscribed_at]
+        );
+        
+        res.json({ success: true, message: 'Subscribed successfully!' });
+    } catch (error) {
+        if (error.message.includes('UNIQUE')) {
+            res.status(400).json({ error: 'Email already subscribed' });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
+    }
+});
+
+app.get('/api/admin/subscribers', async (req, res) => {
+    try {
+        const subscribers = await executeAll('SELECT * FROM subscribers ORDER BY subscribed_at DESC');
+        res.json({ subscribers });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.delete('/api/admin/subscribers/:id', async (req, res) => {
+    try {
+        await executeQuery('DELETE FROM subscribers WHERE id = ?', [req.params.id]);
+        res.json({ success: true });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
 // ============================================
 // START SERVER
 // ============================================
