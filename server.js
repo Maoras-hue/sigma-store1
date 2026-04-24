@@ -359,6 +359,139 @@ app.delete('/api/profile-picture', (req, res) => {
     });
 });
 
+// ============================================
+// PROFILE API ENDPOINTS
+// ============================================
+
+// Get user profile
+app.get('/api/profile', (req, res) => {
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const userId = token.split('_')[0];
+    
+    db.get(`SELECT id, email, name, profile_picture, created_at FROM users WHERE id = ?`, [userId], (err, user) => {
+        if (err || !user) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+        res.json({ success: true, user: user });
+    });
+});
+
+// Update user profile
+app.put('/api/profile', (req, res) => {
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const userId = token.split('_')[0];
+    const { name, email } = req.body;
+    
+    let updates = [];
+    let values = [];
+    
+    if (name) {
+        updates.push('name = ?');
+        values.push(name);
+    }
+    if (email) {
+        updates.push('email = ?');
+        values.push(email);
+    }
+    
+    if (updates.length === 0) {
+        return res.status(400).json({ error: 'Nothing to update' });
+    }
+    
+    values.push(userId);
+    
+    db.run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values, function(err) {
+        if (err) {
+            console.error('Update error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        db.get(`SELECT id, email, name, profile_picture FROM users WHERE id = ?`, [userId], (err, user) => {
+            res.json({ success: true, user: user });
+        });
+    });
+});
+
+// Change password
+app.put('/api/change-password', async (req, res) => {
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const userId = token.split('_')[0];
+    const { currentPassword, newPassword } = req.body;
+    
+    if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Current password and new password required' });
+    }
+    
+    if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters' });
+    }
+    
+    db.get(`SELECT password FROM users WHERE id = ?`, [userId], async (err, user) => {
+        if (err || !user) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+        
+        const validPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        
+        db.run(`UPDATE users SET password = ? WHERE id = ?`, [hashedPassword, userId], function(updateErr) {
+            if (updateErr) {
+                return res.status(500).json({ error: 'Database error' });
+            }
+            res.json({ success: true, message: 'Password changed successfully' });
+        });
+    });
+});
+
+// Get user orders
+app.get('/api/my-orders', (req, res) => {
+    const token = req.headers.authorization;
+    
+    if (!token) {
+        return res.status(401).json({ error: 'Not logged in' });
+    }
+    
+    const userId = token.split('_')[0];
+    
+    db.all(`SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC`, [userId], (err, orders) => {
+        if (err) {
+            console.error('Orders error:', err);
+            return res.status(500).json({ error: 'Database error' });
+        }
+        
+        // Parse items JSON for each order
+        for (let i = 0; i < orders.length; i++) {
+            if (orders[i].items && typeof orders[i].items === 'string') {
+                try {
+                    orders[i].items = JSON.parse(orders[i].items);
+                } catch(e) {
+                    orders[i].items = [];
+                }
+            }
+        }
+        
+        res.json({ success: true, orders: orders || [] });
+    });
+});
 // ========== START SERVER ==========
 app.listen(PORT, () => {
     console.log(`========================================`);
