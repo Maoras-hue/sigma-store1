@@ -1,178 +1,280 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
-const sqlite3 = require('sqlite3').verbose();
+const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
+const { connectDB, executeQuery, insertOne, findOne, findAll, updateOne, deleteOne, DB_TYPE } = require('./config/db');
+
+// Try to load socket.io (optional)
+let socketIo;
+try {
+    socketIo = require('socket.io');
+} catch(e) {
+    console.log('Socket.io not available, chat feature disabled');
+    socketIo = null;
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'sigma123';
 
-// Middleware
-app.use(cors());
+// ============================================
+// MIDDLEWARE
+// ============================================
+app.use(cors({
+    origin: '*',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
+app.use(cookieParser());
+app.use('/uploads', express.static('uploads'));
+app.use('/admin', express.static(path.join(__dirname, 'admin')));
+app.use(express.static('admin'));
+app.use(express.static('frontend'));
 
-// Database path - FIXED for Render
-const dbPath = path.join(process.cwd(), 'sigma_store.db');
-console.log('Database path:', dbPath);
+// Create necessary directories
+const dirs = ['./uploads', './uploads/profiles', './admin'];
+for (const dir of dirs) {
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+        console.log('Created directory:', dir);
+    }
+}
 
-const db = new sqlite3.Database(dbPath);
+// ============================================
+// DATABASE CONNECTION & TABLE CREATION
+// ============================================
+connectDB();
 
-// Create tables
-db.serialize(() => {
-    db.run(`CREATE TABLE IF NOT EXISTS users (
-        id TEXT PRIMARY KEY,
-        email TEXT UNIQUE,
-        name TEXT,
-        password TEXT,
-        profile_picture TEXT,
-        created_at TEXT
-    )`, (err) => {
-        if (err) console.error('Users table error:', err.message);
-        else console.log('Users table ready');
-    });
-    
-    db.run(`CREATE TABLE IF NOT EXISTS products (
-        id TEXT PRIMARY KEY,
-        name TEXT,
-        price REAL,
-        category TEXT,
-        image TEXT,
-        stock INTEGER,
-        created_at TEXT
-    )`, (err) => {
-        if (err) console.error('Products table error:', err.message);
-        else console.log('Products table ready');
-    });
-    
-    db.run(`CREATE TABLE IF NOT EXISTS sessions (
-        token TEXT PRIMARY KEY,
-        user_id TEXT,
-        expires INTEGER,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`, (err) => {
-        if (err) console.error('Sessions table error:', err.message);
-        else console.log('Sessions table ready');
-    });
-    
-    db.run(`CREATE TABLE IF NOT EXISTS orders (
-        order_id TEXT PRIMARY KEY,
-        user_id TEXT,
-        user_email TEXT,
-        items TEXT,
-        subtotal REAL,
-        shipping REAL,
-        total REAL,
-        notes TEXT,
-        status TEXT,
-        payment_method TEXT,
-        payment_id TEXT,
-        payment_status TEXT,
-        created_at TEXT
-    )`, (err) => {
-        if (err) console.error('Orders table error:', err.message);
-        else console.log('Orders table ready');
-    });
-});
+// Create all tables
+(async function initDatabase() {
+    try {
+        // Users table
+        await executeQuery(`CREATE TABLE IF NOT EXISTS users (
+            id TEXT PRIMARY KEY,
+            email TEXT UNIQUE,
+            name TEXT,
+            password TEXT,
+            profile_picture TEXT,
+            created_at TEXT
+        )`);
+        console.log('Users table ready');
+        
+        // Sessions table
+        await executeQuery(`CREATE TABLE IF NOT EXISTS sessions (
+            token TEXT PRIMARY KEY,
+            user_id TEXT,
+            expires INTEGER,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+        console.log('Sessions table ready');
+        
+        // Products table
+        await executeQuery(`CREATE TABLE IF NOT EXISTS products (
+            id TEXT PRIMARY KEY,
+            name TEXT,
+            price REAL,
+            category TEXT,
+            image TEXT,
+            stock INTEGER,
+            created_at TEXT
+        )`);
+        console.log('Products table ready');
+        
+        // Orders table
+        await executeQuery(`CREATE TABLE IF NOT EXISTS orders (
+            order_id TEXT PRIMARY KEY,
+            user_id TEXT,
+            user_email TEXT,
+            items TEXT,
+            subtotal REAL,
+            shipping REAL,
+            total REAL,
+            notes TEXT,
+            status TEXT,
+            payment_method TEXT,
+            payment_id TEXT,
+            payment_status TEXT,
+            created_at TEXT
+        )`);
+        console.log('Orders table ready');
+        
+        // Chat messages table
+        await executeQuery(`CREATE TABLE IF NOT EXISTS chat_messages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            user_name TEXT,
+            message TEXT,
+            is_admin INTEGER DEFAULT 0,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )`);
+        console.log('Chat table ready');
+        
+    } catch (error) {
+        console.error('Database init error:', error.message);
+    }
+})();
 
-// ========== TEST ROUTE ==========
-app.get('/api/test', (req, res) => {
-    res.json({ 
-        message: 'Backend is working with SQLite!',
-        database: 'sqlite',
-        status: 'online',
-        time: new Date().toISOString()
-    });
-});
+// ============================================
+// SESSION FUNCTIONS - DATABASE BASED
+// ============================================
 
-// ========== SIGNUP ==========
-app.post('/api/signup', async (req, res) => {
-    console.log('Signup request received:', req.body.email);
+async function saveSession(token, userId, expires) {
+    try {
+        await executeQuery(
+            'INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
+            [token, userId, expires]
+        );
+        console.log('Session saved for user:', userId);
+    } catch (error) {
+        console.error('Save session error:', error);
+    }
+}
+
+async function getUserFromToken(token) {
+    if (!token) return null;
     
     try {
-        const { email, password, name } = req.body;
+        const sessions = await executeQuery(
+            'SELECT * FROM sessions WHERE token = ? AND expires > ?',
+            [token, Date.now()]
+        );
+        
+        if (sessions.length === 0) return null;
+        
+        return { userId: sessions[0].user_id };
+    } catch (error) {
+        console.error('Get user from token error:', error);
+        return null;
+    }
+}
+
+async function deleteSession(token) {
+    try {
+        await executeQuery('DELETE FROM sessions WHERE token = ?', [token]);
+    } catch (error) {
+        console.error('Delete session error:', error);
+    }
+}
+
+async function cleanExpiredSessions() {
+    try {
+        const result = await executeQuery('DELETE FROM sessions WHERE expires < ?', [Date.now()]);
+        console.log('Cleaned expired sessions');
+    } catch (error) {
+        console.error('Clean sessions error:', error);
+    }
+}
+
+// Run cleanup every hour
+setInterval(cleanExpiredSessions, 60 * 60 * 1000);
+
+// ============================================
+// HELPER FUNCTION - Extract User ID from Token
+// ============================================
+
+function getUserIdFromToken(token) {
+    if (!token) return null;
+    const parts = token.split('_');
+    if (parts.length >= 1) {
+        return parts[0];
+    }
+    return null;
+}
+
+// ============================================
+// TEST ROUTE
+// ============================================
+app.get('/api/test', (req, res) => {
+    res.json({ 
+        message: 'Backend is working with ' + (DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite') + '!',
+        database: DB_TYPE,
+        status: 'online'
+    });
+});
+
+// ============================================
+// AUTH ROUTES
+// ============================================
+
+app.post('/api/signup', async (req, res) => {
+    try {
+        const { email, password, name, remember } = req.body;
         
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password required' });
         }
         
-        // Check if user exists
-        db.get('SELECT * FROM users WHERE email = ?', [email], async (err, existingUser) => {
-            if (err) {
-                console.error('Check user error:', err);
-                return res.status(500).json({ error: 'Database error' });
-            }
-            
-            if (existingUser) {
-                return res.status(400).json({ error: 'Email already exists' });
-            }
-            
-            const hashedPassword = await bcrypt.hash(password, 10);
-            const userId = Date.now().toString();
-            const userName = name || email.split('@')[0];
-            
-            db.run(
-                `INSERT INTO users (id, email, name, password, created_at) VALUES (?, ?, ?, ?, ?)`,
-                [userId, email, userName, hashedPassword, new Date().toISOString()],
-                function(insertErr) {
-                    if (insertErr) {
-                        console.error('Insert error:', insertErr);
-                        return res.status(500).json({ error: 'Failed to create user' });
-                    }
-                    
-                    const token = userId + '_' + Date.now();
-                    
-                    res.json({
-                        success: true,
-                        user: { id: userId, email: email, name: userName },
-                        token: token
-                    });
-                }
-            );
+        const existing = await findOne('users', 'email', email);
+        if (existing) {
+            return res.status(400).json({ error: 'Email already exists' });
+        }
+        
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const userId = Date.now().toString();
+        const userName = name || email.split('@')[0];
+        
+        await insertOne('users', {
+            id: userId,
+            email: email,
+            name: userName,
+            password: hashedPassword,
+            profile_picture: null,
+            created_at: new Date().toISOString()
+        });
+        
+        const token = userId + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const expiryDays = remember ? 30 : 7;
+        const expires = Date.now() + (expiryDays * 24 * 60 * 60 * 1000);
+        
+        await saveSession(token, userId, expires);
+        
+        res.json({
+            success: true,
+            user: { id: userId, email: email, name: userName },
+            token: token
         });
     } catch (error) {
         console.error('Signup error:', error);
-        res.status(500).json({ error: 'Server error: ' + error.message });
+        res.status(500).json({ error: 'Server error' });
     }
 });
 
-// ========== LOGIN ==========
 app.post('/api/login', async (req, res) => {
-    console.log('Login request received:', req.body.email);
-    
     try {
-        const { email, password } = req.body;
+        const { email, password, remember } = req.body;
         
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password required' });
         }
         
-        db.get(`SELECT * FROM users WHERE email = ?`, [email], async (err, user) => {
-            if (err) {
-                console.error('Login DB error:', err);
-                return res.status(500).json({ error: 'Database error' });
-            }
-            
-            if (!user) {
-                return res.status(401).json({ error: 'Invalid email or password' });
-            }
-            
-            const validPassword = await bcrypt.compare(password, user.password);
-            if (!validPassword) {
-                return res.status(401).json({ error: 'Invalid email or password' });
-            }
-            
-            const token = user.id + '_' + Date.now();
-            
-            // Save session
-            db.run(`INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)`,
-                [token, user.id, Date.now() + 30 * 24 * 60 * 60 * 1000]);
-            
-            res.json({
-                success: true,
-                user: { id: user.id, email: user.email, name: user.name },
-                token: token
-            });
+        const user = await findOne('users', 'email', email);
+        
+        if (!user) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+        
+        const validPassword = await bcrypt.compare(password, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Invalid email or password' });
+        }
+        
+        const token = user.id + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        const expiryDays = remember ? 30 : 7;
+        const expires = Date.now() + (expiryDays * 24 * 60 * 60 * 1000);
+        
+        await saveSession(token, user.id, expires);
+        
+        res.json({
+            success: true,
+            user: { id: user.id, email: user.email, name: user.name },
+            token: token
         });
     } catch (error) {
         console.error('Login error:', error);
@@ -180,89 +282,181 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ========== GET USER ==========
-app.get('/api/me', (req, res) => {
+app.post('/api/logout', async (req, res) => {
+    const token = req.headers.authorization;
+    if (token) {
+        await deleteSession(token);
+    }
+    res.json({ success: true });
+});
+
+app.get('/api/me', async (req, res) => {
     const token = req.headers.authorization;
     
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
     
-    const userId = token.split('_')[0];
+    const userId = getUserIdFromToken(token);
     
-    db.get(`SELECT id, email, name, profile_picture FROM users WHERE id = ?`, [userId], (err, user) => {
-        if (err || !user) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-        res.json({ user: user });
-    });
-});
-
-// ========== PROFILE ==========
-app.get('/api/profile', (req, res) => {
-    const token = req.headers.authorization;
-    
-    if (!token) {
-        return res.status(401).json({ error: 'Not logged in' });
+    if (!userId) {
+        return res.status(401).json({ error: 'Invalid token' });
     }
     
-    const userId = token.split('_')[0];
+    const user = await findOne('users', 'id', userId);
     
-    db.get(`SELECT id, email, name, profile_picture, created_at FROM users WHERE id = ?`, [userId], (err, user) => {
-        if (err || !user) {
+    if (!user) {
+        return res.status(401).json({ error: 'User not found' });
+    }
+    
+    res.json({ user: { id: user.id, email: user.email, name: user.name, profile_picture: user.profile_picture } });
+});
+
+// ============================================
+// PROFILE ROUTES
+// ============================================
+
+app.get('/api/profile', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const userId = getUserIdFromToken(token);
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const user = await findOne('users', 'id', userId);
+        
+        if (!user) {
             return res.status(401).json({ error: 'User not found' });
         }
-        res.json({ success: true, user: user });
-    });
+        
+        res.json({
+            success: true,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                profile_picture: user.profile_picture,
+                created_at: user.created_at
+            }
+        });
+    } catch (error) {
+        console.error('Profile error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
-// ========== PRODUCTS ==========
-app.get('/api/products', (req, res) => {
-    db.all(`SELECT * FROM products ORDER BY created_at DESC`, (err, products) => {
-        if (err) {
-            console.error('Products error:', err);
-            return res.status(500).json({ error: 'Database error' });
+app.put('/api/profile', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
         }
-        res.json(products || []);
-    });
+        
+        const userId = getUserIdFromToken(token);
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const { name, email } = req.body;
+        const updates = {};
+        if (name) updates.name = name;
+        if (email) updates.email = email;
+        
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ error: 'Nothing to update' });
+        }
+        
+        await updateOne('users', userId, 'id', updates);
+        
+        const updatedUser = await findOne('users', 'id', userId);
+        
+        res.json({
+            success: true,
+            user: {
+                id: updatedUser.id,
+                name: updatedUser.name,
+                email: updatedUser.email
+            }
+        });
+    } catch (error) {
+        console.error('Update profile error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
-// ============================================
-// PROFILE PICTURE UPLOAD
-// ============================================
-// ============================================
-// PROFILE PICTURE UPLOAD - FIXED
-// ============================================
 
-// Ensure upload directories exist
-const uploadsDir = path.join(__dirname, 'uploads');
-const profilesDir = path.join(uploadsDir, 'profiles');
+app.put('/api/change-password', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
+        }
+        
+        const userId = getUserIdFromToken(token);
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const { currentPassword, newPassword } = req.body;
+        
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({ error: 'Current password and new password required' });
+        }
+        
+        if (newPassword.length < 6) {
+            return res.status(400).json({ error: 'New password must be at least 6 characters' });
+        }
+        
+        const user = await findOne('users', 'id', userId);
+        
+        const validPassword = await bcrypt.compare(currentPassword, user.password);
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Current password is incorrect' });
+        }
+        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await updateOne('users', userId, 'id', { password: hashedPassword });
+        
+        res.json({ success: true, message: 'Password changed successfully' });
+    } catch (error) {
+        console.error('Change password error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
 
-if (!fs.existsSync(uploadsDir)) {
-    fs.mkdirSync(uploadsDir, { recursive: true });
-    console.log('Created uploads directory');
-}
-if (!fs.existsSync(profilesDir)) {
-    fs.mkdirSync(profilesDir, { recursive: true });
-    console.log('Created profiles directory');
-}
+// ============================================
+// PROFILE PICTURE UPLOAD ROUTES
+// ============================================
 
 // Configure multer for profile pictures
 const profileStorage = multer.diskStorage({
     destination: function(req, file, cb) {
-        console.log('Saving file to:', profilesDir);
-        cb(null, profilesDir);
+        const profileDir = path.join(__dirname, 'uploads', 'profiles');
+        if (!fs.existsSync(profileDir)) {
+            fs.mkdirSync(profileDir, { recursive: true });
+        }
+        cb(null, profileDir);
     },
     filename: function(req, file, cb) {
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-        const filename = 'profile-' + uniqueSuffix + path.extname(file.originalname);
-        console.log('Generated filename:', filename);
-        cb(null, filename);
+        const ext = path.extname(file.originalname);
+        cb(null, 'profile-' + uniqueSuffix + ext);
     }
 });
 
 const profileUpload = multer({ 
     storage: profileStorage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: function(req, file, cb) {
         const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
         if (allowedTypes.includes(file.mimetype)) {
@@ -275,41 +469,35 @@ const profileUpload = multer({
 
 // Upload profile picture
 app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), async (req, res) => {
-    console.log('=== UPLOAD REQUEST RECEIVED ===');
+    console.log('Upload request received');
     
     try {
         const token = req.headers.authorization;
+        
         if (!token) {
             return res.status(401).json({ error: 'No token provided' });
         }
         
-        const userId = token.split('_')[0];
-        console.log('User ID:', userId);
+        const userId = getUserIdFromToken(token);
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
         
         if (!req.file) {
-            console.log('No file in request');
             return res.status(400).json({ error: 'No file uploaded' });
         }
         
         console.log('File saved:', req.file.filename);
-        console.log('File path:', req.file.path);
         
         const profilePictureUrl = '/uploads/profiles/' + req.file.filename;
         
-        // Update database
-        db.run(`UPDATE users SET profile_picture = ? WHERE id = ?`, [profilePictureUrl, userId], function(err) {
-            if (err) {
-                console.error('DB update error:', err);
-                return res.status(500).json({ error: 'Database error' });
-            }
-            
-            console.log('Database updated for user:', userId);
-            
-            res.json({ 
-                success: true, 
-                profilePicture: profilePictureUrl,
-                message: 'Profile picture updated successfully'
-            });
+        await updateOne('users', userId, 'id', { profile_picture: profilePictureUrl });
+        
+        res.json({ 
+            success: true, 
+            profilePicture: profilePictureUrl,
+            message: 'Profile picture updated successfully'
         });
     } catch (error) {
         console.error('Upload error:', error);
@@ -318,199 +506,436 @@ app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), 
 });
 
 // Get profile picture
-app.get('/api/profile-picture', (req, res) => {
-    const token = req.headers.authorization;
-    if (!token) {
-        return res.status(401).json({ error: 'Not logged in' });
-    }
-    
-    const userId = token.split('_')[0];
-    
-    db.get(`SELECT profile_picture FROM users WHERE id = ?`, [userId], (err, user) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
+app.get('/api/profile-picture', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
         }
+        
+        const userId = getUserIdFromToken(token);
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const user = await findOne('users', 'id', userId);
         
         res.json({ 
             profilePicture: user?.profile_picture || null,
             hasPicture: !!(user?.profile_picture)
         });
-    });
+    } catch (error) {
+        console.error('Get profile picture error:', error);
+        res.status(500).json({ error: 'Failed to get profile picture' });
+    }
 });
 
 // Delete profile picture
-app.delete('/api/profile-picture', (req, res) => {
-    const token = req.headers.authorization;
-    if (!token) {
-        return res.status(401).json({ error: 'Not logged in' });
-    }
-    
-    const userId = token.split('_')[0];
-    
-    db.get(`SELECT profile_picture FROM users WHERE id = ?`, [userId], (err, user) => {
-        if (err) {
-            return res.status(500).json({ error: 'Database error' });
+app.delete('/api/profile-picture', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
         }
+        
+        const userId = getUserIdFromToken(token);
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const user = await findOne('users', 'id', userId);
         
         if (user?.profile_picture) {
             const filePath = path.join(__dirname, user.profile_picture);
             if (fs.existsSync(filePath)) {
                 fs.unlinkSync(filePath);
-                console.log('Deleted file:', filePath);
             }
         }
         
-        db.run(`UPDATE users SET profile_picture = NULL WHERE id = ?`, [userId], function(updateErr) {
-            if (updateErr) {
-                return res.status(500).json({ error: 'Database error' });
-            }
-            res.json({ success: true, message: 'Profile picture removed' });
-        });
-    });
+        await updateOne('users', userId, 'id', { profile_picture: null });
+        
+        res.json({ success: true, message: 'Profile picture removed' });
+    } catch (error) {
+        console.error('Delete error:', error);
+        res.status(500).json({ error: 'Failed to delete profile picture' });
+    }
 });
-
-// Serve static files - FIXED
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ============================================
-// PROFILE API ENDPOINTS
+// ORDER ROUTES
 // ============================================
 
-// Get user profile
-app.get('/api/profile', (req, res) => {
-    const token = req.headers.authorization;
-    
-    if (!token) {
-        return res.status(401).json({ error: 'Not logged in' });
-    }
-    
-    const userId = token.split('_')[0];
-    
-    db.get(`SELECT id, email, name, profile_picture, created_at FROM users WHERE id = ?`, [userId], (err, user) => {
-        if (err || !user) {
-            return res.status(401).json({ error: 'User not found' });
-        }
-        res.json({ success: true, user: user });
-    });
-});
-
-// Update user profile
-app.put('/api/profile', (req, res) => {
-    const token = req.headers.authorization;
-    
-    if (!token) {
-        return res.status(401).json({ error: 'Not logged in' });
-    }
-    
-    const userId = token.split('_')[0];
-    const { name, email } = req.body;
-    
-    let updates = [];
-    let values = [];
-    
-    if (name) {
-        updates.push('name = ?');
-        values.push(name);
-    }
-    if (email) {
-        updates.push('email = ?');
-        values.push(email);
-    }
-    
-    if (updates.length === 0) {
-        return res.status(400).json({ error: 'Nothing to update' });
-    }
-    
-    values.push(userId);
-    
-    db.run(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, values, function(err) {
-        if (err) {
-            console.error('Update error:', err);
-            return res.status(500).json({ error: 'Database error' });
+app.get('/api/my-orders', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        
+        if (!token) {
+            return res.status(401).json({ error: 'Not logged in' });
         }
         
-        db.get(`SELECT id, email, name, profile_picture FROM users WHERE id = ?`, [userId], (err, user) => {
-            res.json({ success: true, user: user });
-        });
-    });
-});
-
-// Change password
-app.put('/api/change-password', async (req, res) => {
-    const token = req.headers.authorization;
-    
-    if (!token) {
-        return res.status(401).json({ error: 'Not logged in' });
-    }
-    
-    const userId = token.split('_')[0];
-    const { currentPassword, newPassword } = req.body;
-    
-    if (!currentPassword || !newPassword) {
-        return res.status(400).json({ error: 'Current password and new password required' });
-    }
-    
-    if (newPassword.length < 6) {
-        return res.status(400).json({ error: 'New password must be at least 6 characters' });
-    }
-    
-    db.get(`SELECT password FROM users WHERE id = ?`, [userId], async (err, user) => {
-        if (err || !user) {
-            return res.status(401).json({ error: 'User not found' });
+        const userId = getUserIdFromToken(token);
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'Invalid token' });
         }
         
-        const validPassword = await bcrypt.compare(currentPassword, user.password);
-        if (!validPassword) {
-            return res.status(401).json({ error: 'Current password is incorrect' });
-        }
+        const orders = await executeQuery(
+            'SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC',
+            [userId]
+        );
         
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-        
-        db.run(`UPDATE users SET password = ? WHERE id = ?`, [hashedPassword, userId], function(updateErr) {
-            if (updateErr) {
-                return res.status(500).json({ error: 'Database error' });
-            }
-            res.json({ success: true, message: 'Password changed successfully' });
-        });
-    });
-});
-
-// Get user orders
-app.get('/api/my-orders', (req, res) => {
-    const token = req.headers.authorization;
-    
-    if (!token) {
-        return res.status(401).json({ error: 'Not logged in' });
-    }
-    
-    const userId = token.split('_')[0];
-    
-    db.all(`SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC`, [userId], (err, orders) => {
-        if (err) {
-            console.error('Orders error:', err);
-            return res.status(500).json({ error: 'Database error' });
-        }
-        
-        // Parse items JSON for each order
-        for (let i = 0; i < orders.length; i++) {
-            if (orders[i].items && typeof orders[i].items === 'string') {
+        for (let order of orders) {
+            if (order.items && typeof order.items === 'string') {
                 try {
-                    orders[i].items = JSON.parse(orders[i].items);
+                    order.items = JSON.parse(order.items);
                 } catch(e) {
-                    orders[i].items = [];
+                    order.items = [];
                 }
             }
         }
         
         res.json({ success: true, orders: orders || [] });
-    });
+    } catch (error) {
+        console.error('My orders error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
-// ========== START SERVER ==========
-app.listen(PORT, () => {
-    console.log(`========================================`);
-    console.log(`SIGMA STORE BACKEND RUNNING`);
-    console.log(`========================================`);
-    console.log(`Port: ${PORT}`);
-    console.log(`Test: https://sigma-store-api.onrender.com/api/test`);
-    console.log(`========================================`);
+
+app.post('/api/orders', async (req, res) => {
+    try {
+        const token = req.headers.authorization;
+        
+        if (!token) {
+            return res.status(401).json({ error: 'Please login to place order' });
+        }
+        
+        const userId = getUserIdFromToken(token);
+        
+        if (!userId) {
+            return res.status(401).json({ error: 'Invalid token' });
+        }
+        
+        const { items, subtotal, shipping, total, notes, paymentMethod, paymentId } = req.body;
+        
+        if (!items || items.length === 0) {
+            return res.status(400).json({ error: 'Cart is empty' });
+        }
+        
+        const user = await findOne('users', 'id', userId);
+        const orderId = 'ORD' + Date.now();
+        
+        await insertOne('orders', {
+            order_id: orderId,
+            user_id: userId,
+            user_email: user.email,
+            items: JSON.stringify(items),
+            subtotal: subtotal || 0,
+            shipping: shipping || 0,
+            total: total || 0,
+            notes: notes || '',
+            status: 'pending',
+            payment_method: paymentMethod || 'whatsapp',
+            payment_id: paymentId || null,
+            payment_status: paymentId ? 'paid' : 'pending',
+            created_at: new Date().toISOString()
+        });
+        
+        res.json({ success: true, order: { orderId: orderId, total: total } });
+    } catch (error) {
+        console.error('Error creating order:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/orders/:orderId', async (req, res) => {
+    try {
+        const order = await findOne('orders', 'order_id', req.params.orderId);
+        if (!order) return res.status(404).json({ error: 'Order not found' });
+        if (order.items && typeof order.items === 'string') {
+            try {
+                order.items = JSON.parse(order.items);
+            } catch(e) {
+                order.items = [];
+            }
+        }
+        res.json({ order: order });
+    } catch (error) {
+        console.error('Error fetching order:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ============================================
+// PRODUCT ROUTES
+// ============================================
+
+app.get('/api/products', async (req, res) => {
+    try {
+        const products = await findAll('products');
+        res.json(products);
+    } catch (error) {
+        console.error('Error fetching products:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+const productStorage = multer.diskStorage({
+    destination: function(req, file, cb) { 
+        const productDir = path.join(__dirname, 'uploads');
+        if (!fs.existsSync(productDir)) {
+            fs.mkdirSync(productDir, { recursive: true });
+        }
+        cb(null, productDir); 
+    },
+    filename: function(req, file, cb) { 
+        cb(null, Date.now() + '-' + file.originalname); 
+    }
+});
+
+const productUpload = multer({ 
+    storage: productStorage, 
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: function(req, file, cb) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif', 'image/webp'];
+        if (allowedTypes.includes(file.mimetype)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Only images allowed'));
+        }
+    }
+});
+
+app.post('/api/products', productUpload.single('image'), async (req, res) => {
+    try {
+        const { name, price, category, stock, imageUrl } = req.body;
+        
+        if (!name || !price) {
+            return res.status(400).json({ error: 'Name and price required' });
+        }
+        
+        const productId = 'p' + Date.now();
+        let image = req.file ? req.file.filename : (imageUrl || null);
+        
+        await insertOne('products', {
+            id: productId,
+            name: name,
+            price: parseFloat(price),
+            category: category || 'digital',
+            image: image,
+            stock: stock || 999,
+            created_at: new Date().toISOString()
+        });
+        
+        res.json({ success: true, product: { id: productId, name: name, price: price } });
+    } catch (error) {
+        console.error('Error adding product:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+    try {
+        await deleteOne('products', 'id', req.params.id);
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ============================================
+// ADMIN ROUTES
+// ============================================
+
+app.post('/api/admin/login', (req, res) => {
+    const { password } = req.body;
+    if (password === ADMIN_PASSWORD) {
+        res.json({ success: true });
+    } else {
+        res.status(401).json({ error: 'Wrong password' });
+    }
+});
+
+app.get('/api/admin/orders', async (req, res) => {
+    try {
+        const orders = await findAll('orders');
+        for (let order of orders) {
+            if (order.items && typeof order.items === 'string') {
+                try {
+                    order.items = JSON.parse(order.items);
+                } catch(e) {
+                    order.items = [];
+                }
+            }
+        }
+        res.json({ orders: orders });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// ============================================
+// CHAT ROUTES
+// ============================================
+
+app.post('/api/chat/save', async (req, res) => {
+    try {
+        const { userId, userName, message, isAdmin } = req.body;
+        await executeQuery(
+            'INSERT INTO chat_messages (user_id, user_name, message, is_admin) VALUES (?, ?, ?, ?)',
+            [userId, userName, message, isAdmin ? 1 : 0]
+        );
+        res.json({ success: true });
+    } catch (error) {
+        console.error('Save chat error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/chat/history/:userId', async (req, res) => {
+    try {
+        const messages = await executeQuery(
+            'SELECT * FROM chat_messages WHERE user_id = ? ORDER BY created_at ASC LIMIT 50',
+            [req.params.userId]
+        );
+        res.json({ messages: messages || [] });
+    } catch (error) {
+        console.error('History error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/admin/chats', async (req, res) => {
+    try {
+        const chats = await executeQuery(
+            `SELECT user_id, user_name, COUNT(*) as count, MAX(created_at) as last_message 
+             FROM chat_messages 
+             GROUP BY user_id 
+             ORDER BY last_message DESC`
+        );
+        res.json({ chats: chats || [] });
+    } catch (error) {
+        console.error('Admin chats error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// ============================================
+// NOTIFICATION FOR PRODUCT UPDATE
+// ============================================
+
+let lastProductUpdate = Date.now();
+
+app.post('/api/notify-shop-refresh', (req, res) => {
+    lastProductUpdate = Date.now();
+    res.json({ success: true });
+});
+
+app.get('/api/last-product-update', (req, res) => {
+    res.json({ lastUpdate: lastProductUpdate });
+});
+
+// ============================================
+// CREATE HTTP SERVER FOR SOCKET.IO
+// ============================================
+
+const server = http.createServer(app);
+let io = null;
+
+if (socketIo) {
+    io = socketIo(server, {
+        cors: {
+            origin: '*',
+            methods: ['GET', 'POST']
+        }
+    });
+    
+    const connectedUsers = {};
+    
+    io.on('connection', (socket) => {
+        console.log('Client connected:', socket.id);
+        
+        socket.on('user-join', (userId) => {
+            connectedUsers[userId] = socket.id;
+            console.log('User joined:', userId);
+        });
+        
+        socket.on('admin-join', () => {
+            socket.isAdmin = true;
+            console.log('Admin connected');
+        });
+        
+        socket.on('customer-message', (data) => {
+            console.log('Customer message from:', data.userId);
+            io.emit('new-message', {
+                userId: data.userId,
+                userName: data.userName,
+                message: data.message,
+                timestamp: new Date().toISOString(),
+                isAdmin: false
+            });
+        });
+        
+        socket.on('admin-message', (data) => {
+            console.log('Admin message to:', data.userId);
+            const customerSocketId = connectedUsers[data.userId];
+            if (customerSocketId) {
+                io.to(customerSocketId).emit('new-message', {
+                    message: data.message,
+                    timestamp: new Date().toISOString(),
+                    isAdmin: true
+                });
+            }
+        });
+        
+        socket.on('disconnect', () => {
+            console.log('Client disconnected:', socket.id);
+            for (let userId in connectedUsers) {
+                if (connectedUsers[userId] === socket.id) {
+                    delete connectedUsers[userId];
+                    break;
+                }
+            }
+        });
+    });
+    
+    console.log('Socket.io enabled');
+} else {
+    console.log('Socket.io not available - chat feature disabled');
+}
+
+// ============================================
+// EXPLICIT ROUTES FOR STATIC FILES
+// ============================================
+
+app.get('/admin/chat.html', (req, res) => {
+    const filePath = path.join(__dirname, 'admin', 'chat.html');
+    if (fs.existsSync(filePath)) {
+        res.sendFile(filePath);
+    } else {
+        res.status(404).send('Chat page not found');
+    }
+});
+
+// ============================================
+// START SERVER
+// ============================================
+
+server.listen(PORT, () => {
+    console.log('========================================');
+    console.log('SIGMA STORE IS RUNNING!');
+    console.log('========================================');
+    console.log('Server: http://localhost:' + PORT);
+    console.log('Test: http://localhost:' + PORT + '/api/test');
+    console.log('Admin: http://localhost:' + PORT + '/admin.html');
+    console.log('Chat: http://localhost:' + PORT + '/admin/chat.html');
+    console.log('Database: ' + (DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite'));
+    console.log('Socket.io: ' + (socketIo ? 'Enabled' : 'Disabled'));
+    console.log('Sessions: Database based');
+    console.log('Profile Picture Upload: Enabled');
+    console.log('========================================');
 });
