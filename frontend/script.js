@@ -34,7 +34,7 @@ async function loadProducts() {
         renderRecentlyViewed();
     } catch (error) {
         console.error('Error loading products:', error);
-        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">? Cannot load products. Please try again later.</p>';
+        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">❌ Cannot load products. Please try again later.</p>';
     }
 }
 
@@ -98,6 +98,9 @@ function renderProductsWithPagination() {
     renderPagination();
 }
 
+// ============================================
+// UPDATED RENDER PRODUCT GRID WITH BADGES & SALE PRICE
+// ============================================
 function renderProductGrid(productsToRender) {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
@@ -111,42 +114,67 @@ function renderProductGrid(productsToRender) {
         const heartColor = isInWishlist(p.id) ? '#e05a2a' : '#ccc';
         const imageSrc = getProductImage(p);
         const rating = productRatings[p.id] || 0;
-        const stars = '?'.repeat(Math.round(rating)) + '?'.repeat(5 - Math.round(rating));
+        const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
         const stock = p.stock || 999;
         const isLowStock = stock > 0 && stock <= 10;
         const isOutOfStock = stock === 0;
         
         let stockHtml = '';
         if (isOutOfStock) {
-            stockHtml = '<div style="background:#e05a2a; color:white; padding:2px 8px; border-radius:20px; font-size:10px; display:inline-block; margin-bottom:5px;">? Out of Stock</div>';
+            stockHtml = '<div style="background:#e05a2a; color:white; padding:2px 8px; border-radius:20px; font-size:10px; display:inline-block; margin-bottom:5px;">❌ Out of Stock</div>';
         } else if (isLowStock) {
-            stockHtml = `<div style="background:#ff9800; color:white; padding:2px 8px; border-radius:20px; font-size:10px; display:inline-block; margin-bottom:5px;">?? Only ${stock} left!</div>`;
+            stockHtml = `<div style="background:#ff9800; color:white; padding:2px 8px; border-radius:20px; font-size:10px; display:inline-block; margin-bottom:5px;">🔥 Only ${stock} left!</div>`;
         }
         
         const addButtonHtml = isOutOfStock 
             ? '<button class="add-btn" disabled style="opacity:0.5; cursor:not-allowed;">Out of Stock</button>'
-            : `<button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${escapeHtml(p.name)}',${p.price})">Add to Cart</button>`;
+            : `<button class="add-btn" onclick="event.stopPropagation(); addToCart('${p.id}','${escapeHtml(p.name)}',${p.is_sale === 1 && p.sale_price ? p.sale_price : p.price})">Add to Cart</button>`;
+        
+        // Generate badges HTML
+        let badgesHtml = '';
+        if (p.is_new === 1) {
+            badgesHtml += '<span style="background:#4caf50; color:white; padding:2px 8px; border-radius:20px; font-size:10px; margin-right:5px;">🆕 NEW</span>';
+        }
+        if (p.is_sale === 1 && p.sale_price) {
+            badgesHtml += '<span style="background:#e05a2a; color:white; padding:2px 8px; border-radius:20px; font-size:10px; margin-right:5px;">🔥 SALE</span>';
+        }
+        if (p.is_bestseller === 1) {
+            badgesHtml += '<span style="background:#ffc107; color:#333; padding:2px 8px; border-radius:20px; font-size:10px; margin-right:5px;">⭐ BESTSELLER</span>';
+        }
+        if (p.label_text) {
+            badgesHtml += `<span style="background:#ff9800; color:white; padding:2px 8px; border-radius:20px; font-size:10px;">${escapeHtml(p.label_text)}</span>`;
+        }
+        
+        // Display sale price if available
+        let priceHtml = '';
+        const finalPrice = (p.is_sale === 1 && p.sale_price) ? p.sale_price : p.price;
+        if (p.is_sale === 1 && p.sale_price) {
+            priceHtml = `<div class="product-price"><span style="text-decoration:line-through; font-size:14px; color:#888;">$${p.price}</span> <span style="color:#e05a2a; font-size:1.5rem; font-weight:800;">$${p.sale_price}</span></div>`;
+        } else {
+            priceHtml = `<div class="product-price">$${p.price}</div>`;
+        }
         
         return `
             <div class="product-card">
                 <div style="position:relative;">
                     <img src="${imageSrc}" class="product-image" onclick="showQuickView('${p.id}')" style="cursor:pointer;" onerror="this.src='https://placehold.co/400x300/ff6b6b/white?text=Image+Error'" loading="lazy">
                     <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" style="position:absolute;top:10px;right:10px;background:white;border:none;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
-                        <span style="color:${heartColor};">?</span>
+                        <span style="color:${heartColor};">♥</span>
                     </button>
                     <button onclick="event.stopPropagation(); showQuickView('${p.id}')" style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.7);color:white;border:none;border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;">Quick View</button>
-                    <button onclick="event.stopPropagation(); window.location.href='product.html?id=${p.id}'" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.7);color:white;border:none;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:16px;">??</button>
+                    <button onclick="event.stopPropagation(); window.location.href='product.html?id=${p.id}'" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.7);color:white;border:none;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:16px;">📱</button>
                 </div>
-                <div class="product-info"><div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">' + badgesHtml + '</div>
+                <div class="product-info">
+                    <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px;">${badgesHtml}</div>
                     <div class="product-title">${escapeHtml(p.name)}</div>
                     <div class="product-rating" style="display:flex; align-items:center; gap:0.25rem; margin:0.25rem 0;">
                         <span class="stars" style="font-size:12px; color:#ffc107;">${stars}</span>
                         <span class="rating-count" style="font-size:10px; color:#888;">(${rating.toFixed(1)})</span>
                     </div>
-                    <div class="product-price">$${p.price}</div>
+                    ${priceHtml}
                     ${stockHtml}
                     ${addButtonHtml}
-                    <button class="buy-now-btn" onclick="event.stopPropagation(); buyNow('${p.id}', '${escapeHtml(p.name)}', ${p.price})" style="background: #e05a2a; color: white; border: none; padding: 8px 16px; border-radius: 50px; cursor: pointer; margin-top: 8px; width: 100%; font-weight:600;">Buy Now</button>
+                    <button class="buy-now-btn" onclick="event.stopPropagation(); buyNow('${p.id}', '${escapeHtml(p.name)}', ${finalPrice})" style="background: #e05a2a; color: white; border: none; padding: 8px 16px; border-radius: 50px; cursor: pointer; margin-top: 8px; width: 100%; font-weight:600;">Buy Now</button>
                 </div>
             </div>
         `;
@@ -164,7 +192,7 @@ function renderPagination() {
     
     let html = '';
     if (currentPage > 1) {
-        html += `<button onclick="goToPage(${currentPage - 1})" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer;">? Prev</button>`;
+        html += `<button onclick="goToPage(${currentPage - 1})" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer;">◀ Prev</button>`;
     }
     
     for (let i = 1; i <= totalPages; i++) {
@@ -178,7 +206,7 @@ function renderPagination() {
     }
     
     if (currentPage < totalPages) {
-        html += `<button onclick="goToPage(${currentPage + 1})" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer;">Next ?</button>`;
+        html += `<button onclick="goToPage(${currentPage + 1})" style="padding:8px 12px;border-radius:8px;border:1px solid #ddd;background:white;cursor:pointer;">Next ▶</button>`;
     }
     
     paginationDiv.innerHTML = html;
@@ -233,7 +261,7 @@ function addToCart(id, name, price) {
     const stock = product?.stock || 999;
     
     if (stock <= 0) {
-        showToast('? Out of stock!', 'error');
+        showToast('❌ Out of stock!', 'error');
         return;
     }
     
@@ -245,7 +273,7 @@ function addToCart(id, name, price) {
         cart.push({ id, name, price, quantity: 1 });
     }
     saveCart(cart);
-    showToast(`? ${name} added to cart`);
+    showToast(`✅ ${name} added to cart`);
     pulseCart();
 }
 
@@ -254,7 +282,7 @@ function buyNow(id, name, price) {
     const stock = product?.stock || 999;
     
     if (stock <= 0) {
-        showToast('? Out of stock!', 'error');
+        showToast('❌ Out of stock!', 'error');
         return;
     }
     
@@ -435,24 +463,44 @@ async function showQuickView(productId) {
         const modal = document.getElementById('quickViewModal');
         const content = document.getElementById('quickViewContent');
         const rating = productRatings[productId] || 0;
-        const stars = '?'.repeat(Math.round(rating)) + '?'.repeat(5 - Math.round(rating));
+        const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
         const imageSrc = getProductImage(product);
         const stock = product.stock || 999;
         const isOutOfStock = stock === 0;
+        const finalPrice = (product.is_sale === 1 && product.sale_price) ? product.sale_price : product.price;
+        
+        let badgesHtml = '';
+        if (product.is_new === 1) {
+            badgesHtml += '<span style="background:#4caf50; color:white; padding:2px 8px; border-radius:20px; font-size:10px; margin-right:5px;">🆕 NEW</span>';
+        }
+        if (product.is_sale === 1 && product.sale_price) {
+            badgesHtml += '<span style="background:#e05a2a; color:white; padding:2px 8px; border-radius:20px; font-size:10px; margin-right:5px;">🔥 SALE</span>';
+        }
+        if (product.is_bestseller === 1) {
+            badgesHtml += '<span style="background:#ffc107; color:#333; padding:2px 8px; border-radius:20px; font-size:10px; margin-right:5px;">⭐ BESTSELLER</span>';
+        }
+        
+        let priceHtml = '';
+        if (product.is_sale === 1 && product.sale_price) {
+            priceHtml = `<div style="font-size:2rem; color:#e05a2a; font-weight:800;"><span style="text-decoration:line-through; font-size:1.2rem; color:#888;">$${product.price}</span> $${product.sale_price}</div>`;
+        } else {
+            priceHtml = `<div style="font-size:2rem; color:#e05a2a; font-weight:800;">$${product.price}</div>`;
+        }
         
         content.innerHTML = `
             <div style="display:flex; flex-direction:column; gap:20px;">
                 <img src="${imageSrc}" style="width:100%; max-height:300px; object-fit:cover; border-radius:16px;" onerror="this.src='https://placehold.co/400x300/ff6b6b/white?text=Error'">
+                <div style="display:flex; flex-wrap:wrap; gap:5px;">${badgesHtml}</div>
                 <h2 style="font-size:1.8rem;">${escapeHtml(product.name)}</h2>
                 <div style="display:flex; align-items:center; gap:0.5rem;">
                     <span style="color:#ffc107;">${stars}</span>
                     <span style="color:#888;">(${rating.toFixed(1)})</span>
                 </div>
-                <div style="font-size:2rem; color:#e05a2a; font-weight:800;">$${product.price}</div>
-                <div>${stock > 0 ? `<span style="color:green;">? In Stock (${stock} available)</span>` : '<span style="color:red;">? Out of Stock</span>'}</div>
+                ${priceHtml}
+                <div>${stock > 0 ? `<span style="color:green;">✅ In Stock (${stock} available)</span>` : '<span style="color:red;">❌ Out of Stock</span>'}</div>
                 <p style="color:#666; line-height:1.6;">${product.description || 'No description available.'}</p>
                 <div style="display:flex; gap:1rem; flex-wrap:wrap;">
-                    ${!isOutOfStock ? `<button onclick="addToCart('${product.id}', '${escapeHtml(product.name)}', ${product.price}); closeQuickView();" style="flex:1; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; padding:12px; border-radius:50px; cursor:pointer; font-weight:600;">Add to Cart</button>` : ''}
+                    ${!isOutOfStock ? `<button onclick="addToCart('${product.id}', '${escapeHtml(product.name)}', ${finalPrice}); closeQuickView();" style="flex:1; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; padding:12px; border-radius:50px; cursor:pointer; font-weight:600;">Add to Cart</button>` : ''}
                     <button onclick="closeQuickView()" style="background:#f0f0f0; border:none; padding:12px 25px; border-radius:50px; cursor:pointer;">Continue Shopping</button>
                 </div>
             </div>
@@ -573,12 +621,12 @@ function setupEventListeners() {
     if (darkToggle) {
         darkToggle.addEventListener('click', () => {
             document.body.classList.toggle('dark');
-            darkToggle.innerText = document.body.classList.contains('dark') ? '??' : '??';
+            darkToggle.innerText = document.body.classList.contains('dark') ? '☀️' : '🌙';
             localStorage.setItem('sigma_dark', document.body.classList.contains('dark'));
         });
         if (localStorage.getItem('sigma_dark') === 'true') {
             document.body.classList.add('dark');
-            darkToggle.innerText = '??';
+            darkToggle.innerText = '☀️';
         }
     }
 }
