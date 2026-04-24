@@ -784,4 +784,13 @@ body.dark .autocomplete-item {
 
 body.dark .autocomplete-item:hover {
     background: #334155;
-}
+} 
+/* Dark Mode Styles */ 
+body.dark { background: #0f172a; color: #e2e8f0; } 
+body.dark .header { background: rgba(15,23,42,0.95); } 
+body.dark .product-card, body.dark .about-block { background: #1e293b; } 
+body.dark .filter-btn, body.dark .search-input { background: #1e293b; color: #e2e8f0; border-color: #334155; } 
+body.dark .price-input input { background: #334155; border-color: #475569; color: white; } 
+body.dark .rating-option { background: #334155; color: #e2e8f0; } 
+body.dark .footer { background: #0f172a; } 
+body.dark .testimonial { background: #1e293b; } 
