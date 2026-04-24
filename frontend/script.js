@@ -34,7 +34,7 @@ async function loadProducts() {
         renderRecentlyViewed();
     } catch (error) {
         console.error('Error loading products:', error);
-        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">Cannot load products. Please try again later.</p>';
+        if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">❌ Cannot load products. Please try again later.</p>';
     }
 }
 
@@ -114,12 +114,13 @@ function renderProductGrid(productsToRender) {
         const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
         
         return `
-            <div class="product-card" onclick="addToRecentlyViewed('${p.id}')">
+            <div class="product-card">
                 <div style="position:relative;">
-                    <img src="${imageSrc}" class="product-image" onerror="this.src='https://placehold.co/400x300/ff6b6b/white?text=Image+Error'" loading="lazy">
+                    <img src="${imageSrc}" class="product-image" onclick="showQuickView('${p.id}')" style="cursor:pointer;" onerror="this.src='https://placehold.co/400x300/ff6b6b/white?text=Image+Error'" loading="lazy">
                     <button onclick="event.stopPropagation(); toggleWishlist('${p.id}')" style="position:absolute;top:10px;right:10px;background:white;border:none;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,0.1);">
                         <span style="color:${heartColor};">♥</span>
                     </button>
+                    <button onclick="event.stopPropagation(); showQuickView('${p.id}')" style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.7);color:white;border:none;border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;">Quick View</button>
                 </div>
                 <div class="product-info">
                     <div class="product-title">${escapeHtml(p.name)}</div>
@@ -216,7 +217,7 @@ function addToCart(id, name, price) {
         cart.push({ id, name, price, quantity: 1 });
     }
     saveCart(cart);
-    showToast(`${name} added to cart`);
+    showToast(`✓ ${name} added to cart`);
     pulseCart();
 }
 
@@ -368,6 +369,62 @@ document.addEventListener('click', function(e) {
 });
 
 // ============================================
+// QUICK VIEW MODAL
+// ============================================
+
+async function showQuickView(productId) {
+    try {
+        const response = await fetch(`${API_URL}/api/products/${productId}`);
+        const product = await response.json();
+        
+        const modal = document.getElementById('quickViewModal');
+        const content = document.getElementById('quickViewContent');
+        const rating = productRatings[productId] || 0;
+        const stars = '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+        const imageSrc = getProductImage(product);
+        
+        content.innerHTML = `
+            <div style="display:flex; flex-direction:column; gap:20px;">
+                <img src="${imageSrc}" style="width:100%; max-height:300px; object-fit:cover; border-radius:16px;" onerror="this.src='https://placehold.co/400x300/ff6b6b/white?text=Error'">
+                <h2 style="font-size:1.8rem;">${escapeHtml(product.name)}</h2>
+                <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span style="color:#ffc107;">${stars}</span>
+                    <span style="color:#888;">(${rating.toFixed(1)})</span>
+                </div>
+                <div style="font-size:2rem; color:#e05a2a; font-weight:800;">$${product.price}</div>
+                <p style="color:#666; line-height:1.6;">${product.description || 'No description available. This is a high-quality product.'}</p>
+                <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+                    <button onclick="addToCart('${product.id}', '${escapeHtml(product.name)}', ${product.price}); closeQuickView();" style="flex:1; background:linear-gradient(135deg,#e05a2a,#ff8c42); color:white; border:none; padding:12px; border-radius:50px; cursor:pointer; font-weight:600;">Add to Cart</button>
+                    <button onclick="closeQuickView()" style="background:#f0f0f0; border:none; padding:12px 25px; border-radius:50px; cursor:pointer;">Continue Shopping</button>
+                </div>
+            </div>
+        `;
+        modal.style.display = 'flex';
+    } catch (error) {
+        console.error('Quick view error:', error);
+        alert('Failed to load product details');
+    }
+}
+
+function closeQuickView() {
+    const modal = document.getElementById('quickViewModal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Close modal on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeQuickView();
+});
+
+// Close modal when clicking outside
+const quickViewModal = document.getElementById('quickViewModal');
+if (quickViewModal) {
+    quickViewModal.addEventListener('click', function(e) {
+        if (e.target === this) closeQuickView();
+    });
+}
+
+// ============================================
 // SETUP EVENT LISTENERS
 // ============================================
 
@@ -486,21 +543,17 @@ let lastUpdateCheck = Date.now();
 let autoRefreshInterval = null;
 
 async function refreshProductsFromServer() {
-    console.log('Auto-refreshing products...');
     try {
         const response = await fetch(`${API_URL}/api/products`);
         if (!response.ok) throw new Error('Failed to fetch');
         const newProducts = await response.json();
         if (products.length !== newProducts.length || JSON.stringify(products) !== JSON.stringify(newProducts)) {
-            console.log('Products updated! Reloading...');
             products = newProducts;
             await loadProductRatings();
             applyFiltersAndSort();
             showToast('Products updated!', 'info');
         }
-    } catch (error) {
-        console.error('Auto-refresh error:', error);
-    }
+    } catch(e) {}
 }
 
 async function checkForAdminUpdates() {
@@ -520,20 +573,9 @@ function startAutoRefresh() {
         refreshProductsFromServer();
     }, 10000);
 }
-
-function stopAutoRefresh() {
-    if (autoRefreshInterval) {
-        clearInterval(autoRefreshInterval);
-        autoRefreshInterval = null;
-    }
-}
-
 document.addEventListener('visibilitychange', function() {
-    if (!document.hidden) {
-        refreshProductsFromServer();
-    }
+    if (!document.hidden) refreshProductsFromServer();
 });
-
 startAutoRefresh();
 
 // ============================================
@@ -553,4 +595,6 @@ window.toggleWishlist = toggleWishlist;
 window.goToPage = goToPage;
 window.addToRecentlyViewed = addToRecentlyViewed;
 window.selectProduct = selectProduct;
+window.showQuickView = showQuickView;
+window.closeQuickView = closeQuickView;
 window.refreshProducts = refreshProductsFromServer;
