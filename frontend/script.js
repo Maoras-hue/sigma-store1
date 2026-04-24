@@ -135,6 +135,7 @@ function renderProductGrid(productsToRender) {
                         <span style="color:${heartColor};">♥</span>
                     </button>
                     <button onclick="event.stopPropagation(); showQuickView('${p.id}')" style="position:absolute;bottom:10px;left:10px;background:rgba(0,0,0,0.7);color:white;border:none;border-radius:20px;padding:5px 12px;font-size:12px;cursor:pointer;">Quick View</button>
+                    <button onclick="event.stopPropagation(); window.location.href='product.html?id=${p.id}'" style="position:absolute;bottom:10px;right:10px;background:rgba(0,0,0,0.7);color:white;border:none;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:16px;">📱</button>
                 </div>
                 <div class="product-info">
                     <div class="product-title">${escapeHtml(p.name)}</div>

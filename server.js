@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const bcrypt = require('bcryptjs');
 const http = require('http');
 const socketIo = require('socket.io');
+const QRCode = require('qrcode');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -976,6 +977,50 @@ app.get('/api/wishlist/shared/:shareId', async (req, res) => {
             createdAt: shared.created_at
         });
     } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+// ============================================
+// QR CODE GENERATOR
+// ============================================
+
+app.get('/api/product/qr/:productId', async (req, res) => {
+    try {
+        const product = await executeGet('SELECT * FROM products WHERE id = ?', [req.params.productId]);
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        
+        const productUrl = `https://sigma-store1.vercel.app/product.html?id=${product.id}`;
+        const qrCodeDataUrl = await QRCode.toDataURL(productUrl);
+        
+        res.json({
+            success: true,
+            qrCode: qrCodeDataUrl,
+            productUrl: productUrl,
+            productName: product.name
+        });
+    } catch (error) {
+        console.error('QR Code error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+app.get('/api/product/qr/download/:productId', async (req, res) => {
+    try {
+        const product = await executeGet('SELECT * FROM products WHERE id = ?', [req.params.productId]);
+        if (!product) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        
+        const productUrl = `https://sigma-store1.vercel.app/product.html?id=${product.id}`;
+        const qrBuffer = await QRCode.toBuffer(productUrl);
+        
+        res.setHeader('Content-Type', 'image/png');
+        res.setHeader('Content-Disposition', `attachment; filename=qr-${product.id}.png`);
+        res.send(qrBuffer);
+    } catch (error) {
+        console.error('QR Code download error:', error);
         res.status(500).json({ error: error.message });
     }
 });
