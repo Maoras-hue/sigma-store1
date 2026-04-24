@@ -361,7 +361,6 @@ function selectProduct(id, name) {
     applyFiltersAndSort();
 }
 
-// Hide autocomplete when clicking outside
 document.addEventListener('click', function(e) {
     if (autocompleteList && !autocompleteList.contains(e.target) && e.target.id !== 'searchInput') {
         autocompleteList.style.display = 'none';
@@ -378,14 +377,12 @@ function setupEventListeners() {
         searchInput.addEventListener('input', (e) => {
             const value = e.target.value;
             searchTerm = value;
-            
             if (searchTimeout) clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 showAutocomplete(value);
                 applyFiltersAndSort();
             }, 300);
         });
-        
         searchInput.addEventListener('focus', () => {
             if (searchInput.value.length >= 2) {
                 showAutocomplete(searchInput.value);
@@ -482,6 +479,64 @@ function setupEventListeners() {
 }
 
 // ============================================
+// AUTO-REFRESH PRODUCTS
+// ============================================
+
+let lastUpdateCheck = Date.now();
+let autoRefreshInterval = null;
+
+async function refreshProductsFromServer() {
+    console.log('Auto-refreshing products...');
+    try {
+        const response = await fetch(`${API_URL}/api/products`);
+        if (!response.ok) throw new Error('Failed to fetch');
+        const newProducts = await response.json();
+        if (products.length !== newProducts.length || JSON.stringify(products) !== JSON.stringify(newProducts)) {
+            console.log('Products updated! Reloading...');
+            products = newProducts;
+            await loadProductRatings();
+            applyFiltersAndSort();
+            showToast('Products updated!', 'info');
+        }
+    } catch (error) {
+        console.error('Auto-refresh error:', error);
+    }
+}
+
+async function checkForAdminUpdates() {
+    try {
+        const response = await fetch(`${API_URL}/api/last-product-update`);
+        const data = await response.json();
+        if (data.lastUpdate > lastUpdateCheck) {
+            lastUpdateCheck = data.lastUpdate;
+            await refreshProductsFromServer();
+        }
+    } catch(e) {}
+}
+
+function startAutoRefresh() {
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    autoRefreshInterval = setInterval(() => {
+        refreshProductsFromServer();
+    }, 10000);
+}
+
+function stopAutoRefresh() {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+        autoRefreshInterval = null;
+    }
+}
+
+document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+        refreshProductsFromServer();
+    }
+});
+
+startAutoRefresh();
+
+// ============================================
 // INITIALIZE ON PAGE LOAD
 // ============================================
 
@@ -498,3 +553,4 @@ window.toggleWishlist = toggleWishlist;
 window.goToPage = goToPage;
 window.addToRecentlyViewed = addToRecentlyViewed;
 window.selectProduct = selectProduct;
+window.refreshProducts = refreshProductsFromServer;

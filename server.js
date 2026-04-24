@@ -21,7 +21,7 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files - IMPORTANT: Order matters
+// Serve static files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use(express.static(path.join(__dirname, 'admin')));
 app.use('/admin', express.static(path.join(__dirname, 'admin')));
@@ -44,7 +44,6 @@ console.log('Directories ready');
 const dbPath = path.join(__dirname, 'sigma_store.db');
 const db = new sqlite3.Database(dbPath);
 
-// Promisify database functions
 function executeQuery(sql, params = []) {
     return new Promise((resolve, reject) => {
         db.run(sql, params, function(err) {
@@ -72,7 +71,7 @@ function executeAll(sql, params = []) {
     });
 }
 
-// Create all tables
+// Create all tables and default data
 (async function initDatabase() {
     try {
         // Users table
@@ -86,7 +85,6 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Users table ready');
         
-        // Add profile_picture column if missing
         try {
             await executeQuery(`ALTER TABLE users ADD COLUMN profile_picture TEXT`);
             console.log('Added profile_picture column');
@@ -142,6 +140,41 @@ function executeAll(sql, params = []) {
         )`);
         console.log('Chat table ready');
         
+        // Reviews table
+        await executeQuery(`CREATE TABLE IF NOT EXISTS reviews (
+            id TEXT PRIMARY KEY,
+            product_id TEXT,
+            user_id TEXT,
+            user_name TEXT,
+            rating INTEGER,
+            comment TEXT,
+            created_at TEXT
+        )`);
+        console.log('Reviews table ready');
+        
+        // Insert default products if table is empty
+        const productCount = await executeGet('SELECT COUNT(*) as count FROM products');
+        if (productCount.count === 0) {
+            console.log('Adding default products...');
+            const defaultProducts = [
+                { id: 'p1', name: 'Wireless Headphones', price: 49.99, category: 'electronics', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400', stock: 50 },
+                { id: 'p2', name: 'Smart Watch', price: 89.99, category: 'electronics', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400', stock: 30 },
+                { id: 'p3', name: 'Premium Backpack', price: 79.99, category: 'accessories', image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=400', stock: 25 },
+                { id: 'p4', name: 'Coffee Maker', price: 129.99, category: 'home', image: 'https://images.unsplash.com/photo-1517668808822-9bba02b6f420?w=400', stock: 15 },
+                { id: 'p5', name: 'Yoga Mat', price: 29.99, category: 'sports', image: 'https://images.unsplash.com/photo-1592432678016-e910b452f9a2?w=400', stock: 45 },
+                { id: 'p6', name: 'Bluetooth Speaker', price: 59.99, category: 'electronics', image: 'https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400', stock: 40 },
+                { id: 'p7', name: 'Leather Wallet', price: 24.99, category: 'accessories', image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=400', stock: 100 },
+                { id: 'p8', name: 'Desk Lamp', price: 34.99, category: 'home', image: 'https://images.unsplash.com/photo-1507473885765-e6b057f7a2b2?w=400', stock: 60 }
+            ];
+            for (const p of defaultProducts) {
+                await executeQuery(
+                    'INSERT INTO products (id, name, price, category, image, stock, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                    [p.id, p.name, p.price, p.category, p.image, p.stock, new Date().toISOString()]
+                );
+            }
+            console.log('Default products added');
+        }
+        
     } catch (error) {
         console.error('Database init error:', error.message);
     }
@@ -153,7 +186,6 @@ function executeAll(sql, params = []) {
 
 function getUserIdFromToken(token) {
     if (!token) return null;
-    // Remove 'Bearer ' if present
     const cleanToken = token.replace('Bearer ', '');
     return cleanToken;
 }
@@ -161,7 +193,6 @@ function getUserIdFromToken(token) {
 // ============================================
 // TEST ROUTES
 // ============================================
-
 app.get('/api/test', (req, res) => {
     res.json({ message: 'Backend is working!', status: 'online', time: new Date().toISOString() });
 });
@@ -173,14 +204,12 @@ app.get('/test', (req, res) => {
 // ============================================
 // ADMIN ROUTES
 // ============================================
-
-// Serve admin.html directly
 app.get('/admin.html', (req, res) => {
     const filePath = path.join(__dirname, 'admin', 'admin.html');
     if (fs.existsSync(filePath)) {
         res.sendFile(filePath);
     } else {
-        res.status(404).send('Admin page not found. Make sure admin/admin.html exists.');
+        res.status(404).send('Admin page not found');
     }
 });
 
@@ -206,43 +235,28 @@ app.post('/api/admin/login', (req, res) => {
 // ============================================
 // USER AUTH ROUTES
 // ============================================
-
 app.post('/api/signup', async (req, res) => {
     console.log('Signup request:', req.body);
-    
     try {
         const { email, name, password } = req.body;
-        
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password required' });
         }
-        
         const existingUser = await executeGet('SELECT id FROM users WHERE email = ?', [email]);
         if (existingUser) {
             return res.status(400).json({ error: 'Email already exists' });
         }
-        
         const hashedPassword = await bcrypt.hash(password, 10);
         const userId = uuidv4();
         const createdAt = new Date().toISOString();
-        
         await executeQuery(
             'INSERT INTO users (id, email, name, password, created_at) VALUES (?, ?, ?, ?, ?)',
             [userId, email, name || email.split('@')[0], hashedPassword, createdAt]
         );
-        
         const token = uuidv4();
-        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000);
-        await executeQuery(
-            'INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
-            [token, userId, expires]
-        );
-        
-        res.json({
-            success: true,
-            token: token,
-            user: { id: userId, email: email, name: name || email.split('@')[0] }
-        });
+        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000); // 10 years
+        await executeQuery('INSERT INTO sessions (token, user_id, expires) VALUES (?, ?, ?)', [token, userId, expires]);
+        res.json({ success: true, token: token, user: { id: userId, email: email, name: name || email.split('@')[0] } });
     } catch (error) {
         console.error('Signup error:', error);
         res.status(500).json({ error: 'Signup failed' });
@@ -251,42 +265,23 @@ app.post('/api/signup', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
     console.log('Login request:', req.body.email);
-    
     try {
         const { email, password } = req.body;
-        
         if (!email || !password) {
             return res.status(400).json({ error: 'Email and password required' });
         }
-        
         const user = await executeGet('SELECT * FROM users WHERE email = ?', [email]);
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-        
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-        
         const token = uuidv4();
-        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000);
-        
-        await executeQuery(
-            'INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)',
-            [token, user.id, expires]
-        );
-        
-        res.json({
-            success: true,
-            token: token,
-            user: {
-                id: user.id,
-                email: user.email,
-                name: user.name,
-                profile_picture: user.profile_picture
-            }
-        });
+        const expires = Date.now() + (10 * 365 * 24 * 60 * 60 * 1000); // 10 years
+        await executeQuery('INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)', [token, user.id, expires]);
+        res.json({ success: true, token: token, user: { id: user.id, email: user.email, name: user.name, profile_picture: user.profile_picture } });
     } catch (error) {
         console.error('Login error:', error);
         res.status(500).json({ error: 'Login failed' });
@@ -306,35 +301,29 @@ app.get('/api/me', async (req, res) => {
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
-    
     const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
     if (!session) {
         return res.status(401).json({ error: 'Invalid session' });
     }
-    
     const user = await executeGet('SELECT id, email, name, profile_picture FROM users WHERE id = ?', [session.user_id]);
     if (!user) {
         return res.status(401).json({ error: 'User not found' });
     }
-    
     res.json({ user: user });
 });
 
 // ============================================
 // PROFILE ROUTES
 // ============================================
-
 app.get('/api/profile', async (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
-    
     const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
     if (!session) {
         return res.status(401).json({ error: 'Invalid session' });
     }
-    
     const user = await executeGet('SELECT id, email, name, profile_picture, created_at FROM users WHERE id = ?', [session.user_id]);
     res.json({ success: true, user: user });
 });
@@ -344,16 +333,13 @@ app.put('/api/profile', async (req, res) => {
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
-    
     const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
     if (!session) {
         return res.status(401).json({ error: 'Invalid session' });
     }
-    
     const { name, email } = req.body;
     const updates = [];
     const params = [];
-    
     if (name) {
         updates.push('name = ?');
         params.push(name);
@@ -362,12 +348,10 @@ app.put('/api/profile', async (req, res) => {
         updates.push('email = ?');
         params.push(email);
     }
-    
     if (updates.length > 0) {
         params.push(session.user_id);
         await executeQuery(`UPDATE users SET ${updates.join(', ')} WHERE id = ?`, params);
     }
-    
     const user = await executeGet('SELECT id, email, name, profile_picture FROM users WHERE id = ?', [session.user_id]);
     res.json({ success: true, user: user });
 });
@@ -377,30 +361,24 @@ app.put('/api/change-password', async (req, res) => {
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
-    
     const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
     if (!session) {
         return res.status(401).json({ error: 'Invalid session' });
     }
-    
     const { currentPassword, newPassword } = req.body;
-    
     const user = await executeGet('SELECT password FROM users WHERE id = ?', [session.user_id]);
     const validPassword = await bcrypt.compare(currentPassword, user.password);
     if (!validPassword) {
         return res.status(401).json({ error: 'Current password is incorrect' });
     }
-    
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     await executeQuery('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, session.user_id]);
-    
     res.json({ success: true, message: 'Password changed successfully' });
 });
 
 // ============================================
 // PROFILE PICTURE ROUTES
 // ============================================
-
 const profileStorage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, path.join(__dirname, 'uploads'));
@@ -429,19 +407,15 @@ app.post('/api/upload-profile-picture', profileUpload.single('profilePicture'), 
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
-    
     const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
     if (!session) {
         return res.status(401).json({ error: 'Invalid session' });
     }
-    
     if (!req.file) {
         return res.status(400).json({ error: 'No file uploaded' });
     }
-    
     const profilePictureUrl = '/uploads/' + req.file.filename;
     await executeQuery('UPDATE users SET profile_picture = ? WHERE id = ?', [profilePictureUrl, session.user_id]);
-    
     res.json({ success: true, profilePicture: profilePictureUrl });
 });
 
@@ -450,12 +424,10 @@ app.get('/api/profile-picture', async (req, res) => {
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
-    
     const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
     if (!session) {
         return res.status(401).json({ error: 'Invalid session' });
     }
-    
     const user = await executeGet('SELECT profile_picture FROM users WHERE id = ?', [session.user_id]);
     res.json({ profilePicture: user?.profile_picture || null });
 });
@@ -465,12 +437,10 @@ app.delete('/api/profile-picture', async (req, res) => {
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
-    
     const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
     if (!session) {
         return res.status(401).json({ error: 'Invalid session' });
     }
-    
     await executeQuery('UPDATE users SET profile_picture = NULL WHERE id = ?', [session.user_id]);
     res.json({ success: true });
 });
@@ -478,18 +448,15 @@ app.delete('/api/profile-picture', async (req, res) => {
 // ============================================
 // ORDER ROUTES
 // ============================================
-
 app.get('/api/my-orders', async (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
-    
     const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
     if (!session) {
         return res.status(401).json({ error: 'Invalid session' });
     }
-    
     const orders = await executeAll('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [session.user_id]);
     orders.forEach(order => {
         if (order.items) {
@@ -498,7 +465,6 @@ app.get('/api/my-orders', async (req, res) => {
             } catch(e) {}
         }
     });
-    
     res.json({ success: true, orders: orders });
 });
 
@@ -507,23 +473,19 @@ app.post('/api/orders', async (req, res) => {
     if (!token) {
         return res.status(401).json({ error: 'Not logged in' });
     }
-    
     const session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
     if (!session) {
         return res.status(401).json({ error: 'Invalid session' });
     }
-    
     const user = await executeGet('SELECT email FROM users WHERE id = ?', [session.user_id]);
     const { items, subtotal, shipping, total, notes } = req.body;
     const orderId = uuidv4();
     const createdAt = new Date().toISOString();
-    
     await executeQuery(
         `INSERT INTO orders (order_id, user_id, user_email, items, subtotal, shipping, total, notes, status, created_at) 
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [orderId, session.user_id, user.email, JSON.stringify(items), subtotal, shipping, total, notes, 'pending', createdAt]
     );
-    
     res.json({ success: true, orderId: orderId });
 });
 
@@ -540,9 +502,8 @@ app.get('/api/orders', async (req, res) => {
 });
 
 // ============================================
-// PRODUCT ROUTES
+// PRODUCT ROUTES - SAVE TO DATABASE
 // ============================================
-
 app.get('/api/products', async (req, res) => {
     try {
         const products = await executeAll('SELECT * FROM products ORDER BY created_at DESC');
@@ -556,20 +517,21 @@ app.get('/api/products', async (req, res) => {
 app.post('/api/products', async (req, res) => {
     try {
         const { name, price, category, image, stock } = req.body;
+        if (!name || !price) {
+            return res.status(400).json({ error: 'Name and price required' });
+        }
         const id = uuidv4();
         const createdAt = new Date().toISOString();
-        
         let productImage = image;
         if (!productImage) {
             productImage = `https://placehold.co/400x300/1a1a2e/white?text=${encodeURIComponent(name)}`;
         }
-        
         await executeQuery(
             'INSERT INTO products (id, name, price, category, image, stock, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)',
             [id, name, parseFloat(price), category || 'digital', productImage, stock || 999, createdAt]
         );
-        
-        res.status(201).json({ success: true, id: id });
+        console.log('Product saved to database:', name);
+        res.status(201).json({ success: true, id: id, message: 'Product saved to database' });
     } catch (error) {
         console.error('Create product error:', error);
         res.status(500).json({ error: 'Failed to create product' });
@@ -587,9 +549,58 @@ app.delete('/api/products/:id', async (req, res) => {
 });
 
 // ============================================
+// REVIEWS ROUTES
+// ============================================
+app.get('/api/products/:productId/reviews', async (req, res) => {
+    try {
+        const reviews = await executeAll('SELECT * FROM reviews WHERE product_id = ? ORDER BY created_at DESC', [req.params.productId]);
+        res.json({ success: true, reviews: reviews || [] });
+    } catch(error) {
+        res.json({ success: true, reviews: [] });
+    }
+});
+
+app.post('/api/products/:productId/reviews', async (req, res) => {
+    try {
+        let token = req.headers.authorization;
+        if (!token) {
+            return res.status(401).json({ error: 'Please login' });
+        }
+        token = token.replace('Bearer ', '');
+        let session = await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
+        if (!session) {
+            return res.status(401).json({ error: 'Invalid session. Please login again.' });
+        }
+        const { rating, comment } = req.body;
+        const user = await executeGet('SELECT id, name, email FROM users WHERE id = ?', [session.user_id]);
+        if (!user) {
+            return res.status(401).json({ error: 'User not found' });
+        }
+        const reviewId = uuidv4();
+        await executeQuery(
+            `INSERT INTO reviews (id, product_id, user_id, user_name, rating, comment, created_at) 
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [reviewId, req.params.productId, user.id, user.name || user.email.split('@')[0], rating, comment || '', new Date().toISOString()]
+        );
+        res.json({ success: true });
+    } catch(error) {
+        console.error('Review error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+app.get('/api/products/:productId/rating', async (req, res) => {
+    try {
+        const result = await executeGet('SELECT AVG(rating) as averageRating, COUNT(*) as totalReviews FROM reviews WHERE product_id = ?', [req.params.productId]);
+        res.json({ averageRating: result?.averageRating || 0, totalReviews: result?.totalReviews || 0 });
+    } catch(error) {
+        res.json({ averageRating: 0, totalReviews: 0 });
+    }
+});
+
+// ============================================
 // CHAT ROUTES
 // ============================================
-
 app.post('/api/chat/save', async (req, res) => {
     try {
         const { userId, userName, message, isAdmin } = req.body;
@@ -606,10 +617,7 @@ app.post('/api/chat/save', async (req, res) => {
 
 app.get('/api/chat/history/:userId', async (req, res) => {
     try {
-        const messages = await executeAll(
-            'SELECT * FROM chat_messages WHERE user_id = ? ORDER BY created_at ASC LIMIT 50',
-            [req.params.userId]
-        );
+        const messages = await executeAll('SELECT * FROM chat_messages WHERE user_id = ? ORDER BY created_at ASC LIMIT 50', [req.params.userId]);
         res.json({ messages: messages || [] });
     } catch (error) {
         console.error('History error:', error);
@@ -635,7 +643,6 @@ app.get('/api/admin/chats', async (req, res) => {
 // ============================================
 // NOTIFICATION ROUTES
 // ============================================
-
 let lastProductUpdate = Date.now();
 
 app.post('/api/notify-shop-refresh', (req, res) => {
@@ -650,7 +657,6 @@ app.get('/api/last-product-update', (req, res) => {
 // ============================================
 // FALLBACK ROUTE
 // ============================================
-
 app.get('*', (req, res) => {
     res.status(404).json({ error: 'Route not found' });
 });
@@ -658,7 +664,6 @@ app.get('*', (req, res) => {
 // ============================================
 // START SERVER
 // ============================================
-
 app.listen(PORT, () => {
     console.log('========================================');
     console.log('SIGMA STORE BACKEND RUNNING');
