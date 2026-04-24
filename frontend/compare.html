@@ -1,0 +1,401 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compare Products - Sigma Store</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .compare-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .compare-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .compare-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .selection-bar {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .product-select {
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+            min-width: 200px;
+        }
+        .compare-table {
+            background: white;
+            border-radius: 16px;
+            overflow-x: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+        }
+        .compare-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .compare-table th, .compare-table td {
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        .compare-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            width: 150px;
+        }
+        .compare-product {
+            min-width: 200px;
+        }
+        .compare-product img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 10px;
+        }
+        .compare-product .name {
+            font-weight: 700;
+            font-size: 1rem;
+            margin: 10px 0;
+        }
+        .compare-product .price {
+            color: #e05a2a;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+        .compare-product .rating {
+            color: #ffc107;
+            margin: 5px 0;
+        }
+        .remove-btn {
+            background: #e05a2a;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .add-to-cart-btn {
+            background: linear-gradient(135deg, #1a1a2e, #2c3e50);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .empty-compare {
+            text-align: center;
+            padding: 3rem;
+            color: #888;
+        }
+        .add-more {
+            background: #e05a2a;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+        }
+        body.dark .compare-table {
+            background: #1e293b;
+        }
+        body.dark .compare-table th {
+            background: #0f172a;
+        }
+        body.dark .compare-table td {
+            border-bottom-color: #334155;
+        }
+        body.dark .selection-bar {
+            background: #1e293b;
+        }
+        body.dark .product-select {
+            background: #334155;
+            border-color: #475569;
+            color: white;
+        }
+        @media (max-width: 768px) {
+            .compare-container {
+                padding: 1rem;
+            }
+            .compare-product img {
+                width: 80px;
+                height: 80px;
+            }
+            .compare-table th, .compare-table td {
+                padding: 8px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <a href="index.html" class="logo">Ïƒ SIGMA</a>
+    <div class="nav">
+        <a href="index.html">shop</a>
+        <a href="reviews.html">reviews</a>
+        <a href="about.html">about</a>
+        <a href="blog.html">blog</a>
+        <a href="privacy.html">privacy</a>
+        <a href="wishlist.html">wishlist</a>
+        <a href="compare.html">compare</a>
+        <a href="terms.html">terms</a>
+        <a href="refund.html">refund</a>
+        <a href="track.html">track order</a>
+        <a href="seller-dashboard.html">sell</a>
+        <a href="profile.html">profile</a>
+        <a href="login.html" id="authLink">login</a>
+    </div>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
+    <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
+</div>
+
+<main>
+    <div class="compare-container">
+        <div class="compare-header">
+            <h1>ðŸ”„ Compare Products</h1>
+            <p>Compare up to 4 products side by side</p>
+        </div>
+
+        <div class="selection-bar">
+            <select id="productSelect1" class="product-select">
+                <option value="">Select product 1</option>
+            </select>
+            <select id="productSelect2" class="product-select">
+                <option value="">Select product 2</option>
+            </select>
+            <select id="productSelect3" class="product-select">
+                <option value="">Select product 3</option>
+            </select>
+            <select id="productSelect4" class="product-select">
+                <option value="">Select product 4</option>
+            </select>
+            <button class="add-more" onclick="updateComparison()">Compare</button>
+        </div>
+
+        <div id="compareResults" class="compare-table">
+            <div class="empty-compare">
+                <p>Select products to compare</p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>Sigma Studio â€” Mardan, Pakistan</p>
+    <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
+</footer>
+
+<script src="config.js"></script>
+<script src="navbar.js"></script>
+<script>
+    const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
+    let allProducts = [];
+
+    async function loadProducts() {
+        try {
+            const response = await fetch(`${API_URL}/api/products`);
+            allProducts = await response.json();
+            populateSelectors();
+            loadComparisonFromURL();
+        } catch (error) {
+            console.error('Error loading products:', error);
+        }
+    }
+
+    function populateSelectors() {
+        const selects = ['productSelect1', 'productSelect2', 'productSelect3', 'productSelect4'];
+        selects.forEach(selectId => {
+            const select = document.getElementById(selectId);
+            select.innerHTML = '<option value="">Select product</option>';
+            allProducts.forEach(p => {
+                select.innerHTML += `<option value="${p.id}">${p.name} - $${p.price}</option>`;
+            });
+        });
+    }
+
+    function updateComparison() {
+        const productIds = [];
+        for (let i = 1; i <= 4; i++) {
+            const select = document.getElementById(`productSelect${i}`);
+            if (select.value) {
+                productIds.push(select.value);
+            }
+        }
+        
+        // Save to URL
+        const url = new URL(window.location.href);
+        url.searchParams.set('compare', productIds.join(','));
+        window.history.pushState({}, '', url);
+        
+        renderComparison(productIds);
+    }
+
+    function loadComparisonFromURL() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const compareParam = urlParams.get('compare');
+        if (compareParam) {
+            const productIds = compareParam.split(',');
+            for (let i = 0; i < productIds.length && i < 4; i++) {
+                const select = document.getElementById(`productSelect${i + 1}`);
+                if (select) {
+                    select.value = productIds[i];
+                }
+            }
+            renderComparison(productIds);
+        }
+    }
+
+    function getProductImage(product) {
+        if (!product.image) {
+            return `https://placehold.co/120x120/1a1a2e/white?text=${encodeURIComponent(product.name)}`;
+        }
+        if (product.image.startsWith('http')) {
+            return product.image;
+        }
+        return API_URL + product.image;
+    }
+
+    function renderComparison(productIds) {
+        const container = document.getElementById('compareResults');
+        const selectedProducts = allProducts.filter(p => productIds.includes(p.id));
+        
+        if (selectedProducts.length === 0) {
+            container.innerHTML = '<div class="empty-compare"><p>Select products to compare</p></div>';
+            return;
+        }
+        
+        let html = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Features</th>
+                        ${selectedProducts.map(p => `
+                            <td class="compare-product">
+                                <img src="${getProductImage(p)}" onerror="this.src='https://placehold.co/120x120/ff6b6b/white?text=Error'">
+                                <div class="name">${escapeHtml(p.name)}</div>
+                                <div class="price">$${p.price}</div>
+                                <button class="add-to-cart-btn" onclick="addToCartFromCompare('${p.id}', '${escapeHtml(p.name)}', ${p.price})">Add to Cart</button>
+                                <button class="remove-btn" onclick="removeProduct('${p.id}')">Remove</button>
+                            </td>
+                        `).join('')}
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Category</th>
+                        ${selectedProducts.map(p => `<td>${p.category || 'General'}</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <th>Rating</th>
+                        ${selectedProducts.map(p => `<td>â­ ${(productRatings[p.id] || 0).toFixed(1)} / 5</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <th>Stock</th>
+                        ${selectedProducts.map(p => `<td>${p.stock || 999} in stock</td>`).join('')}
+                    </tr>
+                    <tr>
+                        <th>Description</th>
+                        ${selectedProducts.map(p => `<td>${p.description || 'No description available'}</td>`).join('')}
+                    </tr>
+                </tbody>
+            </table>
+        `;
+        
+        container.innerHTML = html;
+    }
+
+    function removeProduct(productId) {
+        const urlParams = new URLSearchParams(window.location.search);
+        let compareParam = urlParams.get('compare') || '';
+        let productIds = compareParam.split(',').filter(id => id && id !== productId);
+        
+        const url = new URL(window.location.href);
+        if (productIds.length > 0) {
+            url.searchParams.set('compare', productIds.join(','));
+        } else {
+            url.searchParams.delete('compare');
+        }
+        window.history.pushState({}, '', url);
+        
+        // Update selects
+        for (let i = 1; i <= 4; i++) {
+            const select = document.getElementById(`productSelect${i}`);
+            if (select && select.value === productId) {
+                select.value = '';
+            }
+        }
+        
+        renderComparison(productIds);
+    }
+
+    function addToCartFromCompare(id, name, price) {
+        let cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
+        const existing = cart.find(item => item.id === id);
+        if (existing) {
+            existing.quantity++;
+        } else {
+            cart.push({ id, name, price, quantity: 1 });
+        }
+        localStorage.setItem('sigma_cart', JSON.stringify(cart));
+        updateCartCount();
+        alert(`${name} added to cart!`);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    let productRatings = {};
+    async function loadRatings() {
+        for (let p of allProducts) {
+            try {
+                const res = await fetch(`${API_URL}/api/products/${p.id}/rating`);
+                const data = await res.json();
+                productRatings[p.id] = data.averageRating || 0;
+            } catch(e) {}
+        }
+    }
+
+    document.getElementById('darkToggle')?.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        const isDark = document.body.classList.contains('dark');
+        localStorage.setItem('sigma_dark', isDark);
+        document.getElementById('darkToggle').innerText = isDark ? 'â˜€ï¸' : 'ðŸŒ™';
+    });
+    if (localStorage.getItem('sigma_dark') === 'true') {
+        document.body.classList.add('dark');
+        document.getElementById('darkToggle').innerText = 'â˜€ï¸';
+    }
+
+    loadProducts();
+    updateCartCount();
+</script>
+</body>
+</html>

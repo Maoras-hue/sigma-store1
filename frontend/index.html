@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sigma — Shop</title>
+    <title>Sigma â€” Shop</title>
     <link rel="stylesheet" href="style.css">
     <style>
         .price-range-container {
@@ -161,7 +161,7 @@
 <body>
 
 <div class="header">
-    <a href="index.html" class="logo">σ SIGMA</a>
+    <a href="index.html" class="logo">Ïƒ SIGMA</a>
     <div class="nav">
         <a href="index.html">shop</a>
         <a href="reviews.html">reviews</a>
@@ -176,7 +176,7 @@
         <a href="profile.html">profile</a>
         <a href="login.html" id="authLink">login</a>
     </div>
-    <button class="dark-toggle" id="darkToggle">🌙</button>
+    <button class="dark-toggle" id="darkToggle">ðŸŒ™</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>
 
@@ -190,7 +190,7 @@
         <div class="search-bar">
             <div style="display: flex; gap: 0.5rem; position: relative;">
                 <input type="text" id="searchInput" placeholder="search products..." class="search-input" style="flex:1;" autocomplete="off">
-                <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">✕</button>
+                <button id="clearSearch" style="background:#eee; border:none; padding:0 1rem; border-radius:8px; cursor:pointer;">âœ•</button>
                 <div id="autocomplete-list" style="position:absolute; top:50px; left:0; right:0; background:white; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,0.1); z-index:1000; display:none;"></div>
             </div>
         </div>
@@ -205,7 +205,7 @@
 
         <!-- Price Range Filter -->
         <div class="price-range-container">
-            <label style="font-weight: 600;">💰 Price Range</label>
+            <label style="font-weight: 600;">ðŸ’° Price Range</label>
             <div class="price-range-controls">
                 <div class="price-input"><span>Min:</span><input type="number" id="priceMin" value="0" step="1"></div>
                 <div class="price-input"><span>Max:</span><input type="number" id="priceMax" value="1000" step="1"></div>
@@ -217,13 +217,13 @@
 
         <!-- Rating Filter -->
         <div class="rating-filter">
-            <label style="font-weight: 600;">⭐ Minimum Rating</label>
+            <label style="font-weight: 600;">â­ Minimum Rating</label>
             <div class="rating-stars-filter">
                 <div class="rating-option active" data-rating="0">All</div>
-                <div class="rating-option" data-rating="4">4★ & above</div>
-                <div class="rating-option" data-rating="3">3★ & above</div>
-                <div class="rating-option" data-rating="2">2★ & above</div>
-                <div class="rating-option" data-rating="1">1★ & above</div>
+                <div class="rating-option" data-rating="4">4â˜… & above</div>
+                <div class="rating-option" data-rating="3">3â˜… & above</div>
+                <div class="rating-option" data-rating="2">2â˜… & above</div>
+                <div class="rating-option" data-rating="1">1â˜… & above</div>
             </div>
         </div>
 
@@ -258,15 +258,15 @@
         <div class="about-block">
             <h2>I'm Ibrahim, 17 y.o from Mardan</h2>
             <p>I started Sigma because I was tired of broken templates and overpriced garbage. Now I build things that actually work.</p>
-            <div class="testimonial">"Clean code, fair price. Bought the template and it worked first try."<br>— Zulqarnain</div>
-            <div class="testimonial">"Finally a template that doesn't need 3 hours of fixes. Worth it."<br>— Ali</div>
+            <div class="testimonial">"Clean code, fair price. Bought the template and it worked first try."<br>â€” Zulqarnain</div>
+            <div class="testimonial">"Finally a template that doesn't need 3 hours of fixes. Worth it."<br>â€” Ali</div>
             <p style="margin-top: 1rem;">No team. No investors. Just me and a laptop.</p>
         </div>
     </div>
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio â€” Mardan, Pakistan</p>
     <p>email: sigma@example.com</p>
     <p>We accept: Visa, Mastercard & Payoneer</p>
     <address>College chowk par-hoti Mardan.</address>
@@ -274,7 +274,7 @@
 
 <!-- Cookie Banner -->
 <div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;">
-    <p style="margin:0;">🍪 We use cookies. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p>
+    <p style="margin:0;">ðŸª We use cookies. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p>
     <div>
         <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button>
         <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button>
@@ -306,17 +306,17 @@
             var isDark = localStorage.getItem('sigma_dark') === 'true';
             if (isDark) {
                 document.body.classList.add('dark');
-                darkToggle.innerText = '☀️';
+                darkToggle.innerText = 'â˜€ï¸';
             } else {
                 document.body.classList.remove('dark');
-                darkToggle.innerText = '🌙';
+                darkToggle.innerText = 'ðŸŒ™';
             }
             
             darkToggle.onclick = function() {
                 document.body.classList.toggle('dark');
                 var dark = document.body.classList.contains('dark');
                 localStorage.setItem('sigma_dark', dark);
-                darkToggle.innerText = dark ? '☀️' : '🌙';
+                darkToggle.innerText = dark ? 'â˜€ï¸' : 'ðŸŒ™';
             };
         }
         
