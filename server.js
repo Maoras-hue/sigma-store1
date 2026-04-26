@@ -441,6 +441,17 @@ app.post('/api/orders', async (req, res) => {
         const { sendOrderConfirmationEmail } = require('./email.js');
         await sendOrderConfirmationEmail(user.email, user.name, orderId, items, total);
     } catch(e) { console.log('Email error:', e); }
+    
+    // Reduce stock for each item
+    for (const item of items) {
+        await executeQuery('UPDATE products SET stock = stock - ? WHERE id = ?', [item.quantity, item.id]);
+    }
+    
+    // Send order confirmation email
+    try {
+        const { sendOrderConfirmationEmail } = require('./email');
+        await sendOrderConfirmationEmail(user.email, user.name, orderId, items, total);
+    } catch(e) { console.log('Email error:', e.message); }
     res.json({ success: true, order: { orderId, total } });
     } catch (error) {
         console.error('Error creating order:', error);
@@ -626,6 +637,26 @@ app.use(express.static('admin'));
 // START SERVER
 // ============================================
 
+
+// Cancel order
+app.post('/api/orders/:orderId/cancel', async (req, res) => {
+    const token = req.headers.authorization?.replace('Bearer ', '');
+    const userId = await getUserFromToken(token);
+    if(!userId) return res.status(401).json({ error: 'Not logged in' });
+    const order = await executeGet('SELECT * FROM orders WHERE order_id = ? AND user_id = ?', [req.params.orderId, userId]);
+    if(!order) return res.status(404).json({ error: 'Order not found' });
+    if(order.status !== 'pending') return res.status(400).json({ error: 'Cannot cancel order that is already processing' });
+    await executeQuery('UPDATE orders SET status = ? WHERE order_id = ?', ['cancelled', req.params.orderId]);
+    res.json({ success: true });
+});
+
+// Price drop alerts
+app.post('/api/price-alert', async (req, res) => {
+    const { productId, email, desiredPrice } = req.body;
+    await executeQuery('INSERT INTO price_alerts (id, product_id, email, desired_price, created_at) VALUES (?, ?, ?, ?, ?)',
+        [uuidv4(), productId, email, desiredPrice, new Date().toISOString()]);
+    res.json({ success: true });
+});
 app.listen(PORT, () => {
     console.log(`
 ╔══════════════════════════════════════════════════════════════╗

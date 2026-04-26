@@ -25,7 +25,7 @@
         body.dark .qr-section { background: #0f172a; }
         @media (max-width: 768px) { .product-container { padding: 1rem; } .product-detail { flex-direction: column; } }
     </style>
-</head>
+<meta name="description" content="Sigma Store - Premium E-Commerce Platform"><meta name="keywords" content="ecommerce, online store, shopping"><meta property="og:title" content="Sigma Store"><meta property="og:type" content="website"></head>
 <body>
 
 <div class="header">
@@ -36,7 +36,18 @@
         <a href="about.html">about</a>
         <a href="wishlist.html">wishlist</a>
         <a href="login.html" id="authLink">login</a>
+    
+    <div class=related-products>
+        <h3>You May Also Like</h3>
+        <div id=relatedProducts class=products-grid>
+    <div class=share-buttons>
+        <button onclick=window.open('https://wa.me/?text='+encodeURIComponent(window.location.href))>WhatsApp</button>
+        <button onclick=window.open('https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(window.location.href))>Facebook</button>
+        <button onclick=window.open('https://twitter.com/intent/tweet?url='+encodeURIComponent(window.location.href))>Twitter</button>
     </div>
+</div>
+    </div>
+</div>
     <button class="dark-toggle" id="darkToggle">🌙</button>
     <a href="cart.html" class="cart-btn">cart (<span id="cartCount">0</span>)</a>
 </div>

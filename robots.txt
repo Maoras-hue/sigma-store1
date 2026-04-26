@@ -1,0 +1,5 @@
+User-agent: * 
+Allow: / 
+Disallow: /admin/ 
+Disallow: /api/ 
+Sitemap: https://sigma-store1.vercel.app/sitemap.xml 

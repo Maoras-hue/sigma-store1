@@ -80,7 +80,7 @@
     function saveCart(cart) { localStorage.setItem('sigma_cart', JSON.stringify(cart)); updateCartCount(); renderCart(); }
     function updateCartCount() { const cart = getCart(); const total = cart.reduce((s, i) => s + (i.quantity || 1), 0); const badge = document.getElementById('cartCount'); if (badge) badge.innerText = total; }
     
-    function updateQty(id, delta) { let cart = getCart(); let index = cart.findIndex(i => i.id === id); if(index !== -1) { let newQty = cart[index].quantity + delta; if(newQty < 1) { cart.splice(index,1); } else { cart[index].quantity = newQty; } saveCart(cart); }
+    function updateQty(id, delta) { let cart = getCart(); let index = cart.findIndex(i => i.id === id); if(index !== -1) { let newQty = cart[index].quantity + delta; if(newQty < 1) { cart.splice(index,1); } else { cart[index].quantity = newQty; } saveCart(cart); renderCart(); } } function updateQtyOld(id, delta) { let cart = getCart(); let index = cart.findIndex(i => i.id === id); if(index !== -1) { let newQty = cart[index].quantity + delta; if(newQty < 1) { cart.splice(index,1); } else { cart[index].quantity = newQty; } saveCart(cart); }
         let cart = getCart();
         const index = cart.findIndex(i => i.id === id);
         if (index !== -1) {

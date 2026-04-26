@@ -217,7 +217,19 @@
     // WISHLIST FUNCTIONS
     // ============================================
     
-    function getWishlist() {
+    
+    // Sync wishlist with database
+    async function syncWishlist() {
+        const token = localStorage.getItem('sigma_token');
+        if(!token) return;
+        const wishlist = getWishlist();
+        await fetch(API_URL + '/api/wishlist/sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': token },
+            body: JSON.stringify({ items: wishlist })
+        });
+    }
+function getWishlist() {
         return JSON.parse(localStorage.getItem('sigma_wishlist') || '[]');
     }
     
