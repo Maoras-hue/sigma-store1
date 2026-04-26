@@ -1,12 +1,3 @@
-
-// Database sessions
-async function saveSession(token, userId, expires) {
-    await executeQuery('INSERT OR REPLACE INTO sessions (token, user_id, expires) VALUES (?, ?, ?)', [token, userId, expires]);
-}
-
-async function getSession(token) {
-    return await executeGet('SELECT user_id FROM sessions WHERE token = ? AND expires > ?', [token, Date.now()]);
-}
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
