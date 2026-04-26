@@ -43,7 +43,7 @@
                 page: page,
                 referrer: referrer
             })
-        }).catch(e => console.log('Track error:', e));
+        }).catch(e => //console.log('Track error:', e));
     }
     
     // Track on page load

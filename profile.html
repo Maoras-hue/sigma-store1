@@ -727,7 +727,7 @@
                     '<span style="font-weight:800; color:#e05a2a;">Order #' + (order.order_id || order.id) + '</span>' +
                     '<span class="' + statusClass + '">' + (order.status || 'pending') + '</span>' +
                     '</div>' +
-                    '<div style="font-size:0.9rem; margin: 8px 0;">Items: ' + (itemsHtml || '—') + '</div>' +
+                    '<div style="font-size:0.9rem; margin: 8px 0;">Items: ' + (itemsHtml || 'ï¿½') + '</div>' +
                     '<div style="font-weight:bold;">Total: $' + parseFloat(order.total || 0).toFixed(2) + '</div>' +
                     '<div style="font-size:0.75rem; color:#64748b; margin-top:6px;">Date: ' + new Date(order.created_at).toLocaleDateString() + '</div>' +
                     '</div>';
@@ -846,17 +846,13 @@
 <script> 
 function acceptCookies() { 
     localStorage.setItem('cookiesAccepted', 'true'); 
-    document.getElementById('cookieBanner').style.display = 'none'; 
 } 
 function declineCookies() { 
     localStorage.setItem('cookiesAccepted', 'false'); 
-    document.getElementById('cookieBanner').style.display = 'none'; 
 } 
 if (localStorage.getItem('cookiesAccepted') === 'true') { 
-    document.getElementById('cookieBanner').style.display = 'none'; 
 } 
 </script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
     <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
     <div> 
         <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
@@ -866,18 +862,13 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
 <script> 
 function acceptCookies() { 
     localStorage.setItem('cookiesAccepted', 'true'); 
-    document.getElementById('cookieBanner').style.display = 'none'; 
 } 
 function declineCookies() { 
     localStorage.setItem('cookiesAccepted', 'false'); 
-    document.getElementById('cookieBanner').style.display = 'none'; 
 } 
 if (localStorage.getItem('cookiesAccepted') === 'true') { 
-    document.getElementById('cookieBanner').style.display = 'none'; 
 } 
 </script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
-    <p style="margin:0;">?? We use cookies to improve your experience<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
     <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
     <div style="display:flex; gap:10px;"> 
         <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
@@ -887,19 +878,15 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
 <script> 
     function acceptCookies() { 
         localStorage.setItem('cookiesAccepted', 'true'); 
-        document.getElementById('cookieBanner').style.display = 'none'; 
     } 
     function declineCookies() { 
         localStorage.setItem('cookiesAccepted', 'false'); 
-        document.getElementById('cookieBanner').style.display = 'none'; 
     } 
     document.getElementById('acceptCookiesBtn').onclick = acceptCookies; 
     document.getElementById('declineCookiesBtn').onclick = declineCookies; 
     if (localStorage.getItem('cookiesAccepted') !== null) { 
-        document.getElementById('cookieBanner').style.display = 'none'; 
     } 
 </script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
     <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
     <div style="display:flex; gap:10px;"> 
         <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
@@ -909,19 +896,15 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
 <script> 
     function acceptCookies() { 
         localStorage.setItem('cookiesAccepted', 'true'); 
-        document.getElementById('cookieBanner').style.display = 'none'; 
     } 
     function declineCookies() { 
         localStorage.setItem('cookiesAccepted', 'false'); 
-        document.getElementById('cookieBanner').style.display = 'none'; 
     } 
     document.getElementById('acceptCookiesBtn').onclick = acceptCookies; 
     document.getElementById('declineCookiesBtn').onclick = declineCookies; 
     if (localStorage.getItem('cookiesAccepted') !== null) { 
-        document.getElementById('cookieBanner').style.display = 'none'; 
     } 
 </script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:9999; flex-wrap:wrap;"> 
     <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
     <div style="display:flex; gap:10px;"> 
         <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
@@ -930,7 +913,6 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
 </div> 
 <script> 
     (function() { 
-        var banner = document.getElementById('cookieBanner'); 
         if (!banner) return; 
         if (localStorage.getItem('cookiesAccepted') === 'true') { 
             banner.style.display = 'none'; 
@@ -951,7 +933,6 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
         } 
     })(); 
 </script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:9999; flex-wrap:wrap;"> 
     <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
     <div style="display:flex; gap:10px;"> 
         <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
@@ -960,7 +941,6 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
 </div> 
 <script> 
     (function() { 
-        var banner = document.getElementById('cookieBanner'); 
         if (!banner) return; 
         if (localStorage.getItem('cookiesAccepted') === 'true') { 
             banner.style.display = 'none'; 
@@ -981,6 +961,5 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
         } 
     })(); 
 </script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:9999; flex-wrap:wrap;"> 
     <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
     <div st<script src="visitor-track.js"></script> 

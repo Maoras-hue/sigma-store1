@@ -1,6 +1,6 @@
 // COMPLETE CHAT WIDGET - WITH AUTO-RECEIVE MESSAGES
 (function() {
-    console.log('Chat widget loading...');
+    
     
     const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
     let socket = null;
@@ -105,7 +105,7 @@
         // Play sound for new message (optional)
         if (isNew && isAdmin) {
             // Just log for now
-            console.log('New message from admin:', message);
+            
         }
     }
     
@@ -118,19 +118,19 @@
         });
         
         socket.on('connect', function() {
-            console.log('Chat socket connected');
+            
             isConnected = true;
             socket.emit('user-join', getUserId());
         });
         
         socket.on('disconnect', function() {
-            console.log('Chat socket disconnected');
+            
             isConnected = false;
             setTimeout(connectSocket, 5000);
         });
         
         socket.on('new-message', function(data) {
-            console.log('New message received:', data);
+            
             if (data.isAdmin) {
                 addMessageToContainer(data.message, true, true);
                 // Also save to localStorage for chat history
@@ -173,7 +173,7 @@
     
     // Check if widget already exists
     if (document.getElementById('custom_chat_widget')) {
-        console.log('Widget already exists');
+        
         return;
     }
     
@@ -253,5 +253,5 @@
         if (e.key === 'Enter') sendMessage();
     });
     
-    console.log('Chat widget created successfully');
+    
 })();

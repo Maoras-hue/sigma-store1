@@ -378,9 +378,7 @@ function renderRecentlyViewed() {
 // ============================================
 // PRODUCT IMAGE HELPER
 // ============================================
-function getProductImage(product) {
-    if (!product.image) {
-        return `https://placehold.co/400x300/1a1a2e/white?text=${encodeURIComponent(product.name)}`;
+function getProductImage(p){if(!p.image)return "https://placehold.co/400x300/1e293b/white?text="+encodeURIComponent(p.name);if(p.image.startsWith("http"))return p.image;return API_URL+p.image;}`;
     }
     if (product.image.startsWith('http')) {
         return product.image;
@@ -413,7 +411,7 @@ async function showAutocomplete(query) {
         return;
     }
     
-    const filtered = products.filter(p => 
+    const filtered = products.filter(p => p.stock > 0).filter(p => 
         p.name.toLowerCase().includes(query.toLowerCase())
     ).slice(0, 8);
     

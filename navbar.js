@@ -2,7 +2,7 @@ function getAuthToken() {
     // Try all possible token locations
     var token = localStorage.getItem('sigma_token');
     if (token) return token;
-    token = localStorage.getItem('authToken');
+    token = localStorage.getItem('sigma_token');
     if (token) return token;
     return null;
 }
@@ -12,8 +12,8 @@ function isLoggedIn() { var token = getAuthToken(); if (!token) return false; re
 function clearAuth() {
     localStorage.removeItem('sigma_token');
     localStorage.removeItem('sigma_token_expiry');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authTokenExpiry');
+    localStorage.removeItem('sigma_token');
+    localStorage.removeItem('sigma_tokenExpiry');
     localStorage.removeItem('sigma_user');
 }
 
@@ -65,7 +65,7 @@ function getAuthToken() {
     var token = localStorage.getItem('sigma_token');
     if (token) return token;
     
-    token = localStorage.getItem('authToken');
+    token = localStorage.getItem('sigma_token');
     if (token) return token;
     
     token = localStorage.getItem('sigma_auth_token');
@@ -76,7 +76,7 @@ function getAuthToken() {
 
 function isLoggedIn() {
     var token = getAuthToken();
-    var expiry = localStorage.getItem('sigma_token_expiry') || localStorage.getItem('authTokenExpiry');
+    var expiry = localStorage.getItem('sigma_token_expiry') || localStorage.getItem('sigma_tokenExpiry');
     
     if (!token) return false;
     if (expiry && Date.now() > parseInt(expiry)) {
@@ -89,8 +89,8 @@ function isLoggedIn() {
 function clearAuth() {
     localStorage.removeItem('sigma_token');
     localStorage.removeItem('sigma_token_expiry');
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('authTokenExpiry');
+    localStorage.removeItem('sigma_token');
+    localStorage.removeItem('sigma_tokenExpiry');
     localStorage.removeItem('sigma_user');
 }
 

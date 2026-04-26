@@ -14,5 +14,5 @@ window.STORE_CONFIG = {
     supportEmail: 'ifiwas1898617@gmail.com'
 };
 
-console.log('Config loaded');
-console.log('Backend URL:', window.BACKEND_URL);
+//console.log('Config loaded');
+//console.log('Backend URL:', window.BACKEND_URL);

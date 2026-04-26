@@ -226,7 +226,7 @@
 </main>
 
 <footer>
-    <p>Sigma Studio — Mardan, Pakistan</p>
+    <p>Sigma Studio ï¿½ Mardan, Pakistan</p>
     <p>WhatsApp: +92 325 9042317 | Email: sigma@example.com</p>
 </footer>
 
@@ -240,19 +240,19 @@
     // CHECK LOGIN AND SELLER STATUS
     // ============================================
     
-    function getAuthToken() {
-        return localStorage.getItem('authToken');
+    function localStorage.getItem("sigma_token") {
+        return localStorage.getItem('sigma_token');
     }
     
     function isLoggedIn() {
-        const token = getAuthToken();
-        const expiry = localStorage.getItem('authTokenExpiry');
+        const token = localStorage.getItem("sigma_token");
+        const expiry = localStorage.getItem('sigma_tokenExpiry');
         if (!token || !expiry) return false;
         return Date.now() < parseInt(expiry);
     }
     
     async function checkSellerStatus() {
-        const token = getAuthToken();
+        const token = localStorage.getItem("sigma_token");
         
         try {
             const response = await fetch(`${API_URL}/api/seller/dashboard`, {
@@ -349,7 +349,7 @@
             return;
         }
         
-        const token = getAuthToken();
+        const token = localStorage.getItem("sigma_token");
         
         const formData = new FormData();
         formData.append('name', name);
