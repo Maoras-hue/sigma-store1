@@ -577,7 +577,7 @@ function setupEventListeners() {
     
     if (priceSlider) {
         priceSlider.addEventListener('input', function(e) {
-            const value = parseInt(e.target.value);
+            const value = parseFloat(e.target.value);
             if (priceMinInput) priceMinInput.value = 0;
             if (priceMaxInput) priceMaxInput.value = value;
             priceMin = 0;
@@ -588,8 +588,8 @@ function setupEventListeners() {
     
     if (applyPriceFilter) {
         applyPriceFilter.addEventListener('click', function() {
-            priceMin = parseInt(priceMinInput?.value) || 0;
-            priceMax = parseInt(priceMaxInput?.value) || 1000;
+            priceMin = parseFloat(priceMinInput?.value) || 0;
+            priceMax = parseFloat(priceMaxInput?.value) || 1000;
             if (priceSlider) priceSlider.value = priceMax;
             applyFiltersAndSort();
         });
@@ -610,7 +610,7 @@ function setupEventListeners() {
         option.addEventListener('click', function() {
             document.querySelectorAll('.rating-option').forEach(o => o.classList.remove('active'));
             this.classList.add('active');
-            minRating = parseInt(this.dataset.rating) || 0;
+            minRating = parseFloat(this.dataset.rating) || 0;
             applyFiltersAndSort();
         });
     });

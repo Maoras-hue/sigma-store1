@@ -430,7 +430,18 @@ app.post('/api/orders', async (req, res) => {
             status: 'pending'
         });
         
-        res.json({ success: true, order: { orderId, total } });
+        
+    // Reduce stock for each item
+    for (const item of items) {
+        await executeQuery('UPDATE products SET stock = stock - ? WHERE id = ?', [item.quantity, item.id]);
+    }
+    
+    // Send order confirmation email
+    try {
+        const { sendOrderConfirmationEmail } = require('./email.js');
+        await sendOrderConfirmationEmail(user.email, user.name, orderId, items, total);
+    } catch(e) { console.log('Email error:', e); }
+    res.json({ success: true, order: { orderId, total } });
     } catch (error) {
         console.error('Error creating order:', error);
         res.status(500).json({ error: 'Server error' });

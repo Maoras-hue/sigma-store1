@@ -93,7 +93,7 @@
                         <div class="product-price">$${product.price}</div>
                         <p>${product.description || 'No description available.'}</p>
                         <div class="btn-group">
-                            <button class="btn btn-primary" onclick="addToCartAndContinue('${product.id}', '${escapeHtml(product.name)}', ${product.price})">Add to Cart</button>
+                            <button class="btn btn-primary" onclick="addToCart('${product.id}', '${escapeHtml(product.name)}', ${product.price})">Add to Cart</button>
                             <button class="btn btn-secondary" onclick="buyNow('${product.id}', '${escapeHtml(product.name)}', ${product.price})">Buy Now</button>
                         </div>
                         
@@ -123,7 +123,7 @@
         return API_URL + product.image;
     }
     
-    function addToCartAndContinue(id, name, price) {
+    function addToCart(id, name, price) {
         let cart = JSON.parse(localStorage.getItem('sigma_cart') || '[]');
         const existing = cart.find(item => item.id === id);
         if (existing) existing.quantity++;
@@ -134,7 +134,7 @@
     }
     
     function buyNow(id, name, price) {
-        addToCartAndContinue(id, name, price);
+        addToCart(id, name, price);
         window.location.href = 'cart.html';
     }
     
