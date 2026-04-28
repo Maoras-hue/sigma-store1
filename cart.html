@@ -9,23 +9,23 @@
     <style>
         .cart-container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
         .cart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-        .cart-header h1 { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #e05a2a, #ff8c42); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .cart-header h1 { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #2563eb, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .cart-items { background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 1.5rem; border-bottom: 1px solid #eee; flex-wrap: wrap; gap: 1rem; }
         .item-info { flex: 2; min-width: 200px; }
         .item-name { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
-        .item-price { color: #e05a2a; font-weight: 600; }
+        .item-price { color: #2563eb; font-weight: 600; }
         .item-quantity { display: flex; align-items: center; gap: 0.8rem; }
         .qty-btn { width: 32px; height: 32px; border-radius: 50%; border: 1px solid #ddd; background: white; cursor: pointer; }
-        .qty-btn:hover { background: #e05a2a; color: white; }
+        .qty-btn:hover { background: #2563eb; color: white; }
         .item-total { min-width: 100px; text-align: right; font-weight: 700; }
-        .remove-btn { background: none; border: none; color: #e05a2a; cursor: pointer; font-size: 1.2rem; }
+        .remove-btn { background: none; border: none; color: #2563eb; cursor: pointer; font-size: 1.2rem; }
         .cart-summary { background: white; border-radius: 20px; padding: 1.5rem; margin-top: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
         .summary-row { display: flex; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid #eee; }
         .summary-row.total { font-size: 1.3rem; font-weight: 800; border-bottom: none; margin-top: 0.5rem; padding-top: 1rem; border-top: 2px solid #eee; }
         .coupon-section { display: flex; gap: 10px; margin: 15px 0; flex-wrap: wrap; }
         .coupon-section input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-        .coupon-section button { background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+        .coupon-section button { background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; }
         .payment-btn { width: 100%; padding: 1rem; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; margin-bottom: 1rem; }
         .payment-btn.whatsapp { background: #25D366; color: white; }
         .empty-cart { text-align: center; padding: 4rem; }
@@ -51,7 +51,6 @@
         <a href="track.html">track order</a>
         <a href="seller-dashboard.html">sell</a>
         <a href="profile.html">profile</a>
-    </div>
         <a href="login.html" id="authLink">login</a>
     </div>
     <button class="dark-toggle" id="darkToggle">🌙</button>
@@ -80,7 +79,7 @@
     function saveCart(cart) { localStorage.setItem('sigma_cart', JSON.stringify(cart)); updateCartCount(); renderCart(); }
     function updateCartCount() { const cart = getCart(); const total = cart.reduce((s, i) => s + (i.quantity || 1), 0); const badge = document.getElementById('cartCount'); if (badge) badge.innerText = total; }
     
-    function updateQty(id, delta) { let cart = getCart(); let index = cart.findIndex(i => i.id === id); if(index !== -1) { let newQty = cart[index].quantity + delta; if(newQty < 1) { cart.splice(index,1); } else { cart[index].quantity = newQty; } saveCart(cart); renderCart(); } } function updateQtyOld(id, delta) { let cart = getCart(); let index = cart.findIndex(i => i.id === id); if(index !== -1) { let newQty = cart[index].quantity + delta; if(newQty < 1) { cart.splice(index,1); } else { cart[index].quantity = newQty; } saveCart(cart); }
+    function updateQty(id, delta) {
         let cart = getCart();
         const index = cart.findIndex(i => i.id === id);
         if (index !== -1) {
@@ -121,7 +120,7 @@
         const container = document.getElementById('cartContent');
         const { cart, subtotal, discount, finalSubtotal, shipping, total } = await calculateTotals();
         if (cart.length === 0) {
-            container.innerHTML = '<div class="empty-cart"><p>🛒 Your cart is empty</p><a href="index.html" class="continue-shopping" style="display:inline-block; background:#e05a2a; color:white; padding:12px 24px; border-radius:50px; text-decoration:none;">Continue Shopping →</a></div>';
+            container.innerHTML = '<div class="empty-cart"><p>🛒 Your cart is empty</p><a href="index.html" class="continue-shopping" style="display:inline-block; background:#2563eb; color:white; padding:12px 24px; border-radius:50px; text-decoration:none;">Continue Shopping →</a></div>';
             return;
         }
         let itemsHtml = '<div class="cart-items">';
@@ -203,11 +202,14 @@
 </script>
 
 <!-- SINGLE COOKIE BANNER -->
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;">
-    <p style="margin:0;">🍪 We use cookies. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p>
-    <div><button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button><button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div>
 </div>
+
 
 <script src="visitor-track.js"></script>
 </body>
 </html>
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 

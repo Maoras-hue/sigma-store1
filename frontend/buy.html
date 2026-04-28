@@ -10,12 +10,12 @@
         body { font-family: 'Inter', sans-serif; background: #ffffff; color: #1a1a2e; }
         .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
         .header { padding: 20px 0; border-bottom: 1px solid #eee; }
-        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #e05a2a, #ff8c42); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .logo { font-size: 28px; font-weight: 800; background: linear-gradient(135deg, #2563eb, #06b6d4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .hero { text-align: center; padding: 60px 0 40px; }
-        .badge { background: rgba(224,90,42,0.1); color: #e05a2a; padding: 5px 15px; border-radius: 50px; display: inline-block; font-size: 14px; }
+        .badge { background: rgba(224,90,42,0.1); color: #2563eb; padding: 5px 15px; border-radius: 50px; display: inline-block; font-size: 14px; }
         .hero h1 { font-size: 48px; margin: 20px 0; }
-        .hero h1 span { color: #e05a2a; }
-        .price { font-size: 48px; color: #e05a2a; font-weight: 800; margin: 20px 0; }
+        .hero h1 span { color: #2563eb; }
+        .price { font-size: 48px; color: #2563eb; font-weight: 800; margin: 20px 0; }
         .price small { font-size: 16px; color: #666; font-weight: normal; }
         
         .pricing-grid {
@@ -36,12 +36,12 @@
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
         }
         .pricing-card.featured {
-            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
             color: white;
         }
         .pricing-card.featured .btn-primary {
             background: white;
-            color: #e05a2a;
+            color: #2563eb;
         }
         .pricing-card h3 {
             font-size: 28px;
@@ -93,7 +93,7 @@
             box-sizing: border-box;
         }
         .btn-primary {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
         }
         .btn-primary:hover {
@@ -101,12 +101,12 @@
             transform: translateY(-2px);
         }
         .btn-outline {
-            border: 2px solid #e05a2a;
-            color: #e05a2a;
+            border: 2px solid #2563eb;
+            color: #2563eb;
             background: transparent;
         }
         .btn-outline:hover {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
         }
         .payment-section {
@@ -129,7 +129,7 @@
             border-radius: 50px;
         }
         .contact-info a {
-            color: #e05a2a;
+            color: #2563eb;
             text-decoration: none;
         }
         .footer {
@@ -230,7 +230,7 @@
         </div>
 
         <div style="text-align: center; padding: 40px 0;">
-            <a href="https://sigma-store1.vercel.app" target="_blank" style="color: #e05a2a;">View Live Demo</a>
+            <a href="https://sigma-store1.vercel.app" target="_blank" style="color: #2563eb;">View Live Demo</a>
         </div>
 
         <div class="footer">
@@ -241,58 +241,33 @@
 </html>
 `n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 <script src="chat-widget.js?v=2"></script>
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
-    <div> 
-        <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
-        <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button> 
-    </div> 
 </div> 
 <script> 
 function acceptCookies() { 
     localStorage.setItem('cookiesAccepted', 'true'); 
-    document.getElementById('cookieBanner').style.display = 'none'; 
 } 
 function declineCookies() { 
     localStorage.setItem('cookiesAccepted', 'false'); 
-    document.getElementById('cookieBanner').style.display = 'none'; 
 } 
 if (localStorage.getItem('cookiesAccepted') === 'true') { 
-    document.getElementById('cookieBanner').style.display = 'none'; 
 } 
 </script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
-    <div style="display:flex; gap:10px;"> 
-        <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
-        <button id="declineCookiesBtn" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Decline</button> 
-    </div> 
 </div> 
 <script> 
     function acceptCookies() { 
         localStorage.setItem('cookiesAccepted', 'true'); 
-        document.getElementById('cookieBanner').style.display = 'none'; 
     } 
     function declineCookies() { 
         localStorage.setItem('cookiesAccepted', 'false'); 
-        document.getElementById('cookieBanner').style.display = 'none'; 
     } 
     document.getElementById('acceptCookiesBtn').onclick = acceptCookies; 
     document.getElementById('declineCookiesBtn').onclick = declineCookies; 
     if (localStorage.getItem('cookiesAccepted') !== null) { 
-        document.getElementById('cookieBanner').style.display = 'none'; 
     } 
 </script> 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:9999; flex-wrap:wrap;"> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
-    <div style="display:flex; gap:10px;"> 
-        <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
-        <button id="declineCookiesBtn" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Decline</button> 
-    </div> 
 </div> 
 <script> 
     (function() { 
-        var banner = document.getElementById('cookieBanner'); 
         if (!banner) return; 
         if (localStorage.getItem('cookiesAccepted') === 'true') { 
             banner.style.display = 'none'; 
@@ -314,3 +289,13 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
     })(); 
 </script> 
 <script src="visitor-track.js"></script> 
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 

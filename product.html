@@ -12,15 +12,15 @@
         .product-image img { width: 100%; border-radius: 16px; }
         .product-info { flex: 1; }
         .product-name { font-size: 2rem; font-weight: 800; margin-bottom: 1rem; }
-        .product-price { font-size: 2rem; color: #e05a2a; font-weight: 800; margin: 1rem 0; }
+        .product-price { font-size: 2rem; color: #2563eb; font-weight: 800; margin: 1rem 0; }
         .qr-section { text-align: center; margin-top: 2rem; padding: 1rem; background: #f8f9fa; border-radius: 16px; }
         .qr-code { max-width: 200px; margin: 0 auto; }
         .qr-code img { width: 100%; border-radius: 12px; }
         .btn-group { display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap; }
         .btn { padding: 12px 24px; border-radius: 50px; cursor: pointer; font-weight: 600; text-decoration: none; display: inline-block; text-align: center; }
-        .btn-primary { background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; border: none; }
+        .btn-primary { background: linear-gradient(135deg, #2563eb, #06b6d4); color: white; border: none; }
         .btn-secondary { background: #2196f3; color: white; border: none; }
-        .btn-outline { background: transparent; border: 2px solid #e05a2a; color: #e05a2a; }
+        .btn-outline { background: transparent; border: 2px solid #2563eb; color: #2563eb; }
         body.dark .product-detail { background: #1e293b; }
         body.dark .qr-section { background: #0f172a; }
         @media (max-width: 768px) { .product-container { padding: 1rem; } .product-detail { flex-direction: column; } }
@@ -198,9 +198,9 @@
         <div> 
             <span>Bundle Price: </span> 
             <span id="bundleOriginalPrice" style="text-decoration: line-through; color: #888;"></span> 
-            <span id="bundleDiscountedPrice" style="font-size: 1.5rem; color: #e05a2a; font-weight: 800;"></span> 
+            <span id="bundleDiscountedPrice" style="font-size: 1.5rem; color: #2563eb; font-weight: 800;"></span> 
         </div> 
-        <button id="addBundleBtn" style="background: #e05a2a; color: white; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer;">Add Bundle to Cart </button> 
+        <button id="addBundleBtn" style="background: #2563eb; color: white; border: none; padding: 12px 24px; border-radius: 50px; cursor: pointer;">Add Bundle to Cart </button> 
     </div> 
 </div> 
  
@@ -228,7 +228,7 @@ async function loadBundle(productId) {
 <div id="notifySection" style="margin-top: 20px; padding: 15px; background: #f0f0f0; border-radius: 12px; display: none;"> 
     <h4>?? Get notified when price drops</h4> 
     <input type="email" id="notifyEmail" placeholder="Your email address" style="padding: 10px; border-radius: 8px; border: 1px solid #ddd; width: 250px;"> 
-    <button id="notifyMeBtn" style="background: #e05a2a; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-left: 10px;">Notify Me</button> 
+    <button id="notifyMeBtn" style="background: #2563eb; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-left: 10px;">Notify Me</button> 
     <div id="notifyMessage" style="margin-top: 10px; font-size: 14px;"></div> 
 </div> 
  
@@ -255,3 +255,13 @@ document.getElementById('notifyMeBtn')?.addEventListener('click', async () => {
     document.getElementById('notifyEmail').value = ''; 
 }); 
 showNotifySection(); 
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 

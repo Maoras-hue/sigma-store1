@@ -21,7 +21,7 @@
         .signup-header h1 {
             font-size: 2rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -66,13 +66,13 @@
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #e05a2a;
+            border-color: #2563eb;
             box-shadow: 0 0 0 3px rgba(224,90,42,0.1);
         }
         
         .submit-btn {
             width: 100%;
-            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
             color: white;
             border: none;
             padding: 14px;
@@ -104,7 +104,7 @@
         
         .message.error {
             background: #ffebee;
-            color: #e05a2a;
+            color: #2563eb;
             display: block;
         }
         
@@ -332,7 +332,7 @@
                 <div class="login-prompt">
                     <h3>?? Please Login</h3>
                     <p>You need to be logged in to apply as a seller.</p>
-                    <a href="login.html" class="action-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #e05a2a, #ff8c42); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Login Now ?</a>
+                    <a href="login.html" class="action-btn" style="margin-top: 1rem; display: inline-block; background: linear-gradient(135deg, #2563eb, #06b6d4); color: white; padding: 12px 24px; border-radius: 50px; text-decoration: none;">Login Now ?</a>
                 </div>
             `;
             return;
@@ -408,10 +408,20 @@
 </html>
 `n<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 <script src="chat-widget.js?v=2"></script>
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:15px; display:flex; justify-content:space-between; align-items:center; z-index:999; flex-wrap:wrap;"> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
+</div> 
+<script> 
+function acceptCookies() { 
+    localStorage.setItem('cookiesAccepted', 'true'); 
+} 
+function declineCookies() { 
+    localStorage.setItem('cookiesAccepted', 'false'); 
+} 
+if (localStorage.getItem('cookiesAccepted') === 'true') { 
+} 
+</script> 
+    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#2563eb;">Privacy Policy</a>.</p> 
     <div> 
-        <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+        <button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
         <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button> 
     </div> 
 </div> 
@@ -425,25 +435,9 @@ function declineCookies() {
 if (localStorage.getItem('cookiesAccepted') === 'true') { 
 } 
 </script> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
-    <div> 
-        <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
-        <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button> 
-    </div> 
-</div> 
-<script> 
-function acceptCookies() { 
-    localStorage.setItem('cookiesAccepted', 'true'); 
-} 
-function declineCookies() { 
-    localStorage.setItem('cookiesAccepted', 'false'); 
-} 
-if (localStorage.getItem('cookiesAccepted') === 'true') { 
-} 
-</script> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
+    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#2563eb;">Privacy Policy</a>.</p> 
     <div style="display:flex; gap:10px;"> 
-        <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+        <button id="acceptCookiesBtn" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
         <button id="declineCookiesBtn" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Decline</button> 
     </div> 
 </div> 
@@ -459,9 +453,9 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
     if (localStorage.getItem('cookiesAccepted') !== null) { 
     } 
 </script> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
+    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#2563eb;">Privacy Policy</a>.</p> 
     <div style="display:flex; gap:10px;"> 
-        <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+        <button id="acceptCookiesBtn" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
         <button id="declineCookiesBtn" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Decline</button> 
     </div> 
 </div> 
@@ -477,9 +471,9 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
     if (localStorage.getItem('cookiesAccepted') !== null) { 
     } 
 </script> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
+    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#2563eb;">Privacy Policy</a>.</p> 
     <div style="display:flex; gap:10px;"> 
-        <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+        <button id="acceptCookiesBtn" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
         <button id="declineCookiesBtn" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Decline</button> 
     </div> 
 </div> 
@@ -505,9 +499,9 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
         } 
     })(); 
 </script> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
+    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#2563eb;">Privacy Policy</a>.</p> 
     <div style="display:flex; gap:10px;"> 
-        <button id="acceptCookiesBtn" style="background:#e05a2a; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+        <button id="acceptCookiesBtn" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
         <button id="declineCookiesBtn" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Decline</button> 
     </div> 
 </div> 
@@ -533,5 +527,15 @@ if (localStorage.getItem('cookiesAccepted') === 'true') {
         } 
     })(); 
 </script> 
-    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p> 
+    <p style="margin:0;">?? We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#2563eb;">Privacy Policy</a>.</p> 
     <div st<script src="visitor-track.js"></script> 
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 

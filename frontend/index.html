@@ -51,7 +51,7 @@
             font-size: 1.6rem;
             font-weight: 800;
             text-decoration: none;
-            background: linear-gradient(135deg, #e05a2a, #ff8c42);
+            background: linear-gradient(135deg, #2563eb, #06b6d4);
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
@@ -72,7 +72,7 @@
         }
 
         .nav a:hover {
-            color: #e05a2a;
+            color: #2563eb;
         }
 
         body.dark .nav a {
@@ -90,7 +90,7 @@
         }
 
         .cart-btn:hover, .dark-toggle:hover {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
         }
 
@@ -106,7 +106,7 @@
         }
 
         .hero {
-            background: linear-gradient(135deg, #1e1b4b, #312e81, #e05a2a);
+            background: linear-gradient(135deg, #1e1b4b, #312e81, #2563eb);
             color: white;
             text-align: center;
             padding: 4rem 2rem;
@@ -134,7 +134,7 @@
         }
 
         .btn-primary {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
             padding: 12px 28px;
             border-radius: 9999px;
@@ -163,7 +163,7 @@
 
         .btn-secondary:hover {
             background: white;
-            color: #e05a2a;
+            color: #2563eb;
         }
 
         .search-bar {
@@ -181,7 +181,7 @@
 
         .search-input:focus {
             outline: none;
-            border-color: #e05a2a;
+            border-color: #2563eb;
             box-shadow: 0 0 0 3px rgba(224, 90, 42, 0.1);
         }
 
@@ -209,12 +209,12 @@
         }
 
         .filter-btn:hover {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
         }
 
         .filter-btn.active {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
         }
 
@@ -274,7 +274,7 @@
         }
 
         .filter-btn-sm {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
             border: none;
             padding: 8px 18px;
@@ -298,7 +298,7 @@
         }
 
         .rating-opt.active-rating {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
         }
 
@@ -370,7 +370,7 @@
         }
 
         .product-price {
-            color: #e05a2a;
+            color: #2563eb;
             font-weight: 800;
             font-size: 1.2rem;
             margin: 0.5rem 0;
@@ -396,7 +396,7 @@
         }
 
         .add-to-cart-btn:hover {
-            background: #e05a2a;
+            background: #2563eb;
         }
 
         .recent-sidebar {
@@ -462,7 +462,7 @@
         }
 
         .recent-item-price {
-            color: #e05a2a;
+            color: #2563eb;
             font-weight: 700;
             font-size: 0.75rem;
         }
@@ -484,12 +484,12 @@
         }
 
         .pagination button:hover {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
         }
 
         .pagination button.active-page {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
             border: none;
         }
@@ -515,11 +515,11 @@
         .about-block h2 {
             font-size: 1.5rem;
             margin-bottom: 1rem;
-            color: #e05a2a;
+            color: #2563eb;
         }
 
         .testimonial {
-            border-left: 3px solid #e05a2a;
+            border-left: 3px solid #2563eb;
             padding: 0.8rem 1.2rem;
             margin: 1rem auto;
             max-width: 450px;
@@ -565,7 +565,7 @@
         }
 
         .newsletter-form button {
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
             border: none;
             padding: 10px 24px;
@@ -575,7 +575,7 @@
         }
 
         .newsletter-form button:hover {
-            background: #ff8c42;
+            background: #06b6d4;
         }
 
         footer {
@@ -608,7 +608,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            background: #e05a2a;
+            background: #2563eb;
             color: white;
             padding: 10px 18px;
             border-radius: 9999px;
@@ -990,7 +990,7 @@
             
             var badges = '';
             if (p.is_new === 1) badges += '<span style="background:#4caf50; color:white; padding:2px 8px; border-radius:20px; font-size:10px; margin-right:5px;">NEW</span>';
-            if (p.is_sale === 1 && p.sale_price) badges += '<span style="background:#e05a2a; color:white; padding:2px 8px; border-radius:20px; font-size:10px; margin-right:5px;">SALE</span>';
+            if (p.is_sale === 1 && p.sale_price) badges += '<span style="background:#2563eb; color:white; padding:2px 8px; border-radius:20px; font-size:10px; margin-right:5px;">SALE</span>';
             if (p.is_bestseller === 1) badges += '<span style="background:#ffc107; color:#333; padding:2px 8px; border-radius:20px; font-size:10px;">BESTSELLER</span>';
             
             var priceHtml = '<div class="product-price">$' + finalPrice;
@@ -1160,10 +1160,10 @@
                         msgDiv.innerHTML = '<span style="color:#4caf50;">Subscribed successfully</span>';
                         document.getElementById('newsletterEmail').value = '';
                     } else {
-                        msgDiv.innerHTML = '<span style="color:#e05a2a;">' + (data.error || 'Subscription failed') + '</span>';
+                        msgDiv.innerHTML = '<span style="color:#2563eb;">' + (data.error || 'Subscription failed') + '</span>';
                     }
                 } catch (e) {
-                    msgDiv.innerHTML = '<span style="color:#e05a2a;">Error connecting to server</span>';
+                    msgDiv.innerHTML = '<span style="color:#2563eb;">Error connecting to server</span>';
                 }
             });
         }
@@ -1204,19 +1204,20 @@
     });
 </script>
 
-<div id="cookieBanner" style="position:fixed; bottom:0; left:0; right:0; background:#111; color:white; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; z-index:9999; flex-wrap:wrap; font-size:13px;">
-    <p style="margin:0;">We use cookies to improve your experience. By using our site, you accept our <a href="privacy.html" style="color:#e05a2a;">Privacy Policy</a>.</p>
-    <div style="display:flex; gap:10px;">
-        <button onclick="acceptCookies()" style="background:#e05a2a; color:white; border:none; padding:6px 16px; border-radius:9999px; cursor:pointer;">Accept</button>
-        <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:6px 16px; border-radius:9999px; cursor:pointer;">Decline</button>
-    </div>
 </div>
 <script>
-function acceptCookies() { localStorage.setItem('cookiesAccepted', 'true'); document.getElementById('cookieBanner').style.display = 'none'; }
-function declineCookies() { localStorage.setItem('cookiesAccepted', 'false'); document.getElementById('cookieBanner').style.display = 'none'; }
-if (localStorage.getItem('cookiesAccepted') === 'true') { document.getElementById('cookieBanner').style.display = 'none'; }
 </script>
 
 <script src="visitor-track.js"></script>
 </body>
 </html>
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 

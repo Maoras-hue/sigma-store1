@@ -7,31 +7,31 @@
     <style>
         *{margin:0;padding:0;box-sizing:border-box;}
         body{font-family:Arial,sans-serif;background:#f5f5f5;}
-        .header{background:#e05a2a;color:white;padding:15px 20px;display:flex;justify-content:space-between;align-items:center;}
+        .header{background:#2563eb;color:white;padding:15px 20px;display:flex;justify-content:space-between;align-items:center;}
         .container{display:flex;height:calc(100vh - 60px);}
         .users-list{width:320px;background:white;border-right:1px solid #ddd;overflow-y:auto;}
         .user-item{padding:15px;border-bottom:1px solid #eee;cursor:pointer;}
         .user-item:hover{background:#f8f9fa;}
-        .user-item.active{background:#fff3e0;border-left:3px solid #e05a2a;}
+        .user-item.active{background:#fff3e0;border-left:3px solid #2563eb;}
         .user-name{font-weight:bold;margin-bottom:5px;}
         .user-last{font-size:12px;color:#888;}
         .chat-area{flex:1;display:flex;flex-direction:column;background:white;}
         .chat-header{padding:15px;border-bottom:1px solid #ddd;background:#f8f9fa;}
         .chat-messages{flex:1;padding:15px;overflow-y:auto;}
         .message{margin-bottom:10px;padding:10px 14px;border-radius:10px;max-width:70%;word-wrap:break-word;}
-        .message.customer{background:#e05a2a;color:white;margin-left:auto;text-align:right;}
+        .message.customer{background:#2563eb;color:white;margin-left:auto;text-align:right;}
         .message.admin{background:#e9ecef;color:#333;}
         .chat-input-area{display:flex;padding:15px;border-top:1px solid #ddd;}
         .chat-input-area input{flex:1;padding:12px;border:1px solid #ddd;border-radius:8px;outline:none;}
-        .chat-input-area button{margin-left:10px;padding:12px 24px;background:#e05a2a;color:white;border:none;border-radius:8px;cursor:pointer;}
+        .chat-input-area button{margin-left:10px;padding:12px 24px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;}
         .login-container{display:flex;justify-content:center;align-items:center;height:100vh;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);}
         .login-box{background:white;padding:30px;border-radius:16px;width:320px;text-align:center;}
-        .login-box h2{margin-bottom:20px;color:#e05a2a;}
+        .login-box h2{margin-bottom:20px;color:#2563eb;}
         .login-box input{width:100%;padding:12px;margin:10px 0;border:1px solid #ddd;border-radius:8px;}
-        .login-box button{width:100%;padding:12px;background:#e05a2a;color:white;border:none;border-radius:8px;cursor:pointer;}
+        .login-box button{width:100%;padding:12px;background:#2563eb;color:white;border:none;border-radius:8px;cursor:pointer;}
         .error{color:red;margin-top:10px;}
         .no-users{padding:15px;text-align:center;color:#888;}
-        .refresh-btn{background:#e05a2a;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;}
+        .refresh-btn{background:#2563eb;color:white;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;}
         .auto-refresh-status{font-size:12px;color:#4caf50;margin-left:10px;}
     </style>
 </head>
@@ -50,7 +50,7 @@
             <h2>Support Chat Panel <span id="autoStatus" class="auto-refresh-status">(Auto-refresh ON)</span></h2>
             <div>
                 <button class="refresh-btn" onclick="loadUsers()">Refresh</button>
-                <button onclick="logout()" style="background:white;color:#e05a2a;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;margin-left:10px;">Logout</button>
+                <button onclick="logout()" style="background:white;color:#2563eb;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;margin-left:10px;">Logout</button>
             </div>
         </div>
         <div class="container">
@@ -258,3 +258,13 @@
     </script>
 </body>
 </html>
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 
+    <div><button onclick="acceptCookies()" style="background:#2563eb; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer;">Accept</button> 
+    <button onclick="declineCookies()" style="background:#444; color:white; border:none; padding:8px 20px; border-radius:5px; cursor:pointer; margin-left:10px;">Decline</button></div> 
+</div> 
+<script> 
+</script> 
