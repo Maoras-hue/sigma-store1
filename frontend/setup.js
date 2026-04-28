@@ -31,4 +31,4 @@ async function setup() {
     process.exit(0);
 }
 
-setup().catch(console.error);
+setup().catch(err => { showToast("Something went wrong", "error"); console.error(err); });

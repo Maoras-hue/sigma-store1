@@ -1,7 +1,4 @@
-// ============================================
 // SIGMA STORE - MAIN FRONTEND SCRIPT
-// ============================================
-
 let products = [];
 let currentFilter = 'all';
 let searchTerm = '';
@@ -16,24 +13,22 @@ let allFilteredProducts = [];
 
 const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
 
-// ============================================
 // LOAD PRODUCTS FROM BACKEND
-// ============================================
 async function loadProducts() {
     const grid = document.getElementById('productsGrid');
     if (grid) grid.innerHTML = '<div class="spinner"></div>';
     
     try {
         const response = await fetch(`${API_URL}/api/products`);
-        if (!response.ok) throw new Error('Failed to fetch products');
+        if (!response.ok) throw new Error('Unable to load products. Please check your connection.');
         products = await response.json();
-        console.log('Products loaded:', products.length);
+        console.log('? Products loaded successfully'), products.length);
         
         await loadProductRatings();
         applyFiltersAndSort();
         renderRecentlyViewed();
     } catch (error) {
-        console.error('Error loading products:', error);
+        console.error('? Failed to load products:', error);
         if (grid) grid.innerHTML = '<p style="text-align:center; padding:40px;">❌ Cannot load products. Please try again later.</p>';
     }
 }
@@ -43,7 +38,7 @@ async function loadProductRatings() {
     for (let i = 0; i < products.length; i++) {
         try {
             const response = await fetch(`${API_URL}/api/products/${products[i].id}/rating`);
-            const data = await response.json();
+            const responseData = await response.json();
             productRatings[products[i].id] = data.averageRating || 0;
         } catch(e) {
             productRatings[products[i].id] = 0;
@@ -98,9 +93,7 @@ function renderProductsWithPagination() {
     renderPagination();
 }
 
-// ============================================
 // UPDATED RENDER PRODUCT GRID WITH BADGES & SALE PRICE
-// ============================================
 function renderProductGrid(productsToRender) {
     const grid = document.getElementById('productsGrid');
     if (!grid) return;
@@ -237,9 +230,7 @@ function showToast(message, type = 'success') {
     setTimeout(() => toast.remove(), 3000);
 }
 
-// ============================================
 // CART FUNCTIONS
-// ============================================
 function getCart() {
     return JSON.parse(localStorage.getItem('sigma_cart') || '[]');
 }
@@ -256,7 +247,7 @@ function updateCartCount() {
     if (badge) badge.innerText = total;
 }
 
-function addToCart(id, name, price) {
+function addToCart(productId, productName, productPrice) {
     const product = products.find(p => p.id === id);
     const stock = product?.stock || 999;
     
@@ -266,7 +257,7 @@ function addToCart(id, name, price) {
     }
     
     const cart = getCart();
-    const existing = cart.find(item => item.id === id);
+    const existing = cart.find(cartItem => cartItem.productId === id);
     if (existing) {
         existing.quantity++;
     } else {
@@ -287,7 +278,7 @@ function buyNow(id, name, price) {
     }
     
     const cart = getCart();
-    const existing = cart.find(item => item.id === id);
+    const existing = cart.find(cartItem => cartItem.productId === id);
     if (existing) {
         existing.quantity++;
     } else {
@@ -305,9 +296,7 @@ function pulseCart() {
     }
 }
 
-// ============================================
 // WISHLIST FUNCTIONS
-// ============================================
 function getWishlist() {
     return JSON.parse(localStorage.getItem('sigma_wishlist') || '[]');
 }
@@ -333,9 +322,7 @@ function isInWishlist(productId) {
     return getWishlist().includes(productId);
 }
 
-// ============================================
 // RECENTLY VIEWED FUNCTIONS
-// ============================================
 function getRecentlyViewed() {
     return JSON.parse(localStorage.getItem('sigma_recently_viewed') || '[]');
 }
@@ -375,9 +362,7 @@ function renderRecentlyViewed() {
     }).join('');
 }
 
-// ============================================
 // PRODUCT IMAGE HELPER
-// ============================================
 function getProductImage(p){if(!p.image)return "https://placehold.co/400x300/1e293b/white?text="+encodeURIComponent(p.name);if(p.image.startsWith("http"))return p.image;return API_URL+p.image;}`;
     }
     if (product.image.startsWith('http')) {
@@ -399,9 +384,7 @@ function escapeHtml(str) {
     });
 }
 
-// ============================================
 // SEARCH AUTOCOMPLETE
-// ============================================
 let searchTimeout = null;
 const autocompleteList = document.getElementById('autocomplete-list');
 
@@ -450,9 +433,7 @@ document.addEventListener('click', function(e) {
     }
 });
 
-// ============================================
 // QUICK VIEW MODAL
-// ============================================
 async function showQuickView(productId) {
     try {
         const response = await fetch(`${API_URL}/api/products/${productId}`);
@@ -506,7 +487,7 @@ async function showQuickView(productId) {
         modal.style.display = 'flex';
     } catch (error) {
         console.error('Quick view error:', error);
-        alert('Failed to load product details');
+        alert('Unable to load data. Please refresh the page. product details');
     }
 }
 
@@ -519,9 +500,7 @@ document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') closeQuickView();
 });
 
-// ============================================
 // SETUP EVENT LISTENERS
-// ============================================
 function setupEventListeners() {
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
@@ -629,9 +608,7 @@ function setupEventListeners() {
     }
 }
 
-// ============================================
 // AUTO-REFRESH PRODUCTS
-// ============================================
 let lastUpdateCheck = Date.now();
 let autoRefreshInterval = null;
 
@@ -652,7 +629,7 @@ async function refreshProductsFromServer() {
 async function checkForAdminUpdates() {
     try {
         const response = await fetch(`${API_URL}/api/last-product-update`);
-        const data = await response.json();
+        const responseData = await response.json();
         if (data.lastUpdate > lastUpdateCheck) {
             lastUpdateCheck = data.lastUpdate;
             await refreshProductsFromServer();
@@ -673,9 +650,7 @@ document.addEventListener('visibilitychange', function() {
 
 startAutoRefresh();
 
-// ============================================
 // INITIALIZE ON PAGE LOAD
-// ============================================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOM loaded - initializing Sigma Store');
     setupEventListeners();

@@ -26,14 +26,10 @@ if (!fs.existsSync('uploads')) {
 // Sessions storage
 const sessions = {};
 
-// ============================================
 // CONNECT TO DATABASE
-// ============================================
 connectDB();
 
-// ============================================
 // HELPER FUNCTIONS
-// ============================================
 function getUserFromToken(token) {
     if (!token || !sessions[token]) return null;
     if (sessions[token].expires < Date.now()) {
@@ -43,9 +39,7 @@ function getUserFromToken(token) {
     return sessions[token];
 }
 
-// ============================================
 // TEST ROUTE
-// ============================================
 app.get('/api/test', (req, res) => {
     res.json({ 
         message: `Backend is working with ${DB_TYPE === 'mysql' ? 'MySQL' : 'SQLite'}!`,
@@ -54,10 +48,7 @@ app.get('/api/test', (req, res) => {
     });
 });
 
-// ============================================
 // AUTH ROUTES
-// ============================================
-
 app.post('/api/signup', async (req, res) => {
     try {
         const { email, password, name, remember } = req.body;
@@ -96,7 +87,7 @@ app.post('/api/signup', async (req, res) => {
         });
     } catch (error) {
         console.error('Signup error:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -133,7 +124,7 @@ app.post('/api/login', async (req, res) => {
         });
     } catch (error) {
         console.error('Login error:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -162,17 +153,14 @@ app.get('/api/me', async (req, res) => {
     res.json({ user: { id: user.id, email: user.email, name: user.name } });
 });
 
-// ============================================
 // PRODUCT ROUTES
-// ============================================
-
 app.get('/api/products', async (req, res) => {
     try {
         const products = await findAll('products');
         res.json(products);
     } catch (error) {
         console.error('Error fetching products:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -215,7 +203,7 @@ app.post('/api/products', upload.single('image'), async (req, res) => {
         res.json({ success: true, product: { id: productId, name, price, category, image } });
     } catch (error) {
         console.error('Error adding product:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -225,14 +213,11 @@ app.delete('/api/products/:id', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting product:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
-// ============================================
 // SELLER ROUTES
-// ============================================
-
 app.post('/api/seller/apply', async (req, res) => {
     try {
         const token = req.headers.authorization;
@@ -270,7 +255,7 @@ app.post('/api/seller/apply', async (req, res) => {
         res.json({ success: true, seller: { id: sellerId, storeName, status: 'pending' } });
     } catch (error) {
         console.error('Error applying as seller:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -302,7 +287,7 @@ app.get('/api/seller/dashboard', async (req, res) => {
         });
     } catch (error) {
         console.error('Error fetching seller dashboard:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -325,7 +310,7 @@ app.get('/api/seller/products', async (req, res) => {
         res.json({ products });
     } catch (error) {
         console.error('Error fetching seller products:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -366,7 +351,7 @@ app.post('/api/seller/products', upload.single('image'), async (req, res) => {
         res.json({ success: true, product: { id: productId, name, price } });
     } catch (error) {
         console.error('Error adding seller product:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -389,14 +374,11 @@ app.delete('/api/seller/products/:id', async (req, res) => {
         res.json({ success: true });
     } catch (error) {
         console.error('Error deleting seller product:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
-// ============================================
 // ORDER ROUTES
-// ============================================
-
 app.post('/api/orders', async (req, res) => {
     try {
         const token = req.headers.authorization;
@@ -430,7 +412,7 @@ app.post('/api/orders', async (req, res) => {
         res.json({ success: true, order: { orderId, total } });
     } catch (error) {
         console.error('Error creating order:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -449,7 +431,7 @@ app.get('/api/orders/:orderId', async (req, res) => {
         res.json({ order });
     } catch (error) {
         console.error('Error fetching order:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -473,14 +455,11 @@ app.get('/api/myorders', async (req, res) => {
         res.json({ orders });
     } catch (error) {
         console.error('Error fetching user orders:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
-// ============================================
 // ADMIN ROUTES
-// ============================================
-
 app.post('/api/admin/login', (req, res) => {
     const { password } = req.body;
     if (password === ADMIN_PASSWORD) {
@@ -495,7 +474,7 @@ app.get('/api/admin/sellers/pending', async (req, res) => {
         const sellers = await findAll('sellers', 'status', 'pending');
         res.json({ sellers });
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -504,7 +483,7 @@ app.get('/api/admin/sellers/all', async (req, res) => {
         const sellers = await findAll('sellers');
         res.json({ sellers });
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -513,7 +492,7 @@ app.post('/api/admin/sellers/:sellerId/approve', async (req, res) => {
         await updateOne('sellers', req.params.sellerId, 'id', { status: 'approved' });
         res.json({ success: true });
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -522,7 +501,7 @@ app.post('/api/admin/sellers/:sellerId/reject', async (req, res) => {
         await updateOne('sellers', req.params.sellerId, 'id', { status: 'rejected' });
         res.json({ success: true });
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
@@ -536,14 +515,11 @@ app.get('/api/admin/orders', async (req, res) => {
         }
         res.json({ orders });
     } catch (error) {
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: 'Something went wrong on our end. Please try again later.' });
     }
 });
 
-// ============================================
 // MIGRATION ROUTE
-// ============================================
-
 app.post('/api/migrate-products', async (req, res) => {
     try {
         const productsFile = path.join(__dirname, 'products.json');
@@ -576,10 +552,7 @@ app.post('/api/migrate-products', async (req, res) => {
     }
 });
 
-// ============================================
 // DEMO PRODUCTS ROUTE (Add sample products)
-// ============================================
-
 app.post('/api/add-demo-products', async (req, res) => {
     try {
         const demoProducts = [
@@ -608,10 +581,7 @@ app.post('/api/add-demo-products', async (req, res) => {
 // Serve admin files
 app.use(express.static('admin'));
 
-// ============================================
 // START SERVER
-// ============================================
-
 app.listen(PORT, () => {
     console.log(`
 ╔══════════════════════════════════════════════════════════════╗

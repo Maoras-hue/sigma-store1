@@ -1,17 +1,13 @@
 const fs = require('fs');
 const path = require('path');
 
-// ============================================
 // DATABASE TYPE - Change to 'mysql' if needed
-// ============================================
 const DB_TYPE = process.env.DB_TYPE || 'sqlite'; // 'sqlite' or 'mysql'
 
 let pool = null;
 let db = null;
 
-// ============================================
 // SQLITE DATABASE (Default - No installation needed)
-// ============================================
 if (DB_TYPE === 'sqlite') {
     const sqlite3 = require('sqlite3').verbose();
     const dbPath = path.join(__dirname, '..', 'sigma_store.db');
@@ -95,9 +91,7 @@ if (DB_TYPE === 'sqlite') {
     });
 }
 
-// ============================================
 // MYSQL DATABASE (Optional - for production)
-// ============================================
 if (DB_TYPE === 'mysql') {
     const mysql = require('mysql2/promise');
     
@@ -114,9 +108,7 @@ if (DB_TYPE === 'mysql') {
     console.log('✅ MySQL connection pool ready');
 }
 
-// ============================================
 // CONNECT DATABASE FUNCTION
-// ============================================
 async function connectDB() {
     if (DB_TYPE === 'sqlite') {
         return db;
@@ -136,9 +128,7 @@ async function connectDB() {
     }
 }
 
-// ============================================
 // EXECUTE QUERY FUNCTION
-// ============================================
 async function executeQuery(sql, params = []) {
     if (DB_TYPE === 'sqlite') {
         return new Promise((resolve, reject) => {
@@ -155,9 +145,7 @@ async function executeQuery(sql, params = []) {
     }
 }
 
-// ============================================
 // INSERT ONE RECORD
-// ============================================
 async function insertOne(table, data) {
     const keys = Object.keys(data);
     const placeholders = keys.map(() => '?').join(',');
@@ -166,9 +154,7 @@ async function insertOne(table, data) {
     return executeQuery(sql, values);
 }
 
-// ============================================
 // INSERT MANY RECORDS
-// ============================================
 async function insertMany(table, dataArray) {
     if (!dataArray || dataArray.length === 0) return [];
     const keys = Object.keys(dataArray[0]);
@@ -182,17 +168,13 @@ async function insertMany(table, dataArray) {
     return dataArray;
 }
 
-// ============================================
 // FIND ONE RECORD
-// ============================================
 async function findOne(table, field, value) {
     const results = await executeQuery(`SELECT * FROM ${table} WHERE ${field} = ? LIMIT 1`, [value]);
     return results[0] || null;
 }
 
-// ============================================
 // FIND ALL RECORDS
-// ============================================
 async function findAll(table, field = null, value = null) {
     if (field && value !== null) {
         return executeQuery(`SELECT * FROM ${table} WHERE ${field} = ? ORDER BY created_at DESC`, [value]);
@@ -200,9 +182,7 @@ async function findAll(table, field = null, value = null) {
     return executeQuery(`SELECT * FROM ${table} ORDER BY created_at DESC`);
 }
 
-// ============================================
 // FIND WITH PAGINATION
-// ============================================
 async function findPaginated(table, page = 1, limit = 10, field = null, value = null) {
     const offset = (page - 1) * limit;
     let sql = `SELECT * FROM ${table}`;
@@ -223,9 +203,7 @@ async function findPaginated(table, page = 1, limit = 10, field = null, value = 
     return { data: results, total, page, totalPages: Math.ceil(total / limit) };
 }
 
-// ============================================
 // UPDATE ONE RECORD
-// ============================================
 async function updateOne(table, id, idField, data) {
     const keys = Object.keys(data);
     const setClause = keys.map(key => `${key} = ?`).join(',');
@@ -234,25 +212,19 @@ async function updateOne(table, id, idField, data) {
     return executeQuery(sql, values);
 }
 
-// ============================================
 // DELETE ONE RECORD
-// ============================================
 async function deleteOne(table, field, value) {
     return executeQuery(`DELETE FROM ${table} WHERE ${field} = ?`, [value]);
 }
 
-// ============================================
 // DELETE MANY RECORDS
-// ============================================
 async function deleteMany(table, field, values) {
     if (!values || values.length === 0) return [];
     const placeholders = values.map(() => '?').join(',');
     return executeQuery(`DELETE FROM ${table} WHERE ${field} IN (${placeholders})`, values);
 }
 
-// ============================================
 // COUNT RECORDS
-// ============================================
 async function countRecords(table, field = null, value = null) {
     let sql = `SELECT COUNT(*) as count FROM ${table}`;
     let params = [];
@@ -266,9 +238,7 @@ async function countRecords(table, field = null, value = null) {
     return result[0]?.count || 0;
 }
 
-// ============================================
 // SEARCH PRODUCTS
-// ============================================
 async function searchProducts(searchTerm, category = null) {
     let sql = `SELECT * FROM products WHERE name LIKE ? OR description LIKE ?`;
     let params = [`%${searchTerm}%`, `%${searchTerm}%`];
@@ -282,9 +252,7 @@ async function searchProducts(searchTerm, category = null) {
     return executeQuery(sql, params);
 }
 
-// ============================================
 // GET USER ORDERS WITH DETAILS
-// ============================================
 async function getUserOrders(userId) {
     const orders = await executeQuery(`SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC`, [userId]);
     
@@ -301,16 +269,12 @@ async function getUserOrders(userId) {
     return orders;
 }
 
-// ============================================
 // UPDATE ORDER STATUS
-// ============================================
 async function updateOrderStatus(orderId, status) {
     return executeQuery(`UPDATE orders SET status = ? WHERE order_id = ?`, [status, orderId]);
 }
 
-// ============================================
 // GET PRODUCT WITH REVIEWS
-// ============================================
 async function getProductWithReviews(productId) {
     const product = await findOne('products', 'id', productId);
     if (!product) return null;
@@ -325,9 +289,7 @@ async function getProductWithReviews(productId) {
     return product;
 }
 
-// ============================================
 // GET SELLER STATS
-// ============================================
 async function getSellerStats(sellerId) {
     const products = await findAll('products', 'seller_id', sellerId);
     const orders = await executeQuery(`SELECT * FROM orders WHERE items LIKE ?`, [`%${sellerId}%`]);
@@ -345,9 +307,7 @@ async function getSellerStats(sellerId) {
     };
 }
 
-// ============================================
 // EXPORT ALL FUNCTIONS
-// ============================================
 module.exports = { 
     connectDB, 
     executeQuery, 

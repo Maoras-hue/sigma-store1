@@ -1,7 +1,4 @@
-// ============================================
 // SIGMA STORE - GLOBAL CONFIGURATION
-// ============================================
-
 window.BACKEND_URL = 'https://sigma-store-api.onrender.com';
 
 window.STORE_CONFIG = {

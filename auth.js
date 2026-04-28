@@ -1,4 +1,3 @@
-// Simple Authentication Module
 const API_URL = window.BACKEND_URL || 'https://sigma-store-api.onrender.com';
 
 function getAuthToken() {

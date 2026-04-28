@@ -38,10 +38,7 @@ function updateCartCount() {
     if (badge) badge.innerText = total;
 }
 
-// ============================================
 // AUTH FUNCTIONS
-// ============================================
-
 function isLoggedIn() {
     var token = localStorage.getItem('sigma_token');
     var expiry = localStorage.getItem('sigma_token_expiry');
@@ -56,10 +53,7 @@ function isLoggedIn() {
     return true;
 }
 
-// ============================================
 // AUTH FUNCTIONS - FIXED
-// ============================================
-
 function getAuthToken() {
     // Try multiple possible token locations
     var token = localStorage.getItem('sigma_token');
@@ -105,10 +99,7 @@ function logoutAndRedirect() {
     window.location.href = 'index.html';
 }
 
-// ============================================
 // UPDATE AUTH BUTTON - FIXED VERSION
-// ============================================
-
 async function updateAuthButton() {
     var authLink = document.getElementById('authLink');
     if (!authLink) return;
@@ -199,10 +190,7 @@ async function updateAuthButton() {
     }
 }
 
-// ============================================
 // DARK MODE
-// ============================================
-
 function initDarkMode() {
     var toggle = document.getElementById('darkToggle');
     if (!toggle) return;
@@ -219,10 +207,7 @@ function initDarkMode() {
     };
 }
 
-// ============================================
 // SCROLL EFFECT
-// ============================================
-
 function initScrollEffect() {
     var header = document.querySelector('.header');
     if (!header) return;
@@ -236,10 +221,7 @@ function initScrollEffect() {
     });
 }
 
-// ============================================
 // INITIALIZE ALL
-// ============================================
-
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Navbar initializing...');
     updateCartCount();
@@ -249,10 +231,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Navbar initialized');
 });
 
-// ============================================
 // EXPORT FUNCTIONS FOR GLOBAL USE
-// ============================================
-
 window.updateCartCount = updateCartCount;
 window.isLoggedIn = isLoggedIn;
 window.getAuthToken = getAuthToken;

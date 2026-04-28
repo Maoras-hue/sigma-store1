@@ -50,7 +50,7 @@
     async function loadChatHistory() {
         try {
             const response = await fetch(API_URL + '/api/chat/history/' + getUserId());
-            const data = await response.json();
+            const responseData = await response.json();
             const container = document.getElementById('chat_messages_container');
             
             if (container) {
